@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Services\FirmaXmlGenerator;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+
 
 class GenerarXmlFirmados extends Command
 {
@@ -26,23 +28,35 @@ class GenerarXmlFirmados extends Command
      */
     public function handle()
     {
-        $carpeta = getenv('USERPROFILE') . '/facturas';
+        $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
+        $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
+
+
         $signer = new FirmaXmlGenerator();
 
-        foreach(glob($carpeta . '\facturas_*.xml') as $archivo) {
+        foreach (glob($carpetaOrigen . '\facturas_*.xml') as $archivo) {
             $xmlContent = file_get_contents($archivo);
             $xmlFirmado = $signer->firmaXml($xmlContent);
 
-            $firmadoPath = $carpeta . '\facturasFirmadas';
+            $firmadoPath = $carpetaDestino . '\firmado_' . basename($archivo);
             file_put_contents($firmadoPath, $xmlFirmado);
+            $this->info("El Xml fue firmado");
 
-            $firmadoPath = $carpeta . '\firmado_' . basename($archivo);
-            $this->info("El Xml fue firmado en ");
+            $nombre = basename($archivo, '.xml');
+            $numSerie = str_replace('facturas_', '', $nombre);
 
+            $firmaExiste = DB::table('facturas_firmadas')->where('num_serie_factura', $numSerie)->exists();
 
+            if (!$firmaExiste) {
+                DB::table('facturas_firmadas')->insert([
+                    'num_serie_factura' => $numSerie,
+                    'xml_firmado' => $xmlFirmado,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
 
         $this->info('Todos los xml han sido firmados');
-
     }
 }
