@@ -38,8 +38,10 @@ class GenerarFacturaXml extends Command
 
         $generator = new FacturaXmlGenerator();
         $xml = $generator->generateXml($factura);
+        $nombre = $factura->numSerieFactura;
+        $carpeta = getenv('USERPROFILE') . '\facturas';
 
-        $ruta = storage_path("app/factura_$id.xml");
+        $ruta =  $carpeta . "\\facturas_{$nombre}.xml";
         file_put_contents($ruta, $xml);
         $this->info("El Xml fue generado correctamente en: $ruta");
     }
