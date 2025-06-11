@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Models\Facturas;
+use App\Services\FacturaXmlGenerator;
 
 class GenerarFacturaXml extends Command
 {
@@ -11,20 +13,34 @@ class GenerarFacturaXml extends Command
      *
      * @var string
      */
-    protected $signature = 'app:generar-factura-xml';
+    // Este es el comando para generar el Xml(php artisan factura:xml ID12345)
+    protected $signature = 'factura:xml {id}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Generar Xml de la factura';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        //
+        $id = $this->argument('id');
+        $factura = Facturas::find($id);
+
+        if(!$factura){
+            $this ->error("Factura con el ID $id no fue encontrada");
+            return;
+        }
+
+        $generator = new FacturaXmlGenerator();
+        $xml = $generator->generateXml($factura);
+
+        $ruta = storage_path("app/factura_$id.xml");
+        file_put_contents($ruta, $xml);
+        $this->info("El Xml fue generado correctamente en: $ruta");
     }
 }
