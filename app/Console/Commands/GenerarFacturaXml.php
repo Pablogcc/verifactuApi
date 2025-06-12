@@ -31,6 +31,11 @@ class GenerarFacturaXml extends Command
         $id = $this->argument('id');
         $factura = Facturas::find($id);
 
+        if(strlen($factura->nif) !== 9) {
+            $this->error("El NIF de la factura {$factura->numSerieFactura} no tiene 9 caracteres, Proceso detenido para esta factura");
+            return;
+        }
+
         if(!$factura){
             $this ->error("Factura con el ID $id no fue encontrada");
             return;
