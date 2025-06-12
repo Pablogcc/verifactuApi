@@ -31,10 +31,12 @@ class GenerarXmlFirmados extends Command
         $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
         $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
 
-
         $signer = new FirmaXmlGenerator();
 
         foreach (glob($carpetaOrigen . '\facturas_*.xml') as $archivo) {
+
+            $inicio = microtime(true);
+
             $xmlContent = file_get_contents($archivo);
             $xmlFirmado = $signer->firmaXml($xmlContent);
 
@@ -46,7 +48,7 @@ class GenerarXmlFirmados extends Command
             $numSerie = str_replace('facturas_', '', $nombre);
 
             $firmaExiste = DB::table('facturas_firmadas')->where('num_serie_factura', $numSerie)->exists();
-
+             
             if (!$firmaExiste) {
                 DB::table('facturas_firmadas')->insert([
                     'num_serie_factura' => $numSerie,
@@ -55,6 +57,17 @@ class GenerarXmlFirmados extends Command
                     'updated_at' => now(),
                 ]);
             }
+
+            $tiempoMs = intval((microtime(true) - $inicio) * 1000);
+              if (!$firmaExiste) {
+                DB::table('facturas_logs')->insert([
+                    'num_serie_factura' => $numSerie,
+                    'accion_firmado' => 'firmado',
+                    'tiempo_ms' => $tiempoMs,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+              }
         }
 
         $this->info('Todos los xml han sido firmados');
