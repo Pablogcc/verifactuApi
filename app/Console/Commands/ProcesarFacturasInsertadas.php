@@ -80,7 +80,7 @@ class ProcesarFacturasInsertadas extends Command
 
 
 
-            $tiempoMs = intval(microtime(true) - $inicio) * 1000;
+            $tiempoMs = intval((microtime(true) - $inicio) * 1000);
             if (!$exists) {
                 DB::table('facturas_logs')->insert([
                     'num_serie_factura' => $facturas->numSerieFactura,
@@ -91,5 +91,6 @@ class ProcesarFacturasInsertadas extends Command
                 ]);
             }
         }
+        $this->info('XML firmados correctamente');
     }
 }
