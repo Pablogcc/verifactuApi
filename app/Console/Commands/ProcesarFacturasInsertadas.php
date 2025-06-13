@@ -38,10 +38,7 @@ class ProcesarFacturasInsertadas extends Command
             $inicio = microtime(true);
 
             //Generar XML
-            if(strlen($facturas->nif) !== 9) {
-                $this->error("El NIF de la factura {$facturas->numSerieFactura} no tiene 9 caracteres. Proceso detenido para esta factura");
-                continue;
-            }
+           
             $xml = (new FacturaXmlGenerator())->generateXml($facturas);
             //Guardamos el XML
             $carpetaOrigen = getenv('USERPROFILE') . '\facturas';

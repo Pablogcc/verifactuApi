@@ -30,11 +30,7 @@ class GenerarFacturasXml extends Command
         $facturas = Facturas::all();
         $generator = new FacturaXmlGenerator();
 
-        if(strlen($facturas->nif) !== 9) {
-            $this->error("El NIF de la factura {$facturas->numSerieFactura} no tiene 9 caracteres, Proceso detenido para esta factura");
-            return;
-        }
-
+       
         foreach ($facturas as $factura) {
             $xml = $generator->generateXml($factura);
             $nombre = $factura->numSerieFactura;
