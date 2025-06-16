@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('facturas_logs', function (Blueprint $table) {
             $table->id();
-            $table->string('num_serie_factura');
-            $table->string('accion_firmado');
-            $table->string('tiempo_ms');
+            $table->string('cantidad_facturas');
+            $table->string('media_tiempo_ms');
+            $table->timestamp('periodo')->unique();
             $table->timestamps();
         });
     }

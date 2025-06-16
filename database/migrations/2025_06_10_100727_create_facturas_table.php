@@ -61,11 +61,15 @@ return new class extends Migration
             $table->decimal('importeTotal', 10, 2);
             $table->string('primerRegistro');
             // Registro adicional
-            $table->string('huella')->nullable();
-            $table->string('fechaHoraHusoGenRegistro')->nullable();
-            $table->string('numRegistroAcuerdoFacturacion')->nullable();
-            $table->string('idAcuerdoSistemaInformatico')->nullable();
-            $table->string('tipoHuella')->nullable();
+            $table->string('huella');
+            $table->string('fechaHoraHusoGenRegistro');
+            $table->string('numRegistroAcuerdoFacturacion');
+            $table->string('idAcuerdoSistemaInformatico');
+            $table->string('tipoHuella');
+            
+            $table->string('enviados')->default('pendiente');
+            $table->text('error')->nullable();
+            $table->string('estado_proceso')->default('desbloqueada');
             $table->timestamps();
         });
     }
