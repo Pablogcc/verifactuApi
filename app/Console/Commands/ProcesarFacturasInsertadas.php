@@ -30,68 +30,82 @@ class ProcesarFacturasInsertadas extends Command
     public function handle()
     {
 
-        $facturas = Facturas::where('enviados', 'pendiente')
-            ->whereNotIn('numSerieFactura', function ($query) {
-                $query->select('num_serie_factura')->from('facturas_firmadas');
-            })->get();
+        $facturasBloqueadas = Facturas::where('enviados', 'pendiente')
+        ->where('estado_proceso', 'desbloqueada')
+        ->whereNotIn('numSerieFactura', function ($query) {
+            $query->select('num_serie_factura')->from('factura_firmadas');
+        })->get();
+      
+        $facturasDesbloqueadas = Facturas::where('enviados', 'pendiente')
+        ->where('estado_proceso', 'bloqueada')
+        ->whereNotIn('numSerieFactura', function ($query) {
+            $query->select('num_serie_factura')->from('factura_firma');
+        })->get();
 
         $totalFacturas = 0;
         $totalTiempo = 0;
 
+        $facturas = Facturas::where('enviados', 'pendiente')
+             ->whereNotIn('numSerieFactura', function ($query) {
+                 $query->select('num_serie_factura')->from('facturas_firmadas');
+             })->get();
 
-        foreach ($facturas as $factura) {
-            $inicio = microtime(true);
+            foreach ($facturas as $factura) {
+                $inicio = microtime(true);
 
-            //Generar XML
-            $xml = (new FacturaXmlGenerator())->generateXml($factura);
+                //Generar XML
+                $xml = (new FacturaXmlGenerator())->generateXml($factura);
 
-            //Guardamos el XML
-            $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
+                //Guardamos el XML
+                $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
 
-            /* Si la carpeta de XML no está creada, se crea automáticamente   
+                /* Si la carpeta de XML no está creada, se crea automáticamente   
         if(!is_dir($carpetaOrigen)) {
             mkdir($carpetaOrigen, 0777, true);
         }
     */
 
-            $ruta = $carpetaOrigen . '\facturas_' . $factura->numSerieFactura . '.xml';
-            file_put_contents($ruta, $xml);
+                $ruta = $carpetaOrigen . '\facturas_' . $factura->numSerieFactura . '.xml';
+                file_put_contents($ruta, $xml);
 
-            //Firma del XML
-            $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
 
-            //Guardamos el XML firmado
-            $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
+             
+                //Firma del XML
+                $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
 
-            /* Si la carpeta de XML firmados no está creada, se crea automáticamente   
+                //Guardamos el XML firmado
+                $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
+
+                /* Si la carpeta de XML firmados no está creada, se crea automáticamente   
         if(!is_dir($carpetaDestino)) {
             mkdir($carpetaDestino, 0777, true);
         }
         */
 
-            $rutaDestino = $carpetaDestino . '\factura_firmada_' . $factura->numSerieFactura . '.xml';
+                $rutaDestino = $carpetaDestino . '\factura_firmada_' . $factura->numSerieFactura . '.xml';
 
-            file_put_contents($rutaDestino, $xmlFirmado);
+                file_put_contents($rutaDestino, $xmlFirmado);
 
-            //Guardado en base de datos
-            $exists = DB::table('facturas_firmadas')->where('num_serie_factura', $factura->numSerieFactura)->exists();
-            if (!$exists) {
-                DB::table('facturas_firmadas')->insert([
-                    'num_serie_factura' => $factura->numSerieFactura,
-                    'xml_firmado' => $xmlFirmado,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                //Guardado en base de datos
+                $exists = DB::table('facturas_firmadas')->where('num_serie_factura', $factura->numSerieFactura)->exists();
+                if (!$exists) {
+                    DB::table('facturas_firmadas')->insert([
+                        'num_serie_factura' => $factura->numSerieFactura,
+                        'xml_firmado' => $xmlFirmado,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
+                //Cambiamos estado
+                $factura->enviados = 'enviado';
+                $factura->save();
+
+                $tiempoMs = intval((microtime(true) - $inicio) * 1000);
+                $totalFacturas++;
+                $totalTiempo += $tiempoMs;
             }
-
-            //Cambiamos estado
-            $factura->enviados = 'enviado';
-            $factura->save();
-
-            $tiempoMs = intval((microtime(true) - $inicio) * 1000);
-            $totalFacturas++;
-            $totalTiempo += $tiempoMs;
-        }
+        
 
         if ($totalFacturas > 0) {
             $mediaTiempo = intval($totalTiempo / $totalFacturas);
