@@ -66,6 +66,7 @@ class FacturasSeeder extends Seeder
                 'numRegistroAcuerdoFacturacion' => 'REG001234',
                 'idAcuerdoSistemaInformatico' => 'SISTEMA5678',
                 'tipoHuella' => 'L12',
+                'estado_proceso' => 'desbloqueada'
             ],
             [
                 'idVersion' => 'L16',
@@ -116,6 +117,7 @@ class FacturasSeeder extends Seeder
                 'numRegistroAcuerdoFacturacion' => 'REG005432',
                 'idAcuerdoSistemaInformatico' => 'SISTEMA1234',
                 'tipoHuella' => 'L13',
+                'estado_proceso' => 'desbloqueada'
             ],
             [
                 'idVersion' => 'L17',
@@ -166,6 +168,7 @@ class FacturasSeeder extends Seeder
                 'numRegistroAcuerdoFacturacion' => 'REG007890',
                 'idAcuerdoSistemaInformatico' => 'SISTEMA5678',
                 'tipoHuella' => 'L14',
+                'estado_proceso' => 'desbloqueada'
             ],
 
         ]);
