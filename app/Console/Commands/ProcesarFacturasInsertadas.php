@@ -47,7 +47,7 @@ class ProcesarFacturasInsertadas extends Command
                 $xml = (new FacturaXmlGenerator())->generateXml($factura);
 
                 //Probar el catch
-                //throw new \Exception('Error de prueba forzado');
+                throw new \Exception('Error forzado');
 
                 //Guardamos el XML
                 $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
@@ -160,6 +160,7 @@ class ProcesarFacturasInsertadas extends Command
                     'updated_at' => now(),
                 ];
 
+                
 
                 DB::connection('apibloqueados')->table('estado_procesos')->insert($data);
             }
