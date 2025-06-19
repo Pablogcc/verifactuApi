@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Facturas;
+use App\Models\Estado_procesos;
 use App\Services\FacturaXmlGenerator;
 use App\Services\FirmaXmlGenerator;
 use Illuminate\Support\Facades\DB;
@@ -35,6 +36,11 @@ class ProcesarFacturasInsertadas extends Command
         $facturas = Facturas::where('enviados', 'pendiente')
             ->where('estado_proceso', 'desbloqueada')->get();
 
+        $facturasLock = Estado_procesos::where('enviados', 'pendiente')
+            ->where('estado_proceso', 'bloqueada')->get();
+
+
+
         foreach ($facturas as $factura) {
             $inicio = microtime(true);
 
@@ -44,10 +50,7 @@ class ProcesarFacturasInsertadas extends Command
 
             try {
 
-                if (empty($factura->nombreRazonEmisor) || (strlen($factura->nombreRazonEmisor) < 3 || strlen($factura->nombreRazonEmisor) > 100)) {
-                    throw new \Exception("El nombre de la factura {$factura->numSerieFactura} no es correcto");
-                }
-
+                //Probar si el nif es correcto, si no, te lleva al catch
                 if (strlen($factura->nif) !== 9) {
                     throw new \Exception("El NIF de la factura {$factura->numSerieFactura} no tiene 9 caracteres");
                 }
@@ -55,39 +58,34 @@ class ProcesarFacturasInsertadas extends Command
                 //Generar XML
                 $xml = (new FacturaXmlGenerator())->generateXml($factura);
 
-                //Probar el catch
+                //Probar el catch forzando un error
                 //throw new \Exception('Error forzado');
 
                 //Guardamos el XML
                 $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
 
-                /* Si la carpeta de XML no está creada, se crea automáticamente   
-        if(!is_dir($carpetaOrigen)) {
-            mkdir($carpetaOrigen, 0777, true);
-        }
-    */
 
+                //Creamos la ruta: donde va a estar situado el xml, como va a empezar el nombre del archivo(facturas_F2024-0001) y que acabe por .xml
                 $ruta = $carpetaOrigen . '\facturas_' . $factura->numSerieFactura . '.xml';
+                //Guardamos el xml en la ruta creada
                 file_put_contents($ruta, $xml);
 
-                //Firma del XML
+                //Firmamos el xml de la factura
                 $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
 
                 //Guardamos el XML firmado
                 $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
 
-                /* Si la carpeta de XML firmados no está creada, se crea automáticamente   
-        if(!is_dir($carpetaDestino)) {
-            mkdir($carpetaDestino, 0777, true);
-        }
-        */
-
+                //Creamos la ruta: donde va a estar situado el xml firmado, como va a empezar el nombre del archivo(factura_firmada_F2024-0001) y que acabe por .xml
                 $rutaDestino = $carpetaDestino . '\factura_firmada_' . $factura->numSerieFactura . '.xml';
-
+                //Guardamos el xml firmado en la ruta creada
                 file_put_contents($rutaDestino, $xmlFirmado);
 
-                //Guardado en base de datos
+                //Vemos si existe la factura comprobando su numero de serie de la factura para que no se duplique
                 $exists = DB::table('facturas_firmadas')->where('num_serie_factura', $factura->numSerieFactura)->exists();
+
+
+                //Si no existe la factura que se guarde en la tabla de facturas firmadas
                 if (!$exists) {
                     DB::table('facturas_firmadas')->insert([
                         'num_serie_factura' => $factura->numSerieFactura,
@@ -99,20 +97,25 @@ class ProcesarFacturasInsertadas extends Command
 
 
 
-                //Cambiamos estado
+                //Cambiamos el estado de la factura, diciendo que se ha enviado y procesado, y lo guardamos
                 $factura->enviados = 'enviado';
                 $factura->estado_proceso = 'procesada';
                 $factura->save();
 
+                //Calculamos el tiempo que ha tardado la factura en generarse y en firmarse como xml, en milisegundos
                 $tiempoMs = intval((microtime(true) - $inicio) * 1000);
+                //Sumamos todas las facturas que se han generado y firmado en ese minuto
                 $totalFacturas++;
+                //Sumamos todo el tiempo que han tardado todas las facturas en generarse y en firmarse para luego hacer la media de todas
                 $totalTiempo += $tiempoMs;
             } catch (\Throwable $e) {
+                //Si sucede algún error(error de nif, error de conexion, error forzado...) que siga en pendiente, que pase de desbloqueada a bloqueada, se genere el error de porque y se guarde
                 $factura->enviados = 'pendiente';
                 $factura->estado_proceso = 'bloqueada';
                 $factura->error = $e->getMessage();
                 $factura->save();
 
+                //Luego de que de error lo guardamos en una tabla distinta
                 $data = [
                     'idVersion' => $factura->idVersion,
                     'idEmisorFactura' => $factura->idEmisorFactura,
@@ -169,15 +172,16 @@ class ProcesarFacturasInsertadas extends Command
                     'updated_at' => now(),
                 ];
 
-
-
-                DB::connection('apibloqueados')->table('estado_procesos')->insert($data);
+                //$exists2 = DB::table('estado_procesos')->where('num_serie_factura', $factura->numSerieFactura)->exists();
+                DB::table('estado_procesos')->insert($data);
             }
         }
 
-
+        // Aquí guardamos los logs de las facturas, si hay facturas, entonces que se guarden
         if ($totalFacturas > 0) {
+            //Hacemos la media de todo el tiempo que han durado las facturas, entre el total de facturas
             $mediaTiempo = intval($totalTiempo / $totalFacturas);
+            //Insertamos los datos en la tabla de facturas_logs
             DB::table('facturas_logs')->insert([
                 'cantidad_facturas' => $totalFacturas,
                 'media_tiempo_ms' => $mediaTiempo,
@@ -188,5 +192,6 @@ class ProcesarFacturasInsertadas extends Command
         }
 
         $this->info('XML firmados correctamente');
+
     }
 }

@@ -43,7 +43,7 @@ class FacturasSeeder extends Seeder
                 'macrodato' => 'L14',
                 'emitidaPorTerceroODestinatario' => 'L6',
                 'nombreRazon' => 'Cliente S.L.',
-                'nif' => '8765432133X',
+                'nif' => '87654321X',
                 'codigoPais' => 'ES',
                 'idType' => 'L7',
                 'id' => 'ID12345',
@@ -66,7 +66,9 @@ class FacturasSeeder extends Seeder
                 'numRegistroAcuerdoFacturacion' => 'REG001234',
                 'idAcuerdoSistemaInformatico' => 'SISTEMA5678',
                 'tipoHuella' => 'L12',
-                'estado_proceso' => 'desbloqueada'
+                'estado_proceso' => 'desbloqueada',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'idVersion' => 'L16',
@@ -74,7 +76,7 @@ class FacturasSeeder extends Seeder
                 'numSerieFactura' => 'F2024-0002',
                 'fechaExpedicionFactura' => '22-03-2024',
                 'refExterna' => 'REF654321',
-                'nombreRazonEmisor' => 'SL',
+                'nombreRazonEmisor' => 'SL EMPRESA',
                 'subsanacion' => 'L5',
                 'rechazoPrevio' => 'L18',
                 'tipoFactura' => 'L3',
@@ -117,7 +119,9 @@ class FacturasSeeder extends Seeder
                 'numRegistroAcuerdoFacturacion' => 'REG005432',
                 'idAcuerdoSistemaInformatico' => 'SISTEMA1234',
                 'tipoHuella' => 'L13',
-                'estado_proceso' => 'desbloqueada'
+                'estado_proceso' => 'desbloqueada',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'idVersion' => 'L17',
@@ -168,7 +172,9 @@ class FacturasSeeder extends Seeder
                 'numRegistroAcuerdoFacturacion' => 'REG007890',
                 'idAcuerdoSistemaInformatico' => 'SISTEMA5678',
                 'tipoHuella' => 'L14',
-                'estado_proceso' => 'desbloqueada'
+                'estado_proceso' => 'desbloqueada',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
 
         ]);

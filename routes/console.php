@@ -8,5 +8,8 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-//Cada minuto ejecuta el comando
+//Cada minuto ejecuta el comando(ProcesarFacturasInsertadas.php)
 Schedule::command('facturas:procesar-inserts')->everyMinute();
+
+// Para probar cada 10 segundos
+//Schedule::command('facturas:procesar-inserts')->everyTenSeconds();
