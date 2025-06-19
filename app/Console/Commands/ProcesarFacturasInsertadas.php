@@ -33,21 +33,30 @@ class ProcesarFacturasInsertadas extends Command
         $totalTiempo = 0;
 
         $facturas = Facturas::where('enviados', 'pendiente')
-            ->where('estado_proceso', 'desbloqueada')
-            ->whereNotIn('numSerieFactura', function ($query) {
-                $query->select('num_serie_factura')->from('facturas_firmadas');
-            })->get();
+            ->where('estado_proceso', 'desbloqueada')->get();
 
         foreach ($facturas as $factura) {
             $inicio = microtime(true);
 
 
+            // Comprobación del nif y del numSerieFactura
+
+
             try {
+
+                if (empty($factura->nombreRazonEmisor) || (strlen($factura->nombreRazonEmisor) < 3 || strlen($factura->nombreRazonEmisor) > 100)) {
+                    throw new \Exception("El nombre de la factura {$factura->numSerieFactura} no es correcto");
+                }
+
+                if (strlen($factura->nif) !== 9) {
+                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} no tiene 9 caracteres");
+                }
+
                 //Generar XML
                 $xml = (new FacturaXmlGenerator())->generateXml($factura);
 
                 //Probar el catch
-                throw new \Exception('Error forzado');
+                //throw new \Exception('Error forzado');
 
                 //Guardamos el XML
                 $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
@@ -160,7 +169,7 @@ class ProcesarFacturasInsertadas extends Command
                     'updated_at' => now(),
                 ];
 
-                
+
 
                 DB::connection('apibloqueados')->table('estado_procesos')->insert($data);
             }
