@@ -36,16 +36,12 @@ class ProcesarFacturasInsertadas extends Command
         $facturas = Facturas::where('enviados', 'pendiente')
             ->where('estado_proceso', 'desbloqueada')->get();
 
-        $facturasLock = Estado_procesos::where('enviados', 'pendiente')
-            ->where('estado_proceso', 'bloqueada')->get();
+        
 
 
 
         foreach ($facturas as $factura) {
             $inicio = microtime(true);
-
-
-            // Comprobación del nif y del numSerieFactura
 
 
             try {
@@ -59,7 +55,7 @@ class ProcesarFacturasInsertadas extends Command
                 $xml = (new FacturaXmlGenerator())->generateXml($factura);
 
                 //Probar el catch forzando un error
-                //throw new \Exception('Error forzado');
+                throw new \Exception('Error forzado');
 
                 //Guardamos el XML
                 $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
@@ -192,6 +188,8 @@ class ProcesarFacturasInsertadas extends Command
         }
 
         $this->info('XML firmados correctamente');
+
+        
 
     }
 }

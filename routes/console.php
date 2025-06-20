@@ -12,4 +12,4 @@ Artisan::command('inspire', function () {
 Schedule::command('facturas:procesar-inserts')->everyMinute();
 
 // Para probar cada 10 segundos
-//Schedule::command('facturas:procesar-inserts')->everyTenSeconds();
+Schedule::command('facturas:procesar-bloqueadas')->everyTenMinutes();
