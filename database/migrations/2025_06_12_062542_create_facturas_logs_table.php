@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('cantidad_facturas');
             $table->string('media_tiempo_ms');
             $table->timestamp('periodo')->unique();
+            $table->string('tipo_factura');
             $table->timestamps();
         });
     }

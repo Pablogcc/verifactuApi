@@ -11,5 +11,5 @@ Artisan::command('inspire', function () {
 //Cada minuto ejecuta el comando(ProcesarFacturasInsertadas.php)
 Schedule::command('facturas:procesar-inserts')->everyMinute();
 
-// Para probar cada 10 segundos
+//Cada 10 minutos ejecuta el comando(ProcesarFacturadasBloqueadas.php)
 Schedule::command('facturas:procesar-bloqueadas')->everyTenMinutes();

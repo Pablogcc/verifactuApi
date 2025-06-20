@@ -23,7 +23,7 @@ class ProcesarFacturasInsertadas extends Command
      *
      * @var string
      */
-    protected $description = 'Generar facturas firmadas en XML';
+    protected $description = 'Procesar facturas firmadas en XML';
 
     /**
      * Execute the console command.
@@ -35,10 +35,6 @@ class ProcesarFacturasInsertadas extends Command
 
         $facturas = Facturas::where('enviados', 'pendiente')
             ->where('estado_proceso', 'desbloqueada')->get();
-
-        
-
-
 
         foreach ($facturas as $factura) {
             $inicio = microtime(true);
@@ -55,7 +51,7 @@ class ProcesarFacturasInsertadas extends Command
                 $xml = (new FacturaXmlGenerator())->generateXml($factura);
 
                 //Probar el catch forzando un error
-                throw new \Exception('Error forzado');
+                //throw new \Exception('Error forzado');
 
                 //Guardamos el XML
                 $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
@@ -105,7 +101,7 @@ class ProcesarFacturasInsertadas extends Command
                 //Sumamos todo el tiempo que han tardado todas las facturas en generarse y en firmarse para luego hacer la media de todas
                 $totalTiempo += $tiempoMs;
             } catch (\Throwable $e) {
-                //Si sucede algún error(error de nif, error de conexion, error forzado...) que siga en pendiente, que pase de desbloqueada a bloqueada, se genere el error de porque y se guarde
+                //Si sucede algún error(error de nif, error de conexión, error forzado...) que siga en pendiente, que pase de desbloqueada a bloqueada, se genere el error de porque y se guarde
                 $factura->enviados = 'pendiente';
                 $factura->estado_proceso = 'bloqueada';
                 $factura->error = $e->getMessage();
@@ -182,6 +178,7 @@ class ProcesarFacturasInsertadas extends Command
                 'cantidad_facturas' => $totalFacturas,
                 'media_tiempo_ms' => $mediaTiempo,
                 'periodo' => now()->startOfMinute(),
+                'tipo_factura' => 'desbloqueada',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
