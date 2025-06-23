@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Models\Estado_procesos;
 use App\Models\Facturas;
 use App\Services\BloqueoXmlGenerator;
-//use App\Services\FacturaXmlGenerator;
 use App\Services\FirmaXmlGenerator;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
