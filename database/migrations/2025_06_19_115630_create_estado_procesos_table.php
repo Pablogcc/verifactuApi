@@ -69,7 +69,7 @@ return new class extends Migration
             
             $table->string('enviados')->default('pendiente');
             $table->text('error')->nullable();
-            $table->string('estado_proceso');
+            $table->string('estado_proceso')->nullable();
             $table->timestamps();
         });
     }

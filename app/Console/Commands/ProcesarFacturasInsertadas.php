@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Facturas;
-use App\Models\Estado_procesos;
 use App\Services\FacturaXmlGenerator;
 use App\Services\FirmaXmlGenerator;
 use Illuminate\Support\Facades\DB;
@@ -36,15 +35,29 @@ class ProcesarFacturasInsertadas extends Command
         $facturas = Facturas::where('enviados', 'pendiente')
             ->where('estado_proceso', 'desbloqueada')->get();
 
+
         foreach ($facturas as $factura) {
             $inicio = microtime(true);
 
-
             try {
+
+                $nif = strtoupper(trim($factura->nif));
 
                 //Probar si el nif es correcto, si no, te lleva al catch
                 if (strlen($factura->nif) !== 9) {
-                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} no tiene 9 caracteres");
+                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} es incorrecto");
+                }
+
+                if (!preg_match('/^[0-9]{8}[A-Z]$/', $nif)) {
+                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} tiene un formato inválido");
+                }
+
+                $letras = 'TRWAGMYFPDXBNJZSQVHLCKE';
+                $num = intval(substr($nif, 0, 8));
+                $letraEsperada = $letras[$num % 23];
+
+                if ($nif[8] !== $letraEsperada) {
+                    throw new \Exception("El DNI de la factura {$factura->numSerieFactura} tiene una letra de control incorrecta");
                 }
 
                 //Generar XML
@@ -178,15 +191,12 @@ class ProcesarFacturasInsertadas extends Command
                 'cantidad_facturas' => $totalFacturas,
                 'media_tiempo_ms' => $mediaTiempo,
                 'periodo' => now()->startOfMinute(),
-                'tipo_factura' => 'desbloqueada',
+                'tipo_factura' => 'desbloqueadas',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
 
         $this->info('XML firmados correctamente');
-
-        
-
     }
 }

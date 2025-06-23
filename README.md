@@ -24,7 +24,7 @@ php artisan db:seed --class=EjemploSeeder
 php artisan make:command nombreEjemplo
 ```
 
-## Comando automático para firmar todos los XML (FUNCIONA)
+## Comando automático para firmar todos los XML
 
 ```sh
 php artisan schedule:work
@@ -45,25 +45,25 @@ php artisan facturas:procesar:facturas-bloqueadas
 
 # OPCIONALES
 
-## Comando para firmar un solo XML (FUNCIONA)
+## Comando para firmar un solo XML
 
 ```sh
 php artisan firma:xml {numSerie}
 ```
 
-## Generar una factura Xml por su id (FUNCIONA)
+## Generar una factura Xml por su id
 
 ```sh
 hp artisan factura:xml {id}(ejemplo: ID12345)
 ```
 
-## Generar todas las facturas xml (FUNCIONA)
+## Generar todas las facturas xml
 
 ```sh
 php artisan factura:xml:all
 ```
 
-## Firmar los xml generados (FUNCIONA)
+## Firmar los xml generados
 
 ```sh
 php artisan firma:xml

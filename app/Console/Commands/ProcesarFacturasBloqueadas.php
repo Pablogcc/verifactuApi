@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use App\Models\Estado_procesos;
-use App\Models\Facturas;
 use App\Services\BloqueoXmlGenerator;
 use App\Services\FirmaXmlGenerator;
 use Illuminate\Console\Command;
@@ -41,9 +40,23 @@ class ProcesarFacturasBloqueadas extends Command
 
             try {
 
+                $nif = strtoupper(trim($factura->nif));
+
                 //Probar si el nif es correcto, si no, te lleva al catch
                 if (strlen($factura->nif) !== 9) {
                     throw new \Exception("El NIF de la factura {$factura->numSerieFactura} no tiene 9 caracteres");
+                }
+
+                if (!preg_match('/^[0-9]{8}[A-Z]$/', $nif)) {
+                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} tiene un formato inválido");
+                }
+
+                $letras = 'TRWAGMYFPDXBNJZSQVHLCKE';
+                $num = intval(substr($nif, 0, 8));
+                $letraEsperada = $letras[$num % 23];
+
+                if ($nif[8] !== $letraEsperada) {
+                    throw new \Exception("El DNI de la factura {$factura->numSerieFactura} tiene una letra de control incorrecta");
                 }
 
                 //Generamos el xml y lo guardamos en la carpeta de facturas como: facturasLock_EJEMPLO
@@ -80,14 +93,15 @@ class ProcesarFacturasBloqueadas extends Command
                 $totalTiempo += $tiempoMs;
 
                 //También ponemos que en la tabla facturas se cambie de bloqueada a procesada
-                if ($factura->estado_proceso == 'bloqueada') {
+                if ($factura->estado_proceso == 'procesada') {
                 DB::table('facturas')->update([
                     'enviados' => 'enviado',
+                    'error' => null,
                     'estado_proceso' => 'procesada',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-            }
+            }           
 
             } catch (\Throwable $e) {
                 //Si sucede algún error(error de nif, error de conexión, error forzado...) que siga en pendiente, que pase de desbloqueada a bloqueada, se genere el error de porque y se guarde

@@ -13,7 +13,3 @@ Schedule::command('facturas:procesar-inserts')->everyMinute();
 
 //Cada 10 minutos ejecuta el comando(ProcesarFacturadasBloqueadas.php)
 Schedule::command('facturas:procesar-bloqueadas')->everyTenMinutes();
-
-
-//Comando para ejecutar en la terminal: 
-//php artisan schedule:work
