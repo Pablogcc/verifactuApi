@@ -7,6 +7,7 @@ use App\Models\Facturas;
 use App\Services\FacturaXmlGenerator;
 use App\Services\FirmaXmlGenerator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProcesarFacturasInsertadas extends Command
 {
@@ -44,7 +45,7 @@ class ProcesarFacturasInsertadas extends Command
                 $nif = strtoupper(trim($factura->nif));
 
                 //Probar si el nif es correcto, si no, te lleva al catch
-                if (strlen($factura->nif) !== 9) {
+                 if (strlen($factura->nif) !== 9) {
                     throw new \Exception("El NIF de la factura {$factura->numSerieFactura} es incorrecto");
                 }
 
@@ -58,7 +59,7 @@ class ProcesarFacturasInsertadas extends Command
 
                 if ($nif[8] !== $letraEsperada) {
                     throw new \Exception("El DNI de la factura {$factura->numSerieFactura} tiene una letra de control incorrecta");
-                }
+                } 
 
                 //Generar XML
                 $xml = (new FacturaXmlGenerator())->generateXml($factura);
@@ -77,6 +78,16 @@ class ProcesarFacturasInsertadas extends Command
 
                 //Firmamos el xml de la factura
                 $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
+
+                $clienteVerifactu = new \App\Services\ClientesSOAPVerifactu;
+                $respuestaAEAT = $clienteVerifactu->enviar($xmlFirmado, true);
+
+
+                Log::info('Respuesta AEAT: ' . print_r($respuestaAEAT, true));
+
+                if (strpos($respuestaAEAT, 'NIF') !== false && stripos($respuestaAEAT, 'incorrecto') !== false) {
+                    throw new \Exception("La AEAT ha rechazado el DNI de la factura {$factura->numSerieFactura}: " . $respuestaAEAT);
+                }
 
                 //Guardamos el XML firmado
                 $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
