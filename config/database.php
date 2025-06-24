@@ -62,14 +62,14 @@ return [
             ]) : [],
         ],
 
-        'apibloqueados' => [
+        'pruebadb' => [
             'driver' => 'mysql',
-            'host' => env('APIBLOQUEADOS_DB_HOST', '127.0.0.1'),
-            'port' => env('APIBLOQUEADOS_DB_PORT', '3306'),
-            'database' => env('APIBLOQUEADOS_DB_DATABASE', 'apibloqueados'),
-            'username' => env('APIBLOQUEADOS_DB_USERNAME', 'root'),
-            'password' => env('APIBLOQUEADOS_DB_PASSWORD', ''),
-            'unix_socket' => env('APIBLOQUEADOS_DB_SOCKET', ''),
+            'host' => env('PRUEBADB_DB_HOST', '127.0.0.1'),
+            'port' => env('PRUEBADB_DB_PORT', '3306'),
+            'database' => env('PRUEBADB_DB_DATABASE', 'pruebadb'),
+            'username' => env('PRUEBADB_DB_USERNAME', 'root'),
+            'password' => env('PRUEBADB_DB_PASSWORD', ''),
+            'unix_socket' => env('PRUEBADB_DB_SOCKET', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',

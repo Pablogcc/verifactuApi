@@ -20,6 +20,16 @@ class FacturasController extends Controller
         ]);
      }
 
+     public function createFactura(Request $request) {
+
+        $facturas = $request->validate([
+            'nombreRazonEmisor' => "required|string|max255",
+            'nif' => "required|string|max:9",
+            
+        ]);
+
+     }
+
     public function getById(Request $request, $id) {
         $factura = DB::table('facturas')->where('id', $id)->get();
         return response()->json([
