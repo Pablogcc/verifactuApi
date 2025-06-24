@@ -26,11 +26,11 @@ class ConsultaCDI extends Command
      */
     public function handle()
     {
-        $generador = new \App\Services\GeneradorXMLConsultaCDI();
-        $xmlConsulta = $generador->generar('48456925L', 'BARBERA FERNANDEZ ALBERTO');
+        //$generador = new \App\Services\GeneradorXMLConsultaCDI();
+        //$xmlConsulta = $generador->generar('48456925L', 'BARBERA FERNANDEZ ALBERTO');
 
         $clienteCDI = new \App\Services\ClienteSOAPConsultaCDI();
-        $respuesta = $clienteCDI->consultar($xmlConsulta, true);
+        $respuesta = $clienteCDI->consultar('48456925L', 'BARBERA FERNANDEZ ALBERTO');
 
         echo $respuesta;
 

@@ -6,11 +6,9 @@ namespace App\Services;
 class ClienteSOAPConsultaCDI
 {
 
-    public function consultar(string $xml, bool $modoPruebas = true): string
+    public function consultar(string $nif, string $nombreRazon): string
     {
-        $wsdl = $modoPruebas
-            ? 'https://prewww1.aeat.es/wlpl/SSR/CdiConsultaDatosIdentificacion.wsdl'
-            : 'https://www1.aeat.es/wlpl/SSR/CdiConsultaDatosIdentificacion.wsdl';
+        $wsdl = base_path('storage/wsdl/VNIFV2.wsdl'); // 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2.wsdl'
 
         $options = [
             'trace' => 1,
@@ -25,12 +23,11 @@ class ClienteSOAPConsultaCDI
 
         $client = new \SoapClient($wsdl, $options);
 
-        $params = [
-            'xmlConsulta' => $xml
-        ];
+        $xml = '<VNifV2Ent><Contribuyente><Nif>' . $nif . '</Nif><Nombre>' . $nombreRazon . '</Nombre></Contribuyente></VNifV2Ent>';
+        $params = [new \SoapVar($xml, XSD_ANYXML)];
 
         try {
-            $result = $client->__soapCall('consultaCDI', [$params]);
+            $result = $client->__soapCall('VNifV2', [$params]);
             return $result;
         } catch (\SoapFault $e) {
             return 'SOAP Fault: ' . $e->getMessage();
