@@ -20,3 +20,5 @@ Route::post('/procesarFacturas', [FacturasController::class, 'procesarFacturas']
 Route::get('/validation/{nif}', [ConsultaCDIController::class, 'validateDNI']);
 
 Route::get('/validationdni/{numSerieFactura}', [ConsultaCDIController::class, 'validatedni']);
+
+Route::get('/validaciondni/{numSerieFactura}', [ConsultaCDIController::class, 'validate']);

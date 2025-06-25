@@ -40,7 +40,7 @@ return new class extends Migration
             $table->string('macrodato');
             $table->string('emitidaPorTerceroODestinatario');
             // Datos del destinatario
-            $table->string('nombreRazon');
+            $table->string('nombre');
             $table->string('nif');
             $table->string('codigoPais');
             $table->string('idType');

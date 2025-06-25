@@ -9,28 +9,30 @@ use App\Services\ClienteSOAPConsultaCDI;
 class ConsultaCDIController extends Controller
 {
 
-    public function validatedni(Request $request, $numSerieFactura) {
-        $factura = DB::connection('pruebadb')->table('facturas')
-        ->where('numSerieFactura', $numSerieFactura)->first();
+    
 
-       if (!$factura) {
-        return response()->json([
-            'success' => false,
-            'message' => "Ninguna factura encontrada"
-        ], 404);
-       }
+    public function validate(Request $request, $numSerieFactura) {
+        
+        $factura = DB::table('facturas')->where('numSerieFactura', $numSerieFactura)->first();
 
-       $nif = strtoupper($factura->nif);
-       $nombreRazonEmisor = strtoupper($factura->nombreRazonEmisor);
+        if (!$factura) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ninguna factura encontrada'
+            ], 404);
+        }
 
+        $nif = strtoupper($factura->nif);
+        $nombre = strtoupper($factura->nombre);
 
         $clienteCDI = new ClienteSOAPConsultaCDI();
-        $respuesta = $clienteCDI->consultar($nif, $nombreRazonEmisor);
+        $respuesta = $clienteCDI->consultar($nif, $nombre);
 
         return response()->json([
             'success' => true,
             'message' => "Respuesta de la AEAT",
             'data' => $respuesta
-        ]);
+        ]);   
+
     }
 }
