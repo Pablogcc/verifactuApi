@@ -46,7 +46,7 @@ class MuchasFacturasSeeder extends Seeder
             'facturaSinIdentifDestinatarioArt61d' => 'L5',
             'macrodato' => 'L14',
             'emitidaPorTerceroODestinatario' => 'L6',
-            'nombreRazon' => 'Cliente S.L. ' . $i,
+            'nombre' => 'Cliente S.L. ' . $i,
             'nif' => $dni,
             'codigoPais' => 'ES',
             'idType' => 'L7',

@@ -16,7 +16,7 @@ class ConsultaCDIController extends Controller
         $factura = DB::table('facturas')->where('numSerieFactura', $numSerieFactura)->first();
 
         if (!$factura) {
-            return response()->json([
+            return response()->json([  
                 'success' => false,
                 'message' => 'Ninguna factura encontrada'
             ], 404);

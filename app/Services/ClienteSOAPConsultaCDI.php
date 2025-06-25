@@ -30,34 +30,32 @@ class ClienteSOAPConsultaCDI
         $nif = $this->sanitizeUtf8($nif);
         $nombre = $this->sanitizeUtf8($nombre);
 
-        $xml = <<<XML
-<VNifV2Ent xmlns="http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Ent.xsd">
-    <Contribuyente>
-        <Nif>{$nif}</Nif>
-        <Nombre>{$nombre}</Nombre>
-    </Contribuyente>
-</VNifV2Ent>
-XML;
+        $ns = "https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Ent.xsd";
 
-        // $params = [new \SoapVar($xml, XSD_ANYXML)];
+      $body = [
+        'Nif' => new SoapVar($nif, XSD_STRING, null, null, 'vnif:Nif', $ns),
+        'Nombre' => new SoapVar($nombre, XSD_STRING, null, null, 'vnif:Nombre', $ns)
+      ];
 
-        //$namespace = 'http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Ent.xsd';
+     // $contribuyente = new SoapVar();
 
-        /*$params = [
-            'Contribuyente' => [
-                'Nif' => $nif,
-                'Nombre' => $nombre
+
+         $params = [
+            'VNifV2Ent' => [
+                'Contribuyente' => [
+                    'Nif' => $nif,
+                    'Nombre' => $nombre
+                ]
             ]
-        ];*/
+        ]; 
 
-        $soapVar = new SoapVar($xml, XSD_ANYXML);
+        // $soapVar = new SoapVar($xml, XSD_ANYXML);
 
         try {
-            $result = $client->__soapCall('VNifV2', [$soapVar]);
+            $result = $client->__soapCall('VNifV2', [$params]);
 
             return json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         } catch (\SoapFault $e) {
-            return 'SOAP Fault: ' . $e->getMessage();
             Log::error('SOAP Fault: ' . $e->getMessage());
             Log::error('Request: ' . $client->__getLastRequest());
             Log::error('Response: ' . $client->__getLastResponse());
