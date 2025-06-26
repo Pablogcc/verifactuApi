@@ -28,6 +28,9 @@ class ClienteSOAPConsultaCDI
 
         $streamContext = stream_context_create($contextOptions);
 
+
+
+
         $options = [
             'trace' => 1,
             'exceptions' => true,
@@ -50,6 +53,35 @@ class ClienteSOAPConsultaCDI
         // $soapNif = new SoapVar($nif, XSD_STRING, null, null, 'vnif:Nif', $ns);
         // $soapNombre = new SoapVar($nombre, XSD_STRING, null, null, 'vnif:Nombre', $ns);
 
+        $xml = <<<XML
+        <?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope
+    xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:vnif="http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Ent.xsd"
+    >
+    <soapenv:Header/>
+    <soapenv:Body>
+        <vnif:VNif2Ent>
+            <vnif:Contribuyente>
+                <vnif:Nif>{$nif}</vnif:Nif>
+                <vnif:Nombre>{$nombre}</vnif:Nombre>
+            </vnif:Contribuyente>
+    </vnif:VNif2Ent>
+    <soapenvBody/>
+    <soapenv:Envelope/>
+XML;
+        /* $headers = [
+            'Content-type: text/xml; charset=utf-8',
+            'Content-lenght: ' . strlen($xml),
+            'SOAPAction: "VNifV2"'
+        ]; */
+
+        $headers = [
+            'Content-type: text/xml; charset==utf8',
+            'Content-lenght: ' . strlen($xml),
+            'SOAPAction: "VNidV2"'
+        ];
+
 
         $params = new SoapVar([
             'vnif:Contribuyente' => new SoapVar([
@@ -58,21 +90,12 @@ class ClienteSOAPConsultaCDI
             ], SOAP_ENC_OBJECT, null, null, null, $ns)
         ], SOAP_ENC_OBJECT, null, null, 'vnif:VNifV2Ent', $ns);
 
-        /*$params = [
-            'VNifV2Ent' => [
-                'Contribuyente' => [
-                    'Nif' => $nif,
-                    'Nombre' => $nombre
-                ]
-            ]
-        ];*/
-
         // $soapVar = new SoapVar($xml, XSD_ANYXML);
 
-        
+
 
         try {
-            $result = $client->__soapCall('VNifV2', [$params]);
+            $result = $client->__soapCall('VNifV2', [$headers]);
 
             return json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         } catch (\SoapFault $e) {
@@ -82,8 +105,24 @@ class ClienteSOAPConsultaCDI
 
             return 'SOAP Fault: ' . $e->getMessage();
         }
-    }
 
+        try {
+            $result2 = $client->__soapCall('VNifV2', [$params]);
+
+            return json_encode($result2, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        } catch (\SoapFault $e) {
+            Log::error('Soap Fault: ' . $e->getMessage());
+            Log::error('Request: ' . $e->getMessage());
+            Log::error('Response: ' . $e->getMessage());
+        }
+
+        try {
+            $result = $xmlObject->__soapCall('VNifV2', [$headers]);
+
+            return json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        } catch (\SoapFault $e) {
+        }
+    }
     private function sanitizeUtf8(String $string): string
     {
         return mb_convert_encoding($string, 'UTF-8', 'UTF-8');

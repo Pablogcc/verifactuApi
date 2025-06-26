@@ -96,7 +96,7 @@ class FacturasSeeder extends Seeder
                 'macrodato' => 'L15',
                 'emitidaPorTerceroODestinatario' => 'L7',
                 'nombre' => 'CLIENTE MAL',
-                'nif' => '48456925P',
+                'nif' => 'B53816435',
                 'codigoPais' => 'PT',
                 'idType' => 'L8',
                 'id' => 'ID54321',

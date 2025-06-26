@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use soapVar;
 use Illuminate\Support\Facades\Log;
 
 class ClientesSOAPConsultaCDI
@@ -58,8 +59,10 @@ XML;
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 
         $response = curl_exec($ch);
-        echo "Respuesta:\n" . htmlentities($response);
-        
+
+        //echo "Respuesta:\n" . htmlentities($response);
+
+        echo
         $error = curl_error($ch);
         curl_close($ch);
 
@@ -69,6 +72,42 @@ XML;
         if ($response === false) {
             return "Error en el curl: " . $error;
         }
+
+        libxml_use_internal_errors(true);
+        $xmlObject = simplexml_load_string($response);
+
+        if ($xmlObject === false) {
+            return "Error al parsear el xml";
+        }
+
+        $namespaces = $xmlObject->getNamespaces(true);
+        $body = $xmlObject->children($namespaces['env'])->body ?? null;
+
+        if (!$body) {
+            return "No hay ningún cuerpo en el XML";
+        }
+
+        $vnifResp = $body->children($namespaces['vnif'])->VNifV2Resp ?? null;
+
+        if (!$vnifResp) {
+            return "No hay ningún nodeo en el xml";
+        }
+
+        $contribuyente = $vnifResp->Contribuyente ?? null;
+
+        if (!$contribuyente) {
+            return "No hay ningún contribuyente";
+        }
+
+        $resultado = (string) $contribuyente->ResultadoIdentificacion ?? '';
+        $nifResp = (string) $contribuyente->Nif ?? '';
+        $nombreResp = (string) $contribuyente->Nombre ?? '';
+
+        
+
+        echo "Respuesta:\n" . htmlentities($xmlObject);
+
+
 
         return $response;
     }
