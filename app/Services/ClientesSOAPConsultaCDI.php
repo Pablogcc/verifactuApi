@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class ClientesSOAPConsultaCDI
 {
-    public function consultar(string $nif, string $nombre): string
+    public function consultar(string $nif, string $nombre): string|array
     {
 
         $crtPem = base_path('storage/certs/verifactu-cert.pem');
@@ -53,10 +53,7 @@ XML;
         curl_setopt($ch, CURLOPT_SSLCERTPASSWD, $pass);
         curl_setopt($ch, CURLOPT_SSLKEYPASSWD, $pass);
 
-        /*curl_setopt($ch, CURLOPT_VERBOSE, true);
-        curl_setopt($ch, CURLOPT_FAILONERROR, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);*/
+        
 
         $response = curl_exec($ch);
 
@@ -67,9 +64,6 @@ XML;
             'message' => 'Respuesta de la AEAT',
             'data' => $response
         ]);
-
-        //$error = curl_close($ch);
-        //return $error;
 
         $error = curl_error($ch);
         curl_close($ch);
@@ -111,6 +105,17 @@ XML;
         $nifResp = (string) $contribuyente->Nif ?? '';
         $nombreResp = (string) $contribuyente->Nombre ?? '';
 
-        
+        return response()->json([
+            'success' => true,
+            'message' => "Respuesta de la AEAT",
+            'data' => [
+                'NIF' => $nifResp,
+                'Nombre' => $nombreResp,
+                'resultado' => $resultado,
+                'VNifV2Sal' => 'IDENTIFICADO'
+            ]
+        ]);
+            
+    
     }
 }
