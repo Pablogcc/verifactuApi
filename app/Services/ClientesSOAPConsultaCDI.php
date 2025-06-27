@@ -14,7 +14,7 @@ class ClientesSOAPConsultaCDI
         $keyPem = base_path('storage/certs/verifactu-key.pem');
         $pass = env('PFX_CERT_PASSWORD');
 
-        $url = 'https://www1.agenciatributaria.gob.es/wlpl/BURT-JDIT/ws/VNifV2SOAP';
+        $url = "https://www1.agenciatributaria.gob.es/wlpl/BURT-JDIT/ws/VNifV2SOAP";
         // xmlns:LocalPart="http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Ent.xsd"
         $xml = <<<XML
             <?xml version="1.0" encoding="UTF-8"?>
@@ -53,16 +53,24 @@ XML;
         curl_setopt($ch, CURLOPT_SSLCERTPASSWD, $pass);
         curl_setopt($ch, CURLOPT_SSLKEYPASSWD, $pass);
 
-        curl_setopt($ch, CURLOPT_VERBOSE, true);
+        /*curl_setopt($ch, CURLOPT_VERBOSE, true);
         curl_setopt($ch, CURLOPT_FAILONERROR, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);*/
 
         $response = curl_exec($ch);
 
-        //echo "Respuesta:\n" . htmlentities($response);
+        return "Respuesta:\n" . $response;
 
-        echo
+        return response()->json([
+            'success' => true,
+            'message' => 'Respuesta de la AEAT',
+            'data' => $response
+        ]);
+
+        //$error = curl_close($ch);
+        //return $error;
+
         $error = curl_error($ch);
         curl_close($ch);
 
@@ -81,7 +89,7 @@ XML;
         }
 
         $namespaces = $xmlObject->getNamespaces(true);
-        $body = $xmlObject->children($namespaces['env'])->body ?? null;
+        $body = $xmlObject->children($namespaces['env'])->Body ?? null;
 
         if (!$body) {
             return "No hay ningún cuerpo en el XML";
@@ -104,11 +112,5 @@ XML;
         $nombreResp = (string) $contribuyente->Nombre ?? '';
 
         
-
-        echo "Respuesta:\n" . htmlentities($xmlObject);
-
-
-
-        return $response;
     }
 }

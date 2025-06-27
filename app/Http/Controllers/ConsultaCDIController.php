@@ -26,8 +26,8 @@ class ConsultaCDIController extends Controller
         $nif = strtoupper($factura->nif);
         $nombre = strtoupper($factura->nombre);
 
-        // $nif = strtoupper('29527583E');
-        // $nombre = strtoupper('GARCIA CELDRAN PABLO');
+         $nif = strtoupper('29527583E');
+         $nombre = strtoupper('GARCIA CELDRAN PABLO');
 
         $clienteCDI = new ClientesSOAPConsultaCDI();
         $respuesta = $clienteCDI->consultar($nif, $nombre);

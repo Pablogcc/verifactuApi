@@ -9,12 +9,12 @@ use Illuminate\Support\Facades\Log;
 class ClienteSOAPConsultaCDI
 {
 
-    public function consultar(string $nif, string $nombre): string
+    public function consultar(string $nif, string $nombre): string|array
     {
         $wsdl = base_path('storage/wsdl/VNIFV2.wsdl'); // 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2.wsdl'
 
-        $pfxPath = base_path(env('PFX_CERT_PATH'));
-        $pfxPassword = env('PFX_CERT_PASSWORD');
+        $pfxPath = base_path('storage/certs/verifactu-cert.pem');
+        $pfxPassword = base_path('storage/certs/verifactu-key.pem');
 
         $contextOptions = [
             'ssl' => [
@@ -27,9 +27,6 @@ class ClienteSOAPConsultaCDI
         ];
 
         $streamContext = stream_context_create($contextOptions);
-
-
-
 
         $options = [
             'trace' => 1,
@@ -61,67 +58,144 @@ class ClienteSOAPConsultaCDI
     >
     <soapenv:Header/>
     <soapenv:Body>
-        <vnif:VNif2Ent>
+        <vnif:VNifV2Ent>
             <vnif:Contribuyente>
                 <vnif:Nif>{$nif}</vnif:Nif>
                 <vnif:Nombre>{$nombre}</vnif:Nombre>
             </vnif:Contribuyente>
-    </vnif:VNif2Ent>
-    <soapenvBody/>
-    <soapenv:Envelope/>
+        </vnif:VnifV2Ent>
+    </soapenv:Body>
+</soapenv:Envelope>
 XML;
-        /* $headers = [
-            'Content-type: text/xml; charset=utf-8',
-            'Content-lenght: ' . strlen($xml),
-            'SOAPAction: "VNifV2"'
-        ]; */
 
         $headers = [
-            'Content-type: text/xml; charset==utf8',
-            'Content-lenght: ' . strlen($xml),
-            'SOAPAction: "VNidV2"'
+            'Content-type: text/xml; charset=utf-8',
+            'Content-length: ' . strlen($xml),
+            'SOAPAction: "VNifV2"'
         ];
-
 
         $params = new SoapVar([
             'vnif:Contribuyente' => new SoapVar([
                 'vnif:Nif' => new SoapVar($nif, XSD_STRING, null, null, null, $ns),
-                'vnif:Nombre' => new SoapVar($nombre, XSD_STRING, null, null, null, $ns),
+                'vnif:Nombre' => new SoapVar($nif, XSD_STRING, null, null, null, $ns),
             ], SOAP_ENC_OBJECT, null, null, null, $ns)
         ], SOAP_ENC_OBJECT, null, null, 'vnif:VNifV2Ent', $ns);
 
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $wsdl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+        curl_setopt($ch, CURLOPT_SSLCERT, $pfxPath);
+        curl_setopt($ch, CURLOPT_SSLKEY, $pfxPassword);
+        curl_setopt($ch, CURLOPT_SSLCERTPASSWD, $pfxPassword);
+        curl_setopt($ch, CURLOPT_SSLKEYPASSWD, $pfxPassword);
+
+        curl_setopt($ch, CURLOPT_VERBOSE, true);
+        curl_setopt($ch, CURLOPT_FAILONERROR, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+
+        $response = curl_exec($ch);
+
         // $soapVar = new SoapVar($xml, XSD_ANYXML);
-
-
 
         try {
             $result = $client->__soapCall('VNifV2', [$headers]);
 
-            return json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            return response()->json([
+                'success' => true,
+                'message' => 'Respuesta de la AEAT',
+                'data' => json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+            ]);
         } catch (\SoapFault $e) {
-            Log::error('SOAP Fault: ' . $e->getMessage());
-            Log::error('Request: ' . $client->__getLastRequest());
-            Log::error('Response: ' . $client->__getLastResponse());
+            return response()->json([
+                'success' => false,
+                'message' => 'NIF y NOMBRE incorrectos',
+                'data' => [
+                    'logs' => Log::error('Soap Fault: ' . $e->getMessage()),
+                    Log::error('Request: ' . $e->getMessage()),
+                    Log::error('Response: ' . $e->getMessage())
+                ]
+            ]);
+            
 
-            return 'SOAP Fault: ' . $e->getMessage();
+            // return 'SOAP Fault: ' . $e->getMessage();
         }
 
         try {
             $result2 = $client->__soapCall('VNifV2', [$params]);
 
-            return json_encode($result2, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            return response()->json([
+                'success' => true,
+                'message' => 'Respuesta de la AEAT',
+                'data' => json_encode($result2, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+            ]);
         } catch (\SoapFault $e) {
-            Log::error('Soap Fault: ' . $e->getMessage());
-            Log::error('Request: ' . $e->getMessage());
-            Log::error('Response: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'NIF y NOMBRE incorrectos',
+                'data' =>  [
+                    'logs' => Log::error('Soap Fault: ' . $e->getMessage()),
+                    Log::error('Request: ' . $e->getMessage()),
+                    Log::error('Response: ' . $e->getMessage())
+                ]
+            ]);
         }
 
-        try {
-            $result = $xmlObject->__soapCall('VNifV2', [$headers]);
+        $error = curl_error($ch);
+        curl_close($ch);
 
-            return json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        } catch (\SoapFault $e) {
+        Log::info("Request\n" . $xml);
+        Log::info("RESPONSE\n" . $response);
+        
+        if($response === false) {
+            return "Error en el curl: " . $error;
         }
+
+        libxml_use_internal_errors(true);
+        $xmlOject = simplexml_load_string($response);
+
+        if (!$xmlOject) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El XML es incorrecto'
+            ]);
+        }
+
+        $namespaces = $xmlOject->getNamespaces(true);
+        $body = $xmlOject->children($namespaces);
+        
+        if (!$body) {
+            return "No hay ningun cuerpo en el XML";
+        }
+
+        $vnifResp = $body->children($namespaces['vnif'])->VNifV2Resp ?? null;
+
+        if (!$vnifResp) {
+            return "No hay ningún nodo en el XML";
+        }
+
+        $contribuyente = $vnifResp->Contribuyente ?? null;
+
+        if (!$contribuyente) {
+            return "No hay ningún Contribuyente";
+        }
+
+        $resultado = (string) $contribuyente->ResultadoIdentificación ?? '';
+        $nifResp = (string) $contribuyente->Niff ?? '';
+        $nombreResp = (string) $contribuyente->Nombre ?? '';
+
+        return [
+            'nif' => $nombreResp,
+            'nombre' => $nifResp,
+            'resultado' => $resultado,
+            'VNifV2Sal' => 'IDENTIFICADO'
+        ];
+
     }
     private function sanitizeUtf8(String $string): string
     {
