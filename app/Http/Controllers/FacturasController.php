@@ -94,19 +94,6 @@ class FacturasController extends Controller
 
                 file_put_contents($rutaDestino, $xmlFirmado);
 
-                //Guardado en base de datos
-                $exists = DB::table('facturas_firmadas')->where('num_serie_factura', $factura->numSerieFactura)->exists();
-                if (!$exists) {
-                    DB::table('facturas_firmadas')->insert([
-                        'num_serie_factura' => $factura->numSerieFactura,
-                        'xml_firmado' => $xmlFirmado,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                }
-
-
-
                 //Cambiamos estado
                 $factura->enviados = 'enviado';
                 $factura->estado_proceso = 'procesada';

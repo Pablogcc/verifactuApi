@@ -45,7 +45,7 @@ class ProcesarFacturasInsertadas extends Command
                 $nif = strtoupper(trim($factura->nif));
 
                 //Probar si el nif es correcto, si no, te lleva al catch
-                 if (strlen($factura->nif) !== 9) {
+                if (strlen($factura->nif) !== 9) {
                     throw new \Exception("El NIF de la factura {$factura->numSerieFactura} es incorrecto");
                 }
 
@@ -59,7 +59,7 @@ class ProcesarFacturasInsertadas extends Command
 
                 if ($nif[8] !== $letraEsperada) {
                     throw new \Exception("El DNI de la factura {$factura->numSerieFactura} tiene una letra de control incorrecta");
-                } 
+                }
 
                 //Generar XML
                 $xml = (new FacturaXmlGenerator())->generateXml($factura);
@@ -86,22 +86,6 @@ class ProcesarFacturasInsertadas extends Command
                 $rutaDestino = $carpetaDestino . '\factura_firmada_' . $factura->numSerieFactura . '.xml';
                 //Guardamos el xml firmado en la ruta creada
                 file_put_contents($rutaDestino, $xmlFirmado);
-
-                //Vemos si existe la factura comprobando su numero de serie de la factura para que no se duplique
-                $exists = DB::table('facturas_firmadas')->where('num_serie_factura', $factura->numSerieFactura)->exists();
-
-
-                //Si no existe la factura que se guarde en la tabla de facturas firmadas
-                if (!$exists) {
-                    DB::table('facturas_firmadas')->insert([
-                        'num_serie_factura' => $factura->numSerieFactura,
-                        'xml_firmado' => $xmlFirmado,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                }
-
-
 
                 //Cambiamos el estado de la factura, diciendo que se ha enviado y procesado, y lo guardamos
                 $factura->enviados = 'enviado';

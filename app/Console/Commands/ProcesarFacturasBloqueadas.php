@@ -71,18 +71,7 @@ class ProcesarFacturasBloqueadas extends Command
                 $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
                 $rutaDestino = $carpetaDestino . '\facturasFirmadasLock_' . $factura->numSerieFactura . '.xml';
                 file_put_contents($rutaDestino, $xmlFirmado);
-
-                //Guardamos la factura si no está en la tabla de facturas_firmadas
-                $exists = DB::table('facturas_firmadas')->where('num_serie_factura', $factura->numSerieFactura)->exists();
-                if (!$exists) {
-                    DB::table('facturas_firmadas')->insert([
-                        'num_serie_factura' => $factura->numSerieFactura,
-                        'xml_firmado' => $xmlFirmado,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                }
-
+                
                 //Si se ha procesado todo correctamente, la factura se marca como enviada y procesada
                 $factura->enviados = 'enviado';
                 $factura->estado_proceso = 'procesada';
