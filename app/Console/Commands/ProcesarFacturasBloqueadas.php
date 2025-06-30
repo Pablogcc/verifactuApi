@@ -61,6 +61,7 @@ class ProcesarFacturasBloqueadas extends Command
 
                 //Generamos el xml y lo guardamos en la carpeta de facturas como: facturasLock_EJEMPLO
                 $xml = (new BloqueoXmlGenerator())->generateXml($factura);
+
                 $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
                 $ruta = $carpetaOrigen . '\facturasLock_' . $factura->numSerieFactura . '.xml';
                 file_put_contents($ruta, $xml);

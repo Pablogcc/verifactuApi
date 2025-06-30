@@ -79,16 +79,6 @@ class ProcesarFacturasInsertadas extends Command
                 //Firmamos el xml de la factura
                 $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
 
-                /*$clienteVerifactu = new \App\Services\ClientesSOAPVerifactu;
-                $respuestaAEAT = $clienteVerifactu->enviar($xmlFirmado, true);
-
-
-                //Log::info('Respuesta AEAT: ' . print_r($respuestaAEAT, true));
-
-                if (strpos($respuestaAEAT, 'NIF') !== false && stripos($respuestaAEAT, 'incorrecto') !== false) {
-                    throw new \Exception("La AEAT ha rechazado el DNI de la factura {$factura->numSerieFactura}: " . $respuestaAEAT);
-                } */
-
                 //Guardamos el XML firmado
                 $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
 

@@ -33,7 +33,7 @@ class FirmaXmlGenerator
             XMLSecurityDSig::SHA256,
             array('http://www.w3.org/2000/09/xmldsig#enveloped-signature')
         );
-        $objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, array('type'=>'private'));
+        $objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, array('type' => 'private'));
         $objKey->loadKey($privateKey, false);
         $objDSig->sign($objKey);
         $objDSig->add509Cert($publicCert);
