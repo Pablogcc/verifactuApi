@@ -16,8 +16,10 @@ class ClientesSOAPConsultaCDI
 
         $url = "https://www1.agenciatributaria.gob.es/wlpl/BURT-JDIT/ws/VNifV2SOAP";
         // xmlns:LocalPart="http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Ent.xsd"
+
+        /*Hemos quitado el: <?xml version="1.0" encoding="UTF-8"?> */
         $xml = <<<XML
-            <?xml version="1.0" encoding="UTF-8"?>
+            
 <soapenv:Envelope
     xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
     xmlns:vnif="http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Ent.xsd"
@@ -109,8 +111,8 @@ XML;
             'success' => true,
             'message' => "Respuesta de la AEAT",
             'data' => [
-                'NIF' => $nifResp,
-                'Nombre' => $nombreResp,
+                'NIF' => $nifResp . "\n",
+                'Nombre' => $nombreResp . "\n",
                 'resultado' => $resultado,
                 'VNifV2Sal' => 'IDENTIFICADO'
             ]
