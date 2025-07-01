@@ -29,25 +29,17 @@ class ConsultaCDIController extends Controller
         $clienteCDI = new ClientesSOAPConsultaCDI();
         $respuesta = $clienteCDI->consultar($nif, $nombre);
 
-        //Devolvemos la respuesta en un json
-        /*return response()->json([
-            'success' => true,
-            'message' => "Respuesta de la AEAT",
-            'token' => Str::random(40),
-            'data' => $respuesta
-        ]);*/
-
         $esCorrecto = false;
 
         try {
             $xml = simplexml_load_string($respuesta);
 
             $xml->registerXPathNamespace('soapenv', 'http://schemas.xmlsoap.org/soap/envelope/');
-            $xml->registerXPathNamespace('VNifV2Sal', 'http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Ent.xsd');
+            $xml->registerXPathNamespace('VNifV2Sal', 'http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Sal.xsd');
 
             $result = $xml->xpath('//VNifV2Sal:Resultado');
 
-            if (!empty($result) && strtoupper((string)$result[0] === 'IDENTIFICADO')) {
+            if (!empty($result) && strtoupper((string)$result[0]) == 'IDENTIFICADO') {
                 $esCorrecto = true;
             }
         } catch (\Exception $e) {
