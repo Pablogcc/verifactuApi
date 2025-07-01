@@ -5,20 +5,11 @@ use App\Http\Controllers\ConsultaCDIController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FacturasController;
+use App\Http\Middleware\TokenIdentificado;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-
-Route::get('/facturas', [FacturasController::class, 'getAll']);
-
-Route::get('/factura/{id}', [FacturasController::class, 'getById']);
-
-Route::post('/procesarFacturas', [FacturasController::class, 'procesarFacturas']);
-
-Route::get('/validation/{nif}', [ConsultaCDIController::class, 'validateDNI']);
-
-Route::get('/validationdni/{numSerieFactura}', [ConsultaCDIController::class, 'validatedni']);
-
-Route::get('/validaciondni/{numSerieFactura}', [ConsultaCDIController::class, 'validate']);
+//Ruta para comprobar el controller: http://127.0.0.1:8000/api/validaciondni/F2024-0001
+Route::get('/validaciondni', [ConsultaCDIController::class, 'validate']);

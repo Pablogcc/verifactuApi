@@ -68,3 +68,23 @@ php artisan factura:xml:all
 ```sh
 php artisan firma:xml
 ```
+
+## Iniciar el proyecto de laravel para las peticiones(http://127.0.0.1:8000)
+
+```sh
+php artisan serve
+```
+
+# Al descargarlo del reporistorio de github, hay que hacer dos comandos
+
+## Instalacion del composer para la carpeta vendor
+
+```sh
+composer install
+```
+
+## Copiar el archivo .env.exmple en el .env
+
+```sh
+cp .env.example .env
+```
