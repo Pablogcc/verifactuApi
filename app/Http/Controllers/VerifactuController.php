@@ -141,6 +141,8 @@ class VerifactuController extends Controller
             ]);
         }
 
+        
+
         $log = DB::table('facturas_logs')->orderBy('created_at', 'desc')->first();
 
         if ($log) {

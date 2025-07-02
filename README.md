@@ -1,15 +1,29 @@
 # Comandos de la terminal 
 
+## Al bajártelo del repositorio de github, hay que hacer dos comandos
+
+## Instalación del composer para la carpeta vendor
+
+```sh
+composer install
+```
+
+## Copiar el .env.example en el .env
+
+```sh
+cp .env.example .env
+```
+
 ## Crear todas las tablas de la base de datos vacias
 
 ```sh
 php artisan migrate
 ```
 
-## Eliminar todas las tablas de la base de datos
+## Eliminar los campos de las tablas de la base de datos
 
 ```sh
-php artisan migrate:rollback
+php artisan migrate:fresh --seed
 ```
 
 ## Insertar valores a una tabla en específica
@@ -42,49 +56,14 @@ php artisan facturas-procesar-inserts
 php artisan facturas:procesar:facturas-bloqueadas
 ```
 
-
-# OPCIONALES
-
-## Comando para firmar un solo XML
+## Comando para crear una factoria para el sider
 
 ```sh
-php artisan firma:xml {numSerie}
+php artisan make:factory FacturasFactory
 ```
 
-## Generar una factura Xml por su id
-
-```sh
-hp artisan factura:xml {id}(ejemplo: ID12345)
-```
-
-## Generar todas las facturas xml
-
-```sh
-php artisan factura:xml:all
-```
-
-## Firmar los xml generados
-
-```sh
-php artisan firma:xml
-```
-
-## Iniciar el proyecto de laravel para las peticiones(http://127.0.0.1:8000)
+## Iniciar el proyecto de laravel para las peticiones
 
 ```sh
 php artisan serve
-```
-
-# Al descargarlo del reporistorio de github, hay que hacer dos comandos
-
-## Instalacion del composer para la carpeta vendor
-
-```sh
-composer install
-```
-
-## Copiar el archivo .env.exmple en el .env
-
-```sh
-cp .env.example .env
 ```

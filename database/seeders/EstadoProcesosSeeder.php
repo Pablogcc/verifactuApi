@@ -39,7 +39,7 @@ class EstadoProcesosSeeder extends Seeder
                 'facturaSinIdentifDestinatarioArt61d' => 'L5',
                 'macrodato' => 'L14',
                 'emitidaPorTerceroODestinatario' => 'L6',
-                'nombreRazon' => 'Cliente S.L. ' . $i,
+                'nombre' => 'Cliente S.L. ' . $i,
                 'nif' => 'A' . str_pad($i, 8, '0', STR_PAD_LEFT),
                 'codigoPais' => 'ES',
                 'idType' => 'L7',

@@ -18,7 +18,7 @@ class ClientesSOAPConsultaCDI
 
         /*Hemos quitado el: <?xml version="1.0" encoding="UTF-8"?> */
 
-        //Estructura necesaria en XML para pasarle el NIF y NOMBRE a la AEAT
+        //Estructura necesaria en XML para pasarle el NIF y NOMBRE a la AEAT(NO SE PUEDE CAMBIAR LA ESTRUCTURA DE LA AEAT)
         $xml = <<<XML
 <soapenv:Envelope
     xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
@@ -36,7 +36,7 @@ class ClientesSOAPConsultaCDI
 </soapenv:Envelope>
 XML;
 
-        //Headers HTTP para el cURL
+        //Headers HTTP para el cURL del XML
         $headers = [
             'Content-type: text/xml; charset=utf-8',
             'Content-length: ' . strlen($xml),

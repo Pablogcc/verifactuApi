@@ -43,13 +43,13 @@ class ProcesarFacturasBloqueadas extends Command
                 $xml = (new BloqueoXmlGenerator())->generateXml($factura);
 
                 $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
-                $ruta = $carpetaOrigen . '\facturasLock_' . $factura->numSerieFactura . '.xml';
+                $ruta = $carpetaOrigen . '\facturas_' . $factura->numSerieFactura . '.xml';
                 file_put_contents($ruta, $xml);
 
                 //Firmamos el XML y lo guardamos en otra carpeta solo para las firmadas
                 $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
                 $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
-                $rutaDestino = $carpetaDestino . '\facturasFirmadasLock_' . $factura->numSerieFactura . '.xml';
+                $rutaDestino = $carpetaDestino . '\facturasFirmadas_' . $factura->numSerieFactura . '.xml';
                 file_put_contents($rutaDestino, $xmlFirmado);
 
                 //Si se ha procesado todo correctamente, la factura se marca como enviada y procesada
