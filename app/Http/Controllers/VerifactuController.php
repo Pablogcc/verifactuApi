@@ -23,7 +23,28 @@ class VerifactuController extends Controller
             $inicio = microtime(true);
 
             try {
+
+                $nif = strtoupper(trim($factura->nif));
+
+                if (strlen($factura->nif) !== 9) {
+                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} es incorrecto");
+                }
+
+                if (!preg_match('/^[0-9]{8}[A-Z]$/', $nif)) {
+                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} es incorrecto");
+                }
+
+                $letras = 'TRWAGMYFPDXBNJZSQVHLCKE';
+                $num = intval(substr($nif, 0, 8));
+                $letraEsperada = $letras[$num % 23];
+
+                if ($nif[8] !== $letraEsperada) {
+                    throw new \Exception("El DNI de la factura {$factura->numSerieFactura} es incorrecto");
+                }
+
                 $xml = (new FacturaXmlGenerator())->generateXml($factura);
+
+                //throw new \Exception('Error forzado');
 
                 $carpeta = getenv('USERPROFILE') . '\facturas';
                 $ruta = $carpeta . '\facturas_' . $factura->numSerieFactura . '.xml';
@@ -120,5 +141,14 @@ class VerifactuController extends Controller
             ]);
         }
 
+        $logs = DB::table('facturas_logs')->orderBy('created_at', 'desc')->first();
+
+      
+            return response()->json([
+                'success' => true,
+                'message' => 'Facturas firmadas con éxito',
+                'data' => $logs
+            ]);
+        
     }
 }

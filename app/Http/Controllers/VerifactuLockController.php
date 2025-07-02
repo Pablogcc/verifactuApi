@@ -1,33 +1,17 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Http\Controllers;
 
 use App\Models\Estado_procesos;
+use Illuminate\Http\Request;
 use App\Services\BloqueoXmlGenerator;
 use App\Services\FirmaXmlGenerator;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class ProcesarFacturasBloqueadas extends Command
+class VerifactuLockController extends Controller
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'facturas:procesar-bloqueadas';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Procesar facturas firmadas en XML bloqueadas';
-
-    /**
-     * Execute the console command.
-     */
-    public function handle()
+    public function verifactuLock(Request $request)
     {
         $totalFacturas = 0;
         $totalTiempo = 0;
@@ -42,13 +26,12 @@ class ProcesarFacturasBloqueadas extends Command
 
                 $nif = strtoupper(trim($factura->nif));
 
-                //Probar si el nif es correcto, si no, te lleva al catch
                 if (strlen($factura->nif) !== 9) {
-                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} no tiene 9 caracteres");
+                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} es incorrecto");
                 }
 
                 if (!preg_match('/^[0-9]{8}[A-Z]$/', $nif)) {
-                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} tiene un formato inválido");
+                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} es incorrecto");
                 }
 
                 $letras = 'TRWAGMYFPDXBNJZSQVHLCKE';
@@ -56,33 +39,28 @@ class ProcesarFacturasBloqueadas extends Command
                 $letraEsperada = $letras[$num % 23];
 
                 if ($nif[8] !== $letraEsperada) {
-                    throw new \Exception("El DNI de la factura {$factura->numSerieFactura} tiene una letra de control incorrecta");
+                    throw new \Exception("El DNI de la factura {$factura->numSerieFactura} es incorrecto");
                 }
 
-                //Generamos el xml y lo guardamos en la carpeta de facturas como: facturasLock_EJEMPLO
                 $xml = (new BloqueoXmlGenerator())->generateXml($factura);
 
                 $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
                 $ruta = $carpetaOrigen . '\facturasLock_' . $factura->numSerieFactura . '.xml';
                 file_put_contents($ruta, $xml);
 
-                //Firmamos el XML y lo guardamos en otra carpeta solo para las firmadas
                 $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
                 $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
                 $rutaDestino = $carpetaDestino . '\facturasFirmadasLock_' . $factura->numSerieFactura . '.xml';
                 file_put_contents($rutaDestino, $xmlFirmado);
 
-                //Si se ha procesado todo correctamente, la factura se marca como enviada y procesada
                 $factura->enviados = 'enviado';
                 $factura->estado_proceso = 'procesada';
                 $factura->save();
 
-                //Calculamos el tiempo que ha tardado en generarse, sumamos todas las facturas que se han generado en ese minuto y el total del tiempo que han tardado
                 $tiempoMs = intval((microtime(true) - $inicio) * 1000);
                 $totalFacturas++;
                 $totalTiempo += $tiempoMs;
 
-                //También ponemos que en la tabla facturas se cambie de bloqueada a procesada
                 if ($factura->estado_proceso == 'procesada') {
                     DB::table('facturas')->update([
                         'enviados' => 'enviado',
@@ -92,8 +70,7 @@ class ProcesarFacturasBloqueadas extends Command
                         'updated_at' => now(),
                     ]);
                 }
-            } catch (\Throwable $e) {
-                //Si sucede algún error(error de nif, error de conexión, error forzado...) que siga en pendiente, que pase de desbloqueada a bloqueada, se genere el error de porque y se guarde
+            } catch (\Exception $e) {
                 $factura->enviados = 'pendiente';
                 $factura->estado_proceso = 'bloqueada';
                 $factura->error = $e->getMessage();
@@ -101,8 +78,6 @@ class ProcesarFacturasBloqueadas extends Command
             }
         }
 
-
-        //Cuando se carguen todas las facturas firmadas, se guardan todas, con la media de cuanto han tardado y cuanto tiempo ha tenido que pasar para toda esa cantidad de facturas bloqueadas
         if ($totalFacturas > 0) {
             $mediaTiempo = intval($totalTiempo / $totalFacturas);
             DB::table('facturas_logs')->insert([
@@ -115,8 +90,12 @@ class ProcesarFacturasBloqueadas extends Command
             ]);
         }
 
+        $logs = DB::table('facturas_logs')->orderBy('created_at', 'desc')->first();
 
-
-        $this->info('Facturas bloqueadas procesadas correctamente');
+        return response()->json([
+            'success' => true,
+            'message' => 'Facturas firmadas con éxito',
+            'data' => $logs
+        ]);
     }
 }
