@@ -46,7 +46,7 @@ class FacturaXmlGenerator
         $facturaElement->appendChild($dom->createElement('emitidaPorTerceroODestinatario', $factura->emitidaPorTerceroODestinatario));
         
         //Datos del destinatario
-        $facturaElement->appendChild($dom->createElement('nombreRazon', $factura->nombreRazon));
+        $facturaElement->appendChild($dom->createElement('nombre', $factura->nombre));
         $facturaElement->appendChild($dom->createElement('nif', $factura->nif));
         $facturaElement->appendChild($dom->createElement('codigoPais', $factura->codigoPais));
         $facturaElement->appendChild($dom->createElement('idType', $factura->idType));

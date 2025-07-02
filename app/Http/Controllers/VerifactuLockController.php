@@ -90,12 +90,14 @@ class VerifactuLockController extends Controller
             ]);
         }
 
-        $logs = DB::table('facturas_logs')->orderBy('created_at', 'desc')->first();
+        $log = DB::table('facturas_logs')->orderBy('created_at', 'desc')->first();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Facturas firmadas con éxito',
-            'data' => $logs
-        ]);
+        if ($log) {
+            return response()->json([
+                'success' => true,
+                'message' => "Facturas desbloqueadas y firmadas con éxito",
+                'data' => $log
+            ]);
+        }
     }
 }

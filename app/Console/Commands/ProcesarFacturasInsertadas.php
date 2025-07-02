@@ -41,26 +41,6 @@ class ProcesarFacturasInsertadas extends Command
             $inicio = microtime(true);
 
             try {
-
-                $nif = strtoupper(trim($factura->nif));
-
-                //Probar si el nif es correcto, si no, te lleva al catch
-                if (strlen($factura->nif) !== 9) {
-                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} es incorrecto");
-                }
-
-                if (!preg_match('/^[0-9]{8}[A-Z]$/', $nif)) {
-                    throw new \Exception("El NIF de la factura {$factura->numSerieFactura} tiene un formato inválido");
-                }
-
-                $letras = 'TRWAGMYFPDXBNJZSQVHLCKE';
-                $num = intval(substr($nif, 0, 8));
-                $letraEsperada = $letras[$num % 23];
-
-                if ($nif[8] !== $letraEsperada) {
-                    throw new \Exception("El DNI de la factura {$factura->numSerieFactura} tiene una letra de control incorrecta");
-                }
-
                 //Generar XML
                 $xml = (new FacturaXmlGenerator())->generateXml($factura);
 

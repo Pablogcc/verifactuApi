@@ -141,14 +141,19 @@ class VerifactuController extends Controller
             ]);
         }
 
-        $logs = DB::table('facturas_logs')->orderBy('created_at', 'desc')->first();
+        $log = DB::table('facturas_logs')->orderBy('created_at', 'desc')->first();
 
-      
+        if ($log) {
             return response()->json([
                 'success' => true,
                 'message' => 'Facturas firmadas con éxito',
-                'data' => $logs
+                'data' => $log
             ]);
-        
+        } else {
+            return response()->json([
+                'success' => true,
+                'message' => 'Facturas no encontradas'
+            ], 404);
+        }
     }
 }
