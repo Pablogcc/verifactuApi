@@ -15,12 +15,13 @@ class ConsultaCDIController extends Controller
 
     public function validate(Request $request)
     {
-        //Recogemos el nif y el nombre por el body(los dos son requeridos)
-
+        //Recogemos el nif, el nombre y el token por el body(los tres son requeridos)
+        //Ponemos un mensaje si el token no es válido
         $message = [
             'token.in' => 'El token no es válido.',
         ];
 
+        //Aquí es donde recogemos los campos
         $data = $request->validate([
             'nif' => 'required|string',
             'nombre' => 'required|string',
@@ -36,7 +37,7 @@ class ConsultaCDIController extends Controller
         $clienteCDI = new ClientesSOAPConsultaCDI();
         $respuesta = $clienteCDI->consultar($nif, $nombre);
 
-        //Enviamos el token por el body y por el header
+        //Enviamos el token por el body
         return response()->json([
             'success' => true,
             'message' => 'Comprobación de la AEAT: ',
