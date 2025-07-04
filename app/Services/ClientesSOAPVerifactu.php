@@ -3,7 +3,7 @@
 
 namespace App\Services;
 
-class ClientesSOAPVeriFactu
+class ClientesSOAPVerifactu
 {
     public function enviar(string $xml, bool $modoPruebas = true): string
     {

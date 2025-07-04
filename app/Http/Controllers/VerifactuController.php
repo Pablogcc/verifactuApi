@@ -44,8 +44,6 @@ class VerifactuController extends Controller
 
                 $xml = (new FacturaXmlGenerator())->generateXml($factura);
 
-                //throw new \Exception('Error forzado');
-
                 $carpeta = getenv('USERPROFILE') . '\facturas';
                 $ruta = $carpeta . '\facturas_' . $factura->numSerieFactura . '.xml';
                 file_put_contents($ruta, $xml);

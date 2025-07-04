@@ -17,11 +17,13 @@ class FacturaXmlGenerator
         $facturaElement = $dom->createElement('Facturas');
         //Campos iniciales
         $facturaElement->appendChild($dom->createElement('idVersion', $factura->idVerison));
+        $facturaElement->appendChild($dom->createElement('idInstalacion', $factura->idInstalacion));
         $facturaElement->appendChild($dom->createElement('idEmisorFactura', $factura->idEmisorFactura));
         $facturaElement->appendChild($dom->createElement('numSerieFactura', $factura->numSerieFactura));
         $facturaElement->appendChild($dom->createElement('fechaExpedicionFactura', $factura->fechaExpedicionFactura));
         $facturaElement->appendChild($dom->createElement('refExterna', $factura->refExterna));
-        $facturaElement->appendChild($dom->createElement('nombreRazonEmisor', $factura->nombreRazonEmisor));
+        $facturaElement->appendChild($dom->createElement('nombreEmisor', $factura->nombreEmisor));
+        $facturaElement->appendChild($dom->createElement('cifEmisor', $factura->cifEmisor));
         $facturaElement->appendChild($dom->createElement('subsanacion', $factura->subsanacion));
         $facturaElement->appendChild($dom->createElement('rechazoPrevio', $factura->rechazoPrevio));
         $facturaElement->appendChild($dom->createElement('tipoFactura', $factura->tipoFactura));
@@ -44,10 +46,10 @@ class FacturaXmlGenerator
         $facturaElement->appendChild($dom->createElement('facturaSinIdentifDestinatarioArt61d', $factura->facturaSinIdentifDestinatarioArt61d));
         $facturaElement->appendChild($dom->createElement('macrodato', $factura->macrodato));
         $facturaElement->appendChild($dom->createElement('emitidaPorTerceroODestinatario', $factura->emitidaPorTerceroODestinatario));
-        
+
         //Datos del destinatario
-        $facturaElement->appendChild($dom->createElement('nombre', $factura->nombre));
-        $facturaElement->appendChild($dom->createElement('nif', $factura->nif));
+        $facturaElement->appendChild($dom->createElement('nombreCliente', $factura->nombreCliente));
+        $facturaElement->appendChild($dom->createElement('nifCliente', $factura->nifCliente));
         $facturaElement->appendChild($dom->createElement('codigoPais', $factura->codigoPais));
         $facturaElement->appendChild($dom->createElement('idType', $factura->idType));
         $facturaElement->appendChild($dom->createElement('id', $factura->id));
@@ -67,14 +69,18 @@ class FacturaXmlGenerator
         $facturaElement->appendChild($dom->createElement('cuotaTotal', $factura->cuotaTotal));
         $facturaElement->appendChild($dom->createElement('importeTotal', $factura->importeTotal));
         $facturaElement->appendChild($dom->createElement('primerRegistro', $factura->primerRegistro));
-        
+
         //Registro adicional
         $facturaElement->appendChild($dom->createElement('huella', $factura->huella));
         $facturaElement->appendChild($dom->createElement('fechaHoraHusoGenRegistro', $factura->fechaHoraHusoGenRegistro));
         $facturaElement->appendChild($dom->createElement('numRegistroAcuerdoFacturacion', $factura->numRegistroAcuerdoFacturacion));
         $facturaElement->appendChild($dom->createElement('idAcuerdoSistemaInformatico', $factura->idAcuerdoSistemaInformatico));
         $facturaElement->appendChild($dom->createElement('tipoHuella', $factura->tipoHuella));
-        
+
+        $facturaElement->appendChild($dom->createElement('nombreSoftware', $factura->nombreSoftware));
+        $facturaElement->appendChild($dom->createElement('versionSoftware', $factura->versionSoftware));
+        $facturaElement->appendChild($dom->createElement('nombreFabricanteSoftware', $factura->nombreFabricanteSoftware));
+        $facturaElement->appendChild($dom->createElement('identificadorSoftware', $factura->identificadorSoftware));
         $dom->appendChild($facturaElement);
 
         return $dom->saveXML();

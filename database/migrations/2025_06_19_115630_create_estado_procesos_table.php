@@ -14,11 +14,13 @@ return new class extends Migration
         Schema::create('estado_procesos', function (Blueprint $table) {
               // $table->id();
             $table->string('idVersion');
+            $table->string('idInstalacion');
             $table->string('idEmisorFactura');
             $table->string('numSerieFactura');
             $table->string('fechaExpedicionFactura');
             $table->string('refExterna');
-            $table->string('nombreRazonEmisor');
+            $table->string('nombreEmisor');
+            $table->string('cifEmisor');
             $table->string('subsanacion');
             $table->string('rechazoPrevio');
             $table->string('tipoFactura');
@@ -40,8 +42,8 @@ return new class extends Migration
             $table->string('macrodato');
             $table->string('emitidaPorTerceroODestinatario');
             // Datos del destinatario
-            $table->string('nombre');
-            $table->string('nif');
+            $table->string('nombreCliente');
+            $table->string('nifCliente');
             $table->string('codigoPais');
             $table->string('idType');
             $table->string('id');
@@ -54,6 +56,8 @@ return new class extends Migration
             $table->decimal('tipoImpositivo', 10, 2);
             $table->decimal('baseImponibleOimporteNoSujeto', 10, 2);
             $table->decimal('baseImponibleACoste', 10, 2);
+            $table->decimal('baseImponibleACoste2', 10, 2)->nullable();
+            $table->decimal('baseImponibleACoste3', 10, 2)->nullable();
             $table->decimal('cuotaRepercutida', 10, 2);
             $table->decimal('tipoRecargoEquivalencia', 10, 2);
             $table->decimal('cuotaRecargoEquivalencia', 10, 2);
@@ -61,11 +65,16 @@ return new class extends Migration
             $table->decimal('importeTotal', 10, 2);
             $table->string('primerRegistro');
             // Registro adicional
-            $table->string('huella');
+            $table->string('huellaAnterior');
             $table->string('fechaHoraHusoGenRegistro');
             $table->string('numRegistroAcuerdoFacturacion');
             $table->string('idAcuerdoSistemaInformatico');
             $table->string('tipoHuella');
+            //Identificación nuestra empresa
+            $table->string('nombreSoftware');
+            $table->string('versionSoftware');
+            $table->string('nombreFabricanteSoftware');
+            $table->string('identificadorSoftware');
             
             $table->string('enviados')->default('pendiente');
             $table->text('error')->nullable();

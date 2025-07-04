@@ -12,13 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('facturas', function (Blueprint $table) {
-           // $table->id();
+            $table->id();
             $table->string('idVersion');
+            $table->string('idInstalacion');
             $table->string('idEmisorFactura');
             $table->string('numSerieFactura');
             $table->string('fechaExpedicionFactura');
             $table->string('refExterna');
-            $table->string('nombreRazonEmisor');
+            $table->string('nombreEmisor');
+            $table->string('cifEmisor');
             $table->string('subsanacion');
             $table->string('rechazoPrevio');
             $table->string('tipoFactura');
@@ -40,11 +42,10 @@ return new class extends Migration
             $table->string('macrodato');
             $table->string('emitidaPorTerceroODestinatario');
             // Datos del destinatario
-            $table->string('nombre');
-            $table->string('nif');
+            $table->string('nombreCliente');
+            $table->string('nifCliente');
             $table->string('codigoPais');
             $table->string('idType');
-            $table->string('id');
             // Datos fiscales
             $table->string('cupon');
             $table->string('impuesto');
@@ -52,24 +53,45 @@ return new class extends Migration
             $table->string('calificacionOperacion');
             $table->string('operacionExenta');
             $table->decimal('tipoImpositivo', 10, 2);
+            $table->decimal('tipoImpositivo2', 10, 2)->nullable();
+            $table->decimal('tipoImpositivo3', 10, 2)->nullable();
+            $table->decimal('tipoImpositivo4', 10, 2)->nullable();
             $table->decimal('baseImponibleOimporteNoSujeto', 10, 2);
             $table->decimal('baseImponibleACoste', 10, 2);
+            $table->decimal('baseImponibleACoste2', 10, 2)->nullable();
+            $table->decimal('baseImponibleACoste3', 10, 2)->nullable();
+            $table->decimal('baseImponibleACoste4', 10, 2)->nullable();
             $table->decimal('cuotaRepercutida', 10, 2);
+            $table->decimal('cuotaRepercutida2', 10, 2)->nullable();
+            $table->decimal('cuotaRepercutida3', 10, 2)->nullable();
+            $table->decimal('cuotaRepercutida4', 10, 2)->nullable();
             $table->decimal('tipoRecargoEquivalencia', 10, 2);
+            $table->decimal('tipoRecargoEquivalencia2', 10, 2)->nullable();
+            $table->decimal('tipoRecargoEquivalencia3', 10, 2)->nullable();
+            $table->decimal('tipoRecargoEquivalencia4', 10, 2)->nullable();
             $table->decimal('cuotaRecargoEquivalencia', 10, 2);
+            $table->decimal('cuotaRecargoEquivalencia2', 10, 2)->nullable();
+            $table->decimal('cuotaRecargoEquivalencia3', 10, 2)->nullable();
+            $table->decimal('cuotaRecargoEquivalencia4', 10, 2)->nullable();
             $table->decimal('cuotaTotal', 10, 2);
             $table->decimal('importeTotal', 10, 2);
             $table->string('primerRegistro');
             // Registro adicional
-            $table->string('huella');
+            $table->string('huellaAnterior');
             $table->string('fechaHoraHusoGenRegistro');
             $table->string('numRegistroAcuerdoFacturacion');
             $table->string('idAcuerdoSistemaInformatico');
             $table->string('tipoHuella');
+            //Identificación nuestra empresa
+            $table->string('nombreSoftware');
+            $table->string('versionSoftware');
+            $table->string('nombreFabricanteSoftware');
+            $table->string('identificadorSoftware');
             
             $table->string('enviados')->default('pendiente');
             $table->text('error')->nullable();
             $table->string('estado_proceso')->default('desbloqueada');
+            //$table->string('datosSif');
             $table->timestamps();
         });
     }

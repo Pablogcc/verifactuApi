@@ -1,36 +1,24 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Tests\Browser;
 
-use Illuminate\Console\Command;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Laravel\Dusk\Browser;
+use Tests\DuskTestCase;
 use App\Models\Facturas;
 use App\Services\FacturaXmlGenerator;
 use App\Services\FirmaXmlGenerator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
-class ProcesarFacturasInsertadas extends Command
+class ProcesarFacturasInsertadasTest extends DuskTestCase
 {
     /**
-     * The name and signature of the console command.
-     *
-     * @var string
+     * A Dusk test example.
      */
-    protected $signature = 'facturas:procesar-inserts';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Procesar facturas firmadas en XML';
-
-    /**
-     * Execute the console command.
-     */
-    public function handle()
+    public function testExample(): void
     {
-        $totalFacturas = 0;
+        $this->browse(function (Browser $browser) {
+             $totalFacturas = 0;
         $totalTiempo = 0;
 
         $facturas = Facturas::where('enviados', 'pendiente')
@@ -167,6 +155,8 @@ class ProcesarFacturasInsertadas extends Command
             ]);
         }
 
-        $this->info('XML firmados correctamente');
+        $browser->pause(1000);
+
+        });
     }
 }

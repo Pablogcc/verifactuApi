@@ -21,7 +21,8 @@ class BloqueoXmlGenerator
         $facturaElement->appendChild($dom->createElement('numSerieFactura', $factura->numSerieFactura));
         $facturaElement->appendChild($dom->createElement('fechaExpedicionFactura', $factura->fechaExpedicionFactura));
         $facturaElement->appendChild($dom->createElement('refExterna', $factura->refExterna));
-        $facturaElement->appendChild($dom->createElement('nombreRazonEmisor', $factura->nombreRazonEmisor));
+        $facturaElement->appendChild($dom->createElement('nombreEmisor', $factura->nombreEmisor));
+        $facturaElement->appendChild($dom->createElement('cifEmisor', $factura->cifEmisor));
         $facturaElement->appendChild($dom->createElement('subsanacion', $factura->subsanacion));
         $facturaElement->appendChild($dom->createElement('rechazoPrevio', $factura->rechazoPrevio));
         $facturaElement->appendChild($dom->createElement('tipoFactura', $factura->tipoFactura));
@@ -46,8 +47,8 @@ class BloqueoXmlGenerator
         $facturaElement->appendChild($dom->createElement('emitidaPorTerceroODestinatario', $factura->emitidaPorTerceroODestinatario));
         
         //Datos del destinatario
-        $facturaElement->appendChild($dom->createElement('nombre', $factura->nombre));
-        $facturaElement->appendChild($dom->createElement('nif', $factura->nif));
+        $facturaElement->appendChild($dom->createElement('nombre', $factura->nombreCliente));
+        $facturaElement->appendChild($dom->createElement('nif', $factura->nifCliente));
         $facturaElement->appendChild($dom->createElement('codigoPais', $factura->codigoPais));
         $facturaElement->appendChild($dom->createElement('idType', $factura->idType));
         $facturaElement->appendChild($dom->createElement('id', $factura->id));
