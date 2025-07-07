@@ -15,87 +15,109 @@ return new class extends Migration
             $table->id();
             $table->string('idVersion');
             $table->string('idInstalacion');
+
+            //IDFactura
             $table->string('idEmisorFactura');
             $table->string('numSerieFactura');
             $table->string('fechaExpedicionFactura');
-            $table->string('refExterna');
-            $table->string('nombreEmisor');
+
+            $table->string('refExterna')->default('');
+            $table->string('nombreRazonEmisor');
             $table->string('cifEmisor');
-            $table->string('subsanacion');
-            $table->string('rechazoPrevio');
-            $table->string('tipoFactura');
+            $table->string('subsanacion')->nullable();
+            $table->string('rechazoPrevio')->nullable();
+            $table->string('tipoFactura')->default('F1');
+
             // Facturas Rectificadas
-            $table->string('idEmisorFacturaRectificada');
-            $table->string('numSerieFacturaRectificada');
-            $table->string('fechaExpedicionFacturaRectificada');
+            $table->string('idEmisorFacturaRectificada')->nullable();
+            $table->string('numSerieFacturaRectificada')->nullable();
+            $table->string('fechaExpedicionFacturaRectificada')->nullable();
+
             // Facturas Sustituidas
-            $table->string('idEmisorFacturaSustituida');
-            $table->string('numSerieFacturaSustituida');
-            $table->string('fechaExpedicionFacturaSustituida');
-            $table->decimal('baseRectificada', 10, 2);
-            $table->decimal('cuotaRectificada', 10, 2);
-            $table->decimal('cuotaRecargoRectificado', 10, 2);
+            $table->string('idEmisorFacturaSustituida')->nullable();
+            $table->string('numSerieFacturaSustituida')->nullable();
+            $table->string('fechaExpedicionFacturaSustituida')->nullable();
+            $table->double('baseRectificada')->nullable();
+            $table->double('cuotaRectificada')->nullable();
+            $table->double('cuotaRecargoRectificado')->nullable();
             $table->string('fechaOperacion');
             $table->string('descripcionOperacion');
             $table->string('facturaSimplificadaArt7273')->default('N');
             $table->string('facturaSinIdentifDestinatarioArt61d')->default('N');
             $table->string('macrodato')->default('N');
             $table->string('emitidaPorTerceroODestinatario')->default('N');
-            $table->string('huellaAnterior');
-            // Datos del destinatario
+            
+            //IDDestinatario
             $table->string('nombreCliente');
             $table->string('nifCliente');
             $table->string('codigoPais');
             $table->string('idType')->default('NIF');
+
             // Datos fiscales
-            $table->string('cupon');
+            $table->string('cupon')->default('N');
             $table->string('impuesto')->default('IVA');
-            $table->string('claveRegimen');
-            $table->string('calificacionOperacion');
+
+            //DetalleDesglose 1
+            $table->string('claveRegimen')->default('01');
+            $table->string('calificacionOperacion')->default('S1');
             $table->string('operacionExenta')->default('N');
-            $table->decimal('tipoImpositivo', 10, 2);
-            $table->decimal('tipoImpositivo2', 10, 2)->nullable();
-            $table->decimal('tipoImpositivo3', 10, 2)->nullable();
-            $table->decimal('tipoImpositivo4', 10, 2)->nullable();
-            $table->decimal('baseImponibleOimporteNoSujeto', 10, 2);
-            $table->decimal('baseImponibleACoste', 10, 2);
-            $table->decimal('baseImponibleACoste2', 10, 2)->nullable();
-            $table->decimal('baseImponibleACoste3', 10, 2)->nullable();
-            $table->decimal('baseImponibleACoste4', 10, 2)->nullable();
-            $table->decimal('cuotaRepercutida', 10, 2);
-            $table->decimal('cuotaRepercutida2', 10, 2)->nullable();
-            $table->decimal('cuotaRepercutida3', 10, 2)->nullable();
-            $table->decimal('cuotaRepercutida4', 10, 2)->nullable();
-            $table->decimal('tipoRecargoEquivalencia', 10, 2);
-            $table->decimal('tipoRecargoEquivalencia2', 10, 2)->nullable();
-            $table->decimal('tipoRecargoEquivalencia3', 10, 2)->nullable();
-            $table->decimal('tipoRecargoEquivalencia4', 10, 2)->nullable();
-            $table->decimal('cuotaRecargoEquivalencia', 10, 2);
-            $table->decimal('cuotaRecargoEquivalencia2', 10, 2)->nullable();
-            $table->decimal('cuotaRecargoEquivalencia3', 10, 2)->nullable();
-            $table->decimal('cuotaRecargoEquivalencia4', 10, 2)->nullable();
-            $table->decimal('cuotaTotal', 10, 2);
-            $table->decimal('importeTotal', 10, 2);
-            $table->string('primerRegistro');
+            $table->double('tipoImpositivo');
+            $table->double('tipoImpositivo2')->nullable();
+            $table->double('tipoImpositivo3')->nullable();
+            $table->double('tipoImpositivo4')->nullable();
+            $table->double('baseImponibleOimporteNoSujeto')->default(13);
+            $table->double('baseImponibleACoste');
+            $table->double('baseImponibleACoste2')->nullable();
+            $table->double('baseImponibleACoste3')->nullable();
+            $table->double('baseImponibleACoste4')->nullable();
+            $table->double('cuotaRepercutida')->default(0.4);
+            $table->double('cuotaRepercutida2')->nullable();
+            $table->double('cuotaRepercutida3')->nullable();
+            $table->double('cuotaRepercutida4')->nullable();
+            $table->double('tipoRecargoEquivalencia');
+            $table->double('tipoRecargoEquivalencia2')->nullable();
+            $table->double('tipoRecargoEquivalencia3')->nullable();
+            $table->double('tipoRecargoEquivalencia4')->nullable();
+            $table->double('cuotaRecargoEquivalencia');
+            $table->double('cuotaRecargoEquivalencia2')->nullable();
+            $table->double('cuotaRecargoEquivalencia3')->nullable();
+            $table->double('cuotaRecargoEquivalencia4')->nullable();
+
+            //DetalleDesglose2
+            $table->string('claveRegimen2')->default('01');
+            $table->string('calificacionOperacion2')->default('S1');
+            $table->double('tipoImpositivo2')->default(21);
+            $table->double('baseImponibleOimporteNoSujeto2')->default(100);
+            $table->double('cuotaRepercutida')->default(21);
+
+
+            $table->double('cuotaTotal');
+            $table->double('importeTotal');
+            $table->string('primerRegistro')->nullable();
+
+            //RegistroAnterior
+            $table->string('IDEmisorFacturaAnterior');
+            $table->string('numSerieFactura');
+            $table->string('FechaExpedicionFacturaFactura');
+            $table->string('huellaAnterior');
 
             // Registro adicional
-
             $table->string('fechaHoraHusoGenRegistro');
-            $table->string('numRegistroAcuerdoFacturacion');
-            $table->string('idAcuerdoSistemaInformatico');
+            $table->string('numRegistroAcuerdoFacturacion')->nullable();
+            $table->string('idAcuerdoSistemaInformatico')->nullable();
             $table->string('tipoHuella')->default('01');
             $table->string('huella');
-            //Identificación nuestra empresa
+
+            //SistemaInformatico
             $table->string('nombreFabricanteSoftware')->default('SAUBER OFIMATICA S.L.');
             $table->string('nifFabricanteSoftware')->default('B53816435');
             $table->string('nombreSoftware');
-            $table->string('identificadorSoftware');
+            $table->string('identificadorSoftware')->default('77');
             $table->string('versionSoftware');
-            $table->string('numeroInstalacion');
+            $table->string('numeroInstalacion')->default('383');
             $table->string('tipoUsoPosibleVerifactu')->default('S');
             $table->string('tipoUsoPosibleMultiOT')->default('S');
             $table->string('indicadorMultiplesOT')->default('S');
-            
 
             $table->string('enviados')->default('pendiente');
             $table->text('error')->nullable();

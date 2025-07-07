@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('estado_procesos', function (Blueprint $table) {
-              $table->id();
+            $table->id();
             $table->string('idVersion');
             $table->string('idInstalacion');
             $table->string('idEmisorFactura');
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('cifEmisor');
             $table->string('subsanacion');
             $table->string('rechazoPrevio');
-            $table->string('tipoFactura');
+            $table->string('tipoFactura')->default('F1');
             // Facturas Rectificadas
             $table->string('idEmisorFacturaRectificada');
             $table->string('numSerieFacturaRectificada');
@@ -32,9 +32,9 @@ return new class extends Migration
             $table->string('idEmisorFacturaSustituida');
             $table->string('numSerieFacturaSustituida');
             $table->string('fechaExpedicionFacturaSustituida');
-            $table->decimal('baseRectificada', 10, 2);
-            $table->decimal('cuotaRectificada', 10, 2);
-            $table->decimal('cuotaRecargoRectificado', 10, 2);
+            $table->double('baseRectificada');
+            $table->double('cuotaRectificada');
+            $table->double('cuotaRecargoRectificado');
             $table->string('fechaOperacion');
             $table->string('descripcionOperacion');
             $table->string('facturaSimplificadaArt7273')->default('N');
@@ -53,33 +53,31 @@ return new class extends Migration
             $table->string('claveRegimen');
             $table->string('calificacionOperacion');
             $table->string('operacionExenta')->default('N');
-            $table->decimal('tipoImpositivo', 10, 2);
-            $table->decimal('tipoImpositivo2', 10, 2)->nullable();
-            $table->decimal('tipoImpositivo3', 10, 2)->nullable();
-            $table->decimal('tipoImpositivo4', 10, 2)->nullable();
-            $table->decimal('baseImponibleOimporteNoSujeto', 10, 2);
-            $table->decimal('baseImponibleACoste', 10, 2);
-            $table->decimal('baseImponibleACoste2', 10, 2)->nullable();
-            $table->decimal('baseImponibleACoste3', 10, 2)->nullable();
-            $table->decimal('baseImponibleACoste4', 10, 2)->nullable();
-            $table->decimal('cuotaRepercutida', 10, 2);
-            $table->decimal('cuotaRepercutida2', 10, 2)->nullable();
-            $table->decimal('cuotaRepercutida3', 10, 2)->nullable();
-            $table->decimal('cuotaRepercutida4', 10, 2)->nullable();
-            $table->decimal('tipoRecargoEquivalencia', 10, 2);
-            $table->decimal('tipoRecargoEquivalencia2', 10, 2)->nullable();
-            $table->decimal('tipoRecargoEquivalencia3', 10, 2)->nullable();
-            $table->decimal('tipoRecargoEquivalencia4', 10, 2)->nullable();
-            $table->decimal('cuotaRecargoEquivalencia', 10, 2);
-            $table->decimal('cuotaRecargoEquivalencia2', 10, 2)->nullable();
-            $table->decimal('cuotaRecargoEquivalencia3', 10, 2)->nullable();
-            $table->decimal('cuotaRecargoEquivalencia4', 10, 2)->nullable();
-            $table->decimal('cuotaTotal', 10, 2);
-            $table->decimal('importeTotal', 10, 2);
+            $table->double('tipoImpositivo');
+            $table->double('tipoImpositivo2')->nullable();
+            $table->double('tipoImpositivo3')->nullable();
+            $table->double('tipoImpositivo4')->nullable();
+            $table->double('baseImponibleOimporteNoSujeto');
+            $table->double('baseImponibleACoste');
+            $table->double('baseImponibleACoste2')->nullable();
+            $table->double('baseImponibleACoste3')->nullable();
+            $table->double('baseImponibleACoste4')->nullable();
+            $table->double('cuotaRepercutida');
+            $table->double('cuotaRepercutida2')->nullable();
+            $table->double('cuotaRepercutida3')->nullable();
+            $table->double('cuotaRepercutida4')->nullable();
+            $table->double('tipoRecargoEquivalencia');
+            $table->double('tipoRecargoEquivalencia2')->nullable();
+            $table->double('tipoRecargoEquivalencia3')->nullable();
+            $table->double('tipoRecargoEquivalencia4')->nullable();
+            $table->double('cuotaRecargoEquivalencia');
+            $table->double('cuotaRecargoEquivalencia2')->nullable();
+            $table->double('cuotaRecargoEquivalencia3')->nullable();
+            $table->double('cuotaRecargoEquivalencia4')->nullable();
+            $table->double('cuotaTotal');
+            $table->double('importeTotal');
             $table->string('primerRegistro');
-
             // Registro adicional
-
             $table->string('fechaHoraHusoGenRegistro');
             $table->string('numRegistroAcuerdoFacturacion');
             $table->string('idAcuerdoSistemaInformatico');
