@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('fechaExpedicionFactura');
 
             $table->string('refExterna')->default('');
-            $table->string('nombreRazonEmisor');
+            $table->string('nombreEmisor');
             $table->string('cifEmisor');
             $table->string('subsanacion')->nullable();
             $table->string('rechazoPrevio')->nullable();
@@ -61,7 +61,7 @@ return new class extends Migration
             $table->string('claveRegimen')->default('01');
             $table->string('calificacionOperacion')->default('S1');
             $table->string('operacionExenta')->default('N');
-            $table->double('tipoImpositivo');
+            $table->double('tipoImpositivo')->default(21);
             $table->double('tipoImpositivo2')->nullable();
             $table->double('tipoImpositivo3')->nullable();
             $table->double('tipoImpositivo4')->nullable();
@@ -84,11 +84,11 @@ return new class extends Migration
             $table->double('cuotaRecargoEquivalencia4')->nullable();
 
             //DetalleDesglose2
-            $table->string('claveRegimen2')->default('01');
-            $table->string('calificacionOperacion2')->default('S1');
-            $table->double('tipoImpositivo2')->default(21);
-            $table->double('baseImponibleOimporteNoSujeto2')->default(100);
-            $table->double('cuotaRepercutida')->default(21);
+            $table->string('claveRegimenSegundo')->default('01');
+            $table->string('calificacionOperacionSegundo')->default('S1');
+            $table->double('tipoImpositivoSegundo')->default(21);
+            $table->double('baseImponibleOimporteNoSujetosegundo')->default(100);
+            $table->double('cuotaRepercutidaSegundo')->default(21);
 
 
             $table->double('cuotaTotal');
@@ -97,8 +97,8 @@ return new class extends Migration
 
             //RegistroAnterior
             $table->string('IDEmisorFacturaAnterior');
-            $table->string('numSerieFactura');
-            $table->string('FechaExpedicionFacturaFactura');
+            $table->string('numSerieFacturaAnterior');
+            $table->string('FechaExpedicionFacturaFacturaAnterior');
             $table->string('huellaAnterior');
 
             // Registro adicional

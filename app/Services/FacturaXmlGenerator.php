@@ -15,12 +15,65 @@ class FacturaXmlGenerator
         $dom->formatOutput = true;
 
         $facturaElement = $dom->createElement('Facturas');
-        //Campos iniciales
-        $facturaElement->appendChild($dom->createElement('idVersion', $factura->idVerison));
-        $facturaElement->appendChild($dom->createElement('idInstalacion', $factura->idInstalacion));
-        $facturaElement->appendChild($dom->createElement('idEmisorFactura', $factura->idEmisorFactura));
-        $facturaElement->appendChild($dom->createElement('numSerieFactura', $factura->numSerieFactura));
-        $facturaElement->appendChild($dom->createElement('fechaExpedicionFactura', $factura->fechaExpedicionFactura));
+
+        $sum1 = $dom->getElementsByTagName('sum1:')->item(0);
+
+        //Obligado emisión
+        $facturaElement->appendChild($dom->createElement($sum1 . 'NombreRazon', $factura->nombreEmisor));
+        $facturaElement->appendChild($dom->createElement('NIF', $factura->idEmisorFactura));
+
+        $facturaElement->appendChild($dom->createElement('IDVersion', $factura->idVersion));
+
+        //ID Factura
+        $facturaElement->appendChild($dom->createElement('NIF', $factura->idEmisorFactura));
+        $facturaElement->appendChild($dom->createElement('NumSerieFactura', $factura->numSerieFactura));
+        $facturaElement->appendChild($dom->createElement('FechaExpedicionFactura', $factura->fechaExpedicionFactura));
+
+        $facturaElement->appendChild($dom->createElement('NombreRazon', $factura->nombreEmisor));
+        $facturaElement->appendChild($dom->createElement('TipoFactura', $factura->tipoFactura));
+        $facturaElement->appendChild($dom->createElement('DescripcionOperacion', $factura->descripcionOperacion));
+
+        //ID Destinatario(Cliente)
+        $facturaElement->appendChild($dom->createElement('nombreRazon', $factura->nombreCliente));
+        $facturaElement->appendChild($dom->createElement('NIF', $factura->nifCliente));
+
+        //Detalle desglose 1
+        $facturaElement->appendChild($dom->createElement('ClaveRegimen', $factura->claveRegimen));
+        $facturaElement->appendChild($dom->createElement('CalificacionOperacion', $factura->calificacionOperacion));
+        $facturaElement->appendChild($dom->createElement('TipoImpositivo', $factura->TipoImpositivo));
+        $facturaElement->appendChild($dom->createElement('BaseImponibleOimporteNoSujeto', $factura->baseImponibleOimporteNoSujeto));
+
+        //Detalle desglose 2
+        $facturaElement->appendChild($dom->createElement('ClaveRegimen', $factura->claveRegimenSegundo));
+        $facturaElement->appendChild($dom->createElement('CalificacionOperacion', $factura->calificacionOperacionSegundo));
+        $facturaElement->appendChild($dom->createElement('TipoImpositivo', $factura->TipoImpositivoSegundo));
+        $facturaElement->appendChild($dom->createElement('BaseImponibleOimporteNoSujeto', $factura->baseImponibleOimporteNoSujetoSegundo));
+
+        $facturaElement->appendChild($dom->createElement('CuotaTotal', $factura->cuotaTotal));
+        $facturaElement->appendChild($dom->createElement('ImporteTotal', $factura->importeTotal));
+
+        //Registro Anterior
+        $facturaElement->appendChild($dom->createElement('IDEmisorFactura', $factura->IDEmisorFacturaAnterior));
+        $facturaElement->appendChild($dom->createElement('NumSerieFactura', $factura->numSerieFactura));
+        $facturaElement->appendChild($dom->createElement('FechaExpedicionFactura', $factura->FechaExpedicionFactura));
+        $facturaElement->appendChild($dom->createElement('Huella', $factura->huellaAnterior));
+
+        //Sistema Informático
+        $facturaElement->appendChild($dom->createElement('NombreRazon', $factura->nombreFabricanteSoftware));
+        $facturaElement->appendChild($dom->createElement('NIF', $factura->nifFabricanteSoftware));
+        $facturaElement->appendChild($dom->createElement('NombreSistemaInformatico', $factura->nombreSoftware));
+        $facturaElement->appendChild($dom->createElement('IdSistemaInformatico', $factura->identificadorSoftware));
+        $facturaElement->appendChild($dom->createElement('Version', $factura->versionSoftware));
+        $facturaElement->appendChild($dom->createElement('NumeroInstalacion', $factura->numeroInstalacion));
+        $facturaElement->appendChild($dom->createElement('TipoUsoPosibleSoloVerifactu', $factura->tipoUsoPosibleVerifactu));
+        $facturaElement->appendChild($dom->createElement('TipoUsoPosibleMultiOT', $factura->tipoUsoPosibleMultiOT));
+        $facturaElement->appendChild($dom->createElement('IndicadorMultiplesOT', $factura->indicadorMultiplesOT));
+
+        $facturaElement->appendChild($dom->createElement('FechaHoraHusoGenRegistro', $factura->fechaHoraHusoGenRegistro));
+
+
+        
+    /*
         $facturaElement->appendChild($dom->createElement('refExterna', $factura->refExterna));
         $facturaElement->appendChild($dom->createElement('nombreEmisor', $factura->nombreEmisor));
         $facturaElement->appendChild($dom->createElement('cifEmisor', $factura->cifEmisor));
@@ -76,13 +129,9 @@ class FacturaXmlGenerator
         $facturaElement->appendChild($dom->createElement('numRegistroAcuerdoFacturacion', $factura->numRegistroAcuerdoFacturacion));
         $facturaElement->appendChild($dom->createElement('idAcuerdoSistemaInformatico', $factura->idAcuerdoSistemaInformatico));
         $facturaElement->appendChild($dom->createElement('tipoHuella', $factura->tipoHuella));
+        */
+    $dom->appendChild($facturaElement);
 
-        $facturaElement->appendChild($dom->createElement('nombreSoftware', $factura->nombreSoftware));
-        $facturaElement->appendChild($dom->createElement('versionSoftware', $factura->versionSoftware));
-        $facturaElement->appendChild($dom->createElement('nombreFabricanteSoftware', $factura->nombreFabricanteSoftware));
-        $facturaElement->appendChild($dom->createElement('identificadorSoftware', $factura->identificadorSoftware));
-        $dom->appendChild($facturaElement);
-
-        return $dom->saveXML();
+    return $dom->saveXML();
     }
 }
