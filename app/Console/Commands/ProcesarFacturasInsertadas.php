@@ -47,8 +47,6 @@ class ProcesarFacturasInsertadas extends Command
                 //Guardamos el XML
                 $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
 
-                throw new \Exception("Error forzado");
-
                 //Creamos la ruta: donde va a estar situado el xml, como va a empezar el nombre del archivo(facturas_F2024-0001) y que acabe por .xml
                 $ruta = $carpetaOrigen . '\facturas_' . $factura->numSerieFactura . '.xml';
                 //Guardamos el xml en la ruta creada

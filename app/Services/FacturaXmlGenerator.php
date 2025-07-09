@@ -9,129 +9,124 @@ class FacturaXmlGenerator
 {
 
     public function generateXml(Facturas $factura)
-    {
+{
+    $dom = new \DOMDocument('1.0', 'UTF-8');
+    $dom->formatOutput = true;
 
-        $dom = new DOMDocument('1.0', 'UTF-8');
-        $dom->formatOutput = true;
+    // Crear el nodo raíz Envelope con namespaces
+    $envelope = $dom->createElementNS('http://schemas.xmlsoap.org/soap/envelope/', 'soapenv:Envelope');
+    $envelope->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:sum', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd');
+    $envelope->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:sum1', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd');
+    $dom->appendChild($envelope);
 
-        $facturaElement = $dom->createElement('Facturas');
+    // Añadir Header vacío y Body
+    $envelope->appendChild($dom->createElement('soapenv:Header'));
+    $body = $dom->createElement('soapenv:Body');
+    $envelope->appendChild($body);
 
-        $sum1 = $dom->getElementsByTagName('sum1:')->item(0);
+    // sum:RegFactuSistemaFacturacion
+    $regFactu = $dom->createElement('sum:RegFactuSistemaFacturacion');
+    $body->appendChild($regFactu);
 
-        //Obligado emisión
-        $facturaElement->appendChild($dom->createElement($sum1 . 'NombreRazon', $factura->nombreEmisor));
-        $facturaElement->appendChild($dom->createElement('NIF', $factura->idEmisorFactura));
+    // sum:Cabecera > sum1:ObligadoEmision
+    $cabecera = $dom->createElement('sum:Cabecera');
+    $obligado = $dom->createElement('sum1:ObligadoEmision');
+    $obligado->appendChild($dom->createElement('sum1:NombreRazon', $factura->nombreEmisor));
+    $obligado->appendChild($dom->createElement('sum1:NIF', $factura->idEmisorFactura));
+    $cabecera->appendChild($obligado);
+    $regFactu->appendChild($cabecera);
 
-        $facturaElement->appendChild($dom->createElement('IDVersion', $factura->idVersion));
+    // sum:RegistroFactura > sum1:RegistroAlta
+    $registroFactura = $dom->createElement('sum:RegistroFactura');
+    $registroAlta = $dom->createElement('sum1:RegistroAlta');
 
-        //ID Factura
-        $facturaElement->appendChild($dom->createElement('NIF', $factura->idEmisorFactura));
-        $facturaElement->appendChild($dom->createElement('NumSerieFactura', $factura->numSerieFactura));
-        $facturaElement->appendChild($dom->createElement('FechaExpedicionFactura', $factura->fechaExpedicionFactura));
+    // sum1:IDVersion
+    $registroAlta->appendChild($dom->createElement('sum1:IDVersion', $factura->idVersion));
 
-        $facturaElement->appendChild($dom->createElement('NombreRazon', $factura->nombreEmisor));
-        $facturaElement->appendChild($dom->createElement('TipoFactura', $factura->tipoFactura));
-        $facturaElement->appendChild($dom->createElement('DescripcionOperacion', $factura->descripcionOperacion));
+    // sum1:IDFactura
+    $idFactura = $dom->createElement('sum1:IDFactura');
+    $idFactura->appendChild($dom->createElement('sum1:IDEmisorFactura', $factura->idEmisorFactura));
+    $idFactura->appendChild($dom->createElement('sum1:NumSerieFactura', $factura->numSerieFactura));
+    $idFactura->appendChild($dom->createElement('sum1:FechaExpedicionFactura', $factura->fechaExpedicionFactura));
+    $registroAlta->appendChild($idFactura);
 
-        //ID Destinatario(Cliente)
-        $facturaElement->appendChild($dom->createElement('nombreRazon', $factura->nombreCliente));
-        $facturaElement->appendChild($dom->createElement('NIF', $factura->nifCliente));
+    // sum1:NombreRazonEmisor y demás campos...
+    $registroAlta->appendChild($dom->createElement('sum1:NombreRazonEmisor', $factura->nombreEmisor));
+    $registroAlta->appendChild($dom->createElement('sum1:TipoFactura', $factura->tipoFactura));
+    $registroAlta->appendChild($dom->createElement('sum1:DescripcionOperacion', $factura->descripcionOperacion));
 
-        //Detalle desglose 1
-        $facturaElement->appendChild($dom->createElement('ClaveRegimen', $factura->claveRegimen));
-        $facturaElement->appendChild($dom->createElement('CalificacionOperacion', $factura->calificacionOperacion));
-        $facturaElement->appendChild($dom->createElement('TipoImpositivo', $factura->TipoImpositivo));
-        $facturaElement->appendChild($dom->createElement('BaseImponibleOimporteNoSujeto', $factura->baseImponibleOimporteNoSujeto));
+    // sum1:Destinatarios
+    $destinatarios = $dom->createElement('sum1:Destinatarios');
+    $idDest = $dom->createElement('sum1:IDDestinatario');
+    $idDest->appendChild($dom->createElement('sum1:NombreRazon', $factura->nombreCliente));
+    $idDest->appendChild($dom->createElement('sum1:NIF', $factura->nifCliente));
+    $destinatarios->appendChild($idDest);
+    $registroAlta->appendChild($destinatarios);
 
-        //Detalle desglose 2
-        $facturaElement->appendChild($dom->createElement('ClaveRegimen', $factura->claveRegimenSegundo));
-        $facturaElement->appendChild($dom->createElement('CalificacionOperacion', $factura->calificacionOperacionSegundo));
-        $facturaElement->appendChild($dom->createElement('TipoImpositivo', $factura->TipoImpositivoSegundo));
-        $facturaElement->appendChild($dom->createElement('BaseImponibleOimporteNoSujeto', $factura->baseImponibleOimporteNoSujetoSegundo));
+    // sum1:Desglose > DetalleDesglose x2
+    $desglose = $dom->createElement('sum1:Desglose');
+    
+    foreach ([
+        [
+            'ClaveRegimen' => $factura->claveRegimen,
+            'CalificacionOperacion' => $factura->calificacionOperacion,
+            'TipoImpositivo' => $factura->tipoImpositivo,
+            'BaseImponibleOimporteNoSujeto' => $factura->baseImponibleOimporteNoSujeto,
+            'CuotaRepercutida' => $factura->cuotaRepercutida,
+        ],
+        [
+            'ClaveRegimen' => $factura->claveRegimenSegundo,
+            'CalificacionOperacion' => $factura->calificacionOperacionSegundo,
+            'TipoImpositivo' => $factura->tipoImpositivoSegundo,
+            'BaseImponibleOimporteNoSujeto' => $factura->baseImponibleOimporteNoSujetosegundo,
+            'CuotaRepercutida' => $factura->cuotaRepercutidaSegundo,
+        ]
+    ] as $detalleData) {
+        $detalle = $dom->createElement('sum1:DetalleDesglose');
+        foreach ($detalleData as $tag => $val) {
+            $detalle->appendChild($dom->createElement("sum1:$tag", $val));
+        }
+        $desglose->appendChild($detalle);
+    }
 
-        $facturaElement->appendChild($dom->createElement('CuotaTotal', $factura->cuotaTotal));
-        $facturaElement->appendChild($dom->createElement('ImporteTotal', $factura->importeTotal));
+    $registroAlta->appendChild($desglose);
 
-        //Registro Anterior
-        $facturaElement->appendChild($dom->createElement('IDEmisorFactura', $factura->IDEmisorFacturaAnterior));
-        $facturaElement->appendChild($dom->createElement('NumSerieFactura', $factura->numSerieFactura));
-        $facturaElement->appendChild($dom->createElement('FechaExpedicionFactura', $factura->FechaExpedicionFactura));
-        $facturaElement->appendChild($dom->createElement('Huella', $factura->huellaAnterior));
+    // Totales
+    $registroAlta->appendChild($dom->createElement('sum1:CuotaTotal', $factura->cuotaTotal));
+    $registroAlta->appendChild($dom->createElement('sum1:ImporteTotal', $factura->importeTotal));
 
-        //Sistema Informático
-        $facturaElement->appendChild($dom->createElement('NombreRazon', $factura->nombreFabricanteSoftware));
-        $facturaElement->appendChild($dom->createElement('NIF', $factura->nifFabricanteSoftware));
-        $facturaElement->appendChild($dom->createElement('NombreSistemaInformatico', $factura->nombreSoftware));
-        $facturaElement->appendChild($dom->createElement('IdSistemaInformatico', $factura->identificadorSoftware));
-        $facturaElement->appendChild($dom->createElement('Version', $factura->versionSoftware));
-        $facturaElement->appendChild($dom->createElement('NumeroInstalacion', $factura->numeroInstalacion));
-        $facturaElement->appendChild($dom->createElement('TipoUsoPosibleSoloVerifactu', $factura->tipoUsoPosibleVerifactu));
-        $facturaElement->appendChild($dom->createElement('TipoUsoPosibleMultiOT', $factura->tipoUsoPosibleMultiOT));
-        $facturaElement->appendChild($dom->createElement('IndicadorMultiplesOT', $factura->indicadorMultiplesOT));
+    // Encadenamiento
+    $encadenamiento = $dom->createElement('sum1:Encadenamiento');
+    $registroAnterior = $dom->createElement('sum1:RegistroAnterior');
+    $registroAnterior->appendChild($dom->createElement('sum1:IDEmisorFactura', $factura->IDEmisorFacturaAnterior));
+    $registroAnterior->appendChild($dom->createElement('sum1:NumSerieFactura', $factura->numSerieFactura));
+    $registroAnterior->appendChild($dom->createElement('sum1:FechaExpedicionFactura', $factura->FechaExpedicionFacturaFacturaAnterior));
+    $registroAnterior->appendChild($dom->createElement('sum1:Huella', $factura->huellaAnterior));
+    $encadenamiento->appendChild($registroAnterior);
+    $registroAlta->appendChild($encadenamiento);
 
-        $facturaElement->appendChild($dom->createElement('FechaHoraHusoGenRegistro', $factura->fechaHoraHusoGenRegistro));
+    // Sistema Informático
+    $sistema = $dom->createElement('sum1:SistemaInformatico');
+    $sistema->appendChild($dom->createElement('sum1:NombreRazon', $factura->nombreFabricanteSoftware));
+    $sistema->appendChild($dom->createElement('sum1:NIF', $factura->nifFabricanteSoftware));
+    $sistema->appendChild($dom->createElement('sum1:NombreSistemaInformatico', $factura->nombreSoftware));
+    $sistema->appendChild($dom->createElement('sum1:IdSistemaInformatico', $factura->identificadorSoftware));
+    $sistema->appendChild($dom->createElement('sum1:Version', $factura->versionSoftware));
+    $sistema->appendChild($dom->createElement('sum1:NumeroInstalacion', $factura->numeroInstalacion));
+    $sistema->appendChild($dom->createElement('sum1:TipoUsoPosibleSoloVerifactu', $factura->tipoUsoPosibleVerifactu));
+    $sistema->appendChild($dom->createElement('sum1:TipoUsoPosibleMultiOT', $factura->tipoUsoPosibleMultiOT));
+    $sistema->appendChild($dom->createElement('sum1:IndicadorMultiplesOT', $factura->indicadorMultiplesOT));
+    $registroAlta->appendChild($sistema);
 
+    // Fecha y huella
+    $registroAlta->appendChild($dom->createElement('sum1:FechaHoraHusoGenRegistro', $factura->fechaHoraHusoGenRegistro));
+    $registroAlta->appendChild($dom->createElement('sum1:TipoHuella', $factura->tipoHuella));
+    $registroAlta->appendChild($dom->createElement('sum1:Huella', $factura->huella));
 
-        
-    /*
-        $facturaElement->appendChild($dom->createElement('refExterna', $factura->refExterna));
-        $facturaElement->appendChild($dom->createElement('nombreEmisor', $factura->nombreEmisor));
-        $facturaElement->appendChild($dom->createElement('cifEmisor', $factura->cifEmisor));
-        $facturaElement->appendChild($dom->createElement('subsanacion', $factura->subsanacion));
-        $facturaElement->appendChild($dom->createElement('rechazoPrevio', $factura->rechazoPrevio));
-        $facturaElement->appendChild($dom->createElement('tipoFactura', $factura->tipoFactura));
-
-        //Facturas Rectificadas
-        $facturaElement->appendChild($dom->createElement('idEmisorFacturaRectificada', $factura->idEmisorFacturaRectificada));
-        $facturaElement->appendChild($dom->createElement('numSerieFacturaRectificada', $factura->numSerieFacturaRectificada));
-        $facturaElement->appendChild($dom->createElement('fechaExpedicionFacturaRectificada', $factura->fechaExpedicionFacturaRectificada));
-
-        //Facturas Sustituidas
-        $facturaElement->appendChild($dom->createElement('idEmisorFacturaSustituida', $factura->idEmisorFacturaSustituida));
-        $facturaElement->appendChild($dom->createElement('numSerieFacturaSustituida', $factura->numSerieFacturaSustituida));
-        $facturaElement->appendChild($dom->createElement('fechaExpedicionFacturaSustituida', $factura->fechaExpedicionFacturaSustituida));
-        $facturaElement->appendChild($dom->createElement('baseRectificada', $factura->baseRectificada));
-        $facturaElement->appendChild($dom->createElement('cuotaRectificada', $factura->cuotaRectificada));
-        $facturaElement->appendChild($dom->createElement('cuotaRecargoRectificado', $factura->cuotaRecargoRectificado));
-        $facturaElement->appendChild($dom->createElement('fechaOperacion', $factura->fechaOperacion));
-        $facturaElement->appendChild($dom->createElement('descripcionOperacion', $factura->descripcionOperacion));
-        $facturaElement->appendChild($dom->createElement('facturaSimplificadaArt7273', $factura->facturaSimplificadaArt7273));
-        $facturaElement->appendChild($dom->createElement('facturaSinIdentifDestinatarioArt61d', $factura->facturaSinIdentifDestinatarioArt61d));
-        $facturaElement->appendChild($dom->createElement('macrodato', $factura->macrodato));
-        $facturaElement->appendChild($dom->createElement('emitidaPorTerceroODestinatario', $factura->emitidaPorTerceroODestinatario));
-
-        //Datos del destinatario
-        $facturaElement->appendChild($dom->createElement('nombreCliente', $factura->nombreCliente));
-        $facturaElement->appendChild($dom->createElement('nifCliente', $factura->nifCliente));
-        $facturaElement->appendChild($dom->createElement('codigoPais', $factura->codigoPais));
-        $facturaElement->appendChild($dom->createElement('idType', $factura->idType));
-        $facturaElement->appendChild($dom->createElement('id', $factura->id));
-
-        //Datos fiscales
-        $facturaElement->appendChild($dom->createElement('cupon', $factura->cupon));
-        $facturaElement->appendChild($dom->createElement('impuesto', $factura->impuesto));
-        $facturaElement->appendChild($dom->createElement('claveRegimen', $factura->claveRegimen));
-        $facturaElement->appendChild($dom->createElement('calificacionOperacion', $factura->calificacionOperacion));
-        $facturaElement->appendChild($dom->createElement('operacionExenta', $factura->operacionExenta));
-        $facturaElement->appendChild($dom->createElement('tipoImpositivo', $factura->tipoImpositivo));
-        $facturaElement->appendChild($dom->createElement('baseImponibleOimporteNoSujeto', $factura->baseImponibleOimporteNoSujeto));
-        $facturaElement->appendChild($dom->createElement('baseImponibleACoste', $factura->baseImponibleACoste));
-        $facturaElement->appendChild($dom->createElement('cuotaRepercutida', $factura->cuotaRepercutida));
-        $facturaElement->appendChild($dom->createElement('tipoRecargoEquivalencia', $factura->tipoRecargoEquivalencia));
-        $facturaElement->appendChild($dom->createElement('cuotaRecargoEquivalencia', $factura->cuotaRecargoEquivalencia));
-        $facturaElement->appendChild($dom->createElement('cuotaTotal', $factura->cuotaTotal));
-        $facturaElement->appendChild($dom->createElement('importeTotal', $factura->importeTotal));
-        $facturaElement->appendChild($dom->createElement('primerRegistro', $factura->primerRegistro));
-
-        //Registro adicional
-        $facturaElement->appendChild($dom->createElement('huella', $factura->huella));
-        $facturaElement->appendChild($dom->createElement('fechaHoraHusoGenRegistro', $factura->fechaHoraHusoGenRegistro));
-        $facturaElement->appendChild($dom->createElement('numRegistroAcuerdoFacturacion', $factura->numRegistroAcuerdoFacturacion));
-        $facturaElement->appendChild($dom->createElement('idAcuerdoSistemaInformatico', $factura->idAcuerdoSistemaInformatico));
-        $facturaElement->appendChild($dom->createElement('tipoHuella', $factura->tipoHuella));
-        */
-    $dom->appendChild($facturaElement);
+    $registroFactura->appendChild($registroAlta);
+    $regFactu->appendChild($registroFactura);
 
     return $dom->saveXML();
-    }
+}
+
 }
