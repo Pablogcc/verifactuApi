@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Facturas;
+use App\Services\ClientesSOAPVerifactu;
 use App\Services\FacturaXmlGenerator;
 use App\Services\FirmaXmlGenerator;
 use Illuminate\Support\Facades\DB;
@@ -12,8 +13,10 @@ class VerifactuController extends Controller
 {
     public function verifactu(Request $request)
     {
+        $verifactuService = new ClientesSOAPVerifactu();
 
-       $totalFacturas = 0;
+
+        $totalFacturas = 0;
         $totalTiempo = 0;
 
         $facturas = Facturas::where('enviados', 'pendiente')
@@ -38,8 +41,8 @@ class VerifactuController extends Controller
                 //Firmamos el xml de la factura
                 $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
 
-                
-                
+
+
                 //Guardamos el XML firmado
                 $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
 
@@ -48,9 +51,52 @@ class VerifactuController extends Controller
                 //Guardamos el xml firmado en la ruta creada
                 file_put_contents($rutaDestino, $xmlFirmado);
 
+                //---------------------------------------
+
+                $respuestaXml =  $verifactuService->enviarFactura($xmlFirmado);
+
+                // Validación rápida: ¿es XML?
+                if (!str_starts_with(trim($respuestaXml), '<?xml')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'La AEAT devolvió una respuesta no válida',
+                        'respuesta' => $respuestaXml,
+                    ], 500);
+                }
+
+                try {
+                    $respuestaXmlObj = simplexml_load_string($respuestaXml);
+                    $ns = $respuestaXmlObj->getNamespaces(true);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Error al parsear la respuesta de la AEAT',
+                        'error' => $e->getMessage(),
+                        'respuesta' => $respuestaXml,
+                    ], 500);
+                }
+
+
+
+                $resultado = $respuestaXmlObj
+                    ->children($ns['soapenv'])
+                    ->Body
+                    ->children($ns['sum'])
+                    ->RegFactuSistemaFacturacionResponse
+                    ->resultado ?? null;
+
+                if ((string)$resultado === 'OK') {
+                    $factura->enviados = 'enviado';
+                    $factura->estado_proceso = 'procesada';
+                    $factura->error = null;
+                } else {
+                    $factura->enviados = 'pendiente';
+                    $factura->estado_proceso = 'bloqueada';
+                    $factura->error = json_encode($respuestaXml);
+                }
+
                 //Cambiamos el estado de la factura, diciendo que se ha enviado y procesado, y lo guardamos
-                $factura->enviados = 'enviado';
-                $factura->estado_proceso = 'procesada';
+
                 $factura->save();
 
                 //Calculamos el tiempo que ha tardado la factura en generarse y en firmarse como xml, en milisegundos
@@ -179,8 +225,7 @@ class VerifactuController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Facturas generadas",
+            'message' => "Facturas generadas $totalFacturas",
         ]);
-
     }
 }

@@ -12,6 +12,6 @@ class MuchasFacturasSeeder extends Seeder
      */
     public function run(): void
     {
-        Facturas::factory()->count(100)->create();
+        Facturas::factory()->count(20)->create();
     }
 }

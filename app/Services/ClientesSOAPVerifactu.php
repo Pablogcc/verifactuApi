@@ -2,37 +2,37 @@
 
 
 namespace App\Services;
+use Illuminate\Support\Facades\Http;
+
 
 class ClientesSOAPVerifactu
 {
-    public function enviarFacturaAEAT(string $xmlFactura): string
+
+
+    protected string $endpoint;
+
+    public function __construct()
+    {
+        $this->endpoint = "https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP";
+
+    }
+
+    
+
+    public function enviarFactura(string $xmlFirmado)
     {
 
-      
-        $wsdl = "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SistemaFacturacion.wsdl";
+        $response = Http::withHeaders([
+            'Content-Type' => 'text/xml; charset=utf-8',
+            'SOAPAction' => ''
+        ])->withBody($xmlFirmado, 'text/xml')
+        ->post($this->endpoint);
 
-        $options = [
-            'trace' => 1,
-            'exceptions' => true,
-            'cache_wsdl' => WSDL_CACHE_NONE,
-        ];
-
-        $client = new \SoapClient($wsdl, $options);
-
-        $xmlObject = simplexml_load_string($xmlFactura);
-        $namespaces = $xmlObject->getNamespaces(true);
-
-
-
-        $params = [
-            'xmlFactura' => $namespaces
-        ];
-
-        try {
-            $result = $client->__soapCall('verifactuEnviar', [$params]);
-            return $result;
-        } catch (\SoapFault $e) {
-            return 'SOAP Fault: ' . $e->getMessage();
+        if (!$response->successful()) {
+            throw new \Exception("Error AEAT: HTTP " . $response->status() . "\n" . $response->body());
         }
+
+        return $response->body();
+
     }
 }
