@@ -5,31 +5,27 @@ namespace App\Services;
 
 class ClientesSOAPVerifactu
 {
-    public function enviar(string $xml, bool $modoPruebas = true): string
+    public function enviarFacturaAEAT(string $xmlFactura): string
     {
-        $wsdl = $modoPruebas
-            ? 'https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP'
-            : 'https://www1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP';
+
+      
+        $wsdl = "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SistemaFacturacion.wsdl";
 
         $options = [
             'trace' => 1,
             'exceptions' => true,
-            'cache_wsdl' =>  0, //\WSDL_CACHE_NONE,
-            'connection_timeout' => 30,
-            'soap_version' => SOAP_1_1,
-            'encoding' => 'UTF-8',
-            'local_cert' => base_path('storage/certs/verifactu.pfx'),
-            'passphrase' => env('PFX_CERT_PASSWORD', ''),
-           // 'private_key' => env('PFX_CERT_PASSWORD', ''),
+            'cache_wsdl' => WSDL_CACHE_NONE,
         ];
 
-        $client = new \SoapClient(null, array_merge($options, [
-            'location' => $wsdl,
-            'uri' => 'verifactu.aeat.es'
-        ]));
+        $client = new \SoapClient($wsdl, $options);
+
+        $xmlObject = simplexml_load_string($xmlFactura);
+        $namespaces = $xmlObject->getNamespaces(true);
+
+
 
         $params = [
-            'xmlFactura' => $xml
+            'xmlFactura' => $namespaces
         ];
 
         try {

@@ -9,6 +9,7 @@ use App\Services\FirmaXmlGenerator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+
 class ProcesarFacturasInsertadas extends Command
 {
     /**
@@ -55,6 +56,8 @@ class ProcesarFacturasInsertadas extends Command
                 //Firmamos el xml de la factura
                 $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
 
+                
+                
                 //Guardamos el XML firmado
                 $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
 

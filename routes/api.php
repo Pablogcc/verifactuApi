@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\ConsultaCDI;
+
 use App\Http\Controllers\ConsultaCDIController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -18,3 +19,5 @@ Route::get('/validaciondni', [ConsultaCDIController::class, 'validate']);
 Route::get('generateVerifactu', [VerifactuController::class, 'verifactu']);
 
 Route::get('generateVerifactuLock', [VerifactuLockController::class, 'verifactuLock']);
+
+
