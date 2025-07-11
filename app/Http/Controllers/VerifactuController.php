@@ -53,9 +53,8 @@ class VerifactuController extends Controller
 
                 //---------------------------------------
 
-                $respuestaXml =  $verifactuService->enviarFactura($xmlFirmado);
+                $respuestaXml =  $verifactuService->enviarFactura($xml);
 
-                // Validación rápida: ¿es XML?
                 if (!str_starts_with(trim($respuestaXml), '<?xml')) {
                     return response()->json([
                         'success' => false,
@@ -75,8 +74,6 @@ class VerifactuController extends Controller
                         'respuesta' => $respuestaXml,
                     ], 500);
                 }
-
-
 
                 $resultado = $respuestaXmlObj
                     ->children($ns['soapenv'])
