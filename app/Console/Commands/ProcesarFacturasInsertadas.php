@@ -8,6 +8,7 @@ use App\Services\FacturaXmlGenerator;
 use App\Services\FirmaXmlGenerator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\ClientesSOAPVerifactu;
 
 
 class ProcesarFacturasInsertadas extends Command
@@ -31,6 +32,8 @@ class ProcesarFacturasInsertadas extends Command
      */
     public function handle()
     {
+        $verifactuService = new ClientesSOAPVerifactu();
+
         $totalFacturas = 0;
         $totalTiempo = 0;
 
@@ -66,9 +69,47 @@ class ProcesarFacturasInsertadas extends Command
                 //Guardamos el xml firmado en la ruta creada
                 file_put_contents($rutaDestino, $xmlFirmado);
 
+                $respuestaXml = $verifactuService->enviarFactura($xml);
+
+                if (!str_starts_with(trim($respuestaXml), '<?xml')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Respuesta no válida',
+                        'respuesta' => $respuestaXml,
+                    ], 500);
+                }
+
+                try {
+                    $respuestaXmlObj = simplexml_load_string($respuestaXml);
+
+                    $ns = $respuestaXmlObj->getNamespaces(true);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Error al parsear la respuesta de la AEAT',
+                        'error' => $e->getMessage()
+                    ]);
+                }
+
+                $resultado = $respuestaXmlObj->children($ns['soapenv'])
+                ->Body
+                ->children($ns['sum'])
+                ->RegFactuSistemaFacturacionResponse
+                ->resultado ?? null;
+                
+                if ((string)$resultado === 'OK') {
+                    $factura->enviados = 'enviado';
+                    $factura->estado_proceso = 'procesada';
+                    $factura->error = null;
+                } else {
+                    $factura->enviados = 'pendiente';
+                    $factura->estado = 'bloqueada';
+                    $factura->error = json_encode($respuestaXml);
+                }
+
                 //Cambiamos el estado de la factura, diciendo que se ha enviado y procesado, y lo guardamos
-                $factura->enviados = 'enviado';
-                $factura->estado_proceso = 'procesada';
+                //$factura->enviados = 'enviado';
+                //$factura->estado_proceso = 'procesada';
                 $factura->save();
 
                 //Calculamos el tiempo que ha tardado la factura en generarse y en firmarse como xml, en milisegundos

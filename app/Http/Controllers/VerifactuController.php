@@ -56,22 +56,29 @@ class VerifactuController extends Controller
                 $respuestaXml =  $verifactuService->enviarFactura($xml);
 
                 if (!str_starts_with(trim($respuestaXml), '<?xml')) {
-                    return response()->json([
+
+                    $factura->enviados = 'pendiente';
+                    $factura->estado_proceso = 'bloqueada';
+                    $factura->error = response()->json([
                         'success' => false,
                         'message' => 'La AEAT devolvió una respuesta no válida',
-                        'respuesta' => $respuestaXml,
+                        //'respuesta' => $respuestaXml,
                     ], 500);
+
+                    $factura->save();
                 }
 
                 try {
                     $respuestaXmlObj = simplexml_load_string($respuestaXml);
                     $ns = $respuestaXmlObj->getNamespaces(true);
                 } catch (\Exception $e) {
-                    return response()->json([
+                    $factura->enviados = 'pendiente';
+                    $factura->estado_proceso = 'bloqueada';
+                    $factura->error = response()->json([
                         'success' => false,
                         'message' => 'Error al parsear la respuesta de la AEAT',
                         'error' => $e->getMessage(),
-                        'respuesta' => $respuestaXml,
+                        //'respuesta' => $respuestaXml,
                     ], 500);
                 }
 
