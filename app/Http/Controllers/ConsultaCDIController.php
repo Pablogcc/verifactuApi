@@ -13,7 +13,7 @@ class ConsultaCDIController extends Controller
 
 
 
-    public function validate(Request $request)
+    public function validarDNI(Request $request)
     {
         //Recogemos el nif, el nombre y el token por el body(los tres son requeridos)
         //Ponemos un mensaje si el token no es válido
@@ -40,7 +40,7 @@ class ConsultaCDIController extends Controller
         //Enviamos el token por el body
         return response()->json([
             'success' => true,
-            'message' => 'Comprobación de la AEAT: ',
+            'message' => $nombre,
             'token' => 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx',
             'data' => $respuesta
         ]);

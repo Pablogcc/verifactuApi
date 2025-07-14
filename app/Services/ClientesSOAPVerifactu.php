@@ -19,9 +19,8 @@ class ClientesSOAPVerifactu
 
     public function __construct()
     {
+        //Pasamos la url y el certificado con su contraseña
         $this->endpoint = "https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP";
-        //$this->certPath = storage_path(env('PFX_CERT_PATH'));
-        //$this->certPassword = env('PFX_CERT_PASSWORD');
         $this->keyPem = base_path("storage/certs/verifactu-key.pem");
         $this->crtPem = base_path("storage/certs/verifactu-cert.pem");
         $this->pass = env('PFX_CERT_PASSWORD');
@@ -37,6 +36,7 @@ class ClientesSOAPVerifactu
             'Content-Length: ' . strlen($xml)
         ];
 
+        //Configuración para el cURL
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->endpoint);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -44,7 +44,7 @@ class ClientesSOAPVerifactu
         curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-       
+       // Certificados y claves para el cURL
         curl_setopt($ch, CURLOPT_SSLCERT, $this->crtPem);
         curl_setopt($ch, CURLOPT_SSLKEY, $this->keyPem);
         curl_setopt($ch, CURLOPT_SSLCERTPASSWD, $this->pass);
@@ -56,6 +56,7 @@ class ClientesSOAPVerifactu
 
         $response = curl_exec($ch);
 
+        //Comprobamos si el cRUL da errónea o no
         if (curl_errno($ch)) {
             $error = curl_error($ch);
             curl_close($ch);

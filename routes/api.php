@@ -13,11 +13,13 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-//Ruta para comprobar el controller: http://127.0.0.1:8000/api/validaciondni/F2024-0001
-Route::get('/validaciondni', [ConsultaCDIController::class, 'validate']);
+//Ruta para comprobar el la validación del dni: http://127.0.0.1:8000/api/validaciondni o https://verifactu.conecta365.com/api/validaciondni
+Route::post('/validaciondni', [ConsultaCDIController::class, 'validarDNI']);
 
+//Ruta para comprobar y firmar las facturas: http://127.0.0.1:8000/api/generateVerifactu
 Route::get('generateVerifactu', [VerifactuController::class, 'verifactu']);
 
+//Ruta para comprobar y firmar las facturas bloqueadas: http://127.0.0.1:8000/api/generateVerifactuLock
 Route::get('generateVerifactuLock', [VerifactuLockController::class, 'verifactuLock']);
 
 
