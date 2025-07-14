@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Services\ClientesSOAPConsultaCDI;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class ConsultaCDIController extends Controller
 {
@@ -37,10 +38,27 @@ class ConsultaCDIController extends Controller
         $clienteCDI = new ClientesSOAPConsultaCDI();
         $respuesta = $clienteCDI->consultar($nif, $nombre);
 
-        //Enviamos el token por el body
+        $success = false;
+
+        // Si tenemos respuesta, procesamos el XML para ver si está "IDENTIFICADO" o "NO IDENTIFICADO"
+        if ($respuesta) {
+            //Registramos los namespaces y buscamos la etiqueta Resultado dentro del XML
+            $xml = simplexml_load_string($respuesta);
+            $xml->registerXPathNamespace('env', 'http://schemas.xmlsoap.org/soap/envelope/');
+            $xml->registerXPathNamespace('res', 'http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Sal.xsd');
+            $nodo = $xml->xpath('//res:Resultado');
+
+            //Si está, entonces comprobamos si pone "IDENTIFICADO"
+            if (!empty($nodo)) {
+                $resultado = trim((string) $nodo[0]);
+                $success = ($resultado === 'IDENTIFICADO');
+            }
+        }
+
+        //Enviamos el token por el body, si está identificado, en el success pondremos "true" y en el message mostramos el nombre
         return response()->json([
-            'success' => true,
-            'message' => $nombre,
+            'success' => $success,
+            'message' => $success ? $nombre : 'Comprobación de la AEAT',
             'token' => 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx',
             'data' => $respuesta
         ]);
