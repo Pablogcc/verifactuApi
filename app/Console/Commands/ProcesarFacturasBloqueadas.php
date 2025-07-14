@@ -7,6 +7,8 @@ use App\Services\BloqueoXmlGenerator;
 use App\Services\FirmaXmlGenerator;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use App\Services\ClientesSOAPVerifactu;
+
 
 class ProcesarFacturasBloqueadas extends Command
 {
@@ -29,6 +31,9 @@ class ProcesarFacturasBloqueadas extends Command
      */
     public function handle()
     {
+        $verifactuService = new ClientesSOAPVerifactu();
+
+
         $totalFacturas = 0;
         $totalTiempo = 0;
 
@@ -51,6 +56,44 @@ class ProcesarFacturasBloqueadas extends Command
                 $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
                 $rutaDestino = $carpetaDestino . '\facturasFirmadas_' . $factura->numSerieFactura . '.xml';
                 file_put_contents($rutaDestino, $xmlFirmado);
+
+                $respuestaXml = $verifactuService->enviarFactura($xml);
+
+                if (!str_starts_with(trim($respuestaXml), '<?xml')) {
+                    $factura->enviados = 'pendiente';
+                    $factura->estado_proceso = 'bloqueada';
+                    $factura->error = response()->json([
+                        'success' => false,
+                        'message' => 'La AEAT devolvió una respuesta no válida',
+                    ], 500);
+                }
+
+                try {
+                    $respuestaXmlObj = simplexml_load_string($respuestaXml);
+                    $ns = $respuestaXmlObj->getNamespaces(true);
+               
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Error al parsear la respuesta de la AEAT',
+                        'error' => $e->getMessage()
+                    ]);
+                }
+
+                $resultadolock = $respuestaXmlObj->children($ns['soapenv'])
+                ->Body
+                ->children($ns['sum'])
+                ->RegFactuSistemaFacturacuonResponse
+                ->resultado ?? null;
+
+                if ((string)$resultadolock === 'OK') {
+                    $factura->enviados = 'enviado';
+                    $factura->estado_proceso = 'procesada';
+                } else {
+                    $factura->enviados = 'pendiente';
+                    $factura->estado_proceso = 'bloqueada';
+                    $factura->error = json_encode($respuestaXml);
+                }
 
                 //Si se ha procesado todo correctamente, la factura se marca como enviada y procesada
                 $factura->enviados = 'enviado';
