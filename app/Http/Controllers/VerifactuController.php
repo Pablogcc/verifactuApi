@@ -53,16 +53,15 @@ class VerifactuController extends Controller
 
                 //---------------------------------------
 
-                $respuestaXml =  $verifactuService->enviarFactura($xml);
+                $respuestaXml = $verifactuService->enviarFactura($xml);
 
                 if (!str_starts_with(trim($respuestaXml), '<?xml')) {
-
                     $factura->enviados = 'pendiente';
                     $factura->estado_proceso = 'bloqueada';
                     $factura->error = response()->json([
                         'success' => false,
                         'message' => 'La AEAT devolvió una respuesta no válida',
-                        //'respuesta' => $respuestaXml,
+                        'respuesta' => $respuestaXml,
                     ], 500);
 
                     $factura->save();
@@ -82,22 +81,33 @@ class VerifactuController extends Controller
                     ], 500);
                 }
 
-                $resultado = $respuestaXmlObj
-                    ->children($ns['soapenv'])
-                    ->Body
-                    ->children($ns['sum'])
-                    ->RegFactuSistemaFacturacionResponse
-                    ->resultado ?? null;
+                /*
+                $resultado = null;
+                if ($respuestaXmlObj && isset($ns['soapenv']) && isset($ns['sum'])) {
+                    try {
+                        $resultado = $respuestaXmlObj
+                            ->children($ns['soapenv'])
+                            ->Body
+                            ->children($ns['sum'])
+                            ->RegFactuSistemaFacturacionResponse
+                            ->resultado ?? null;
+                    } catch (\Throwable $e) {
+                        $factura->error = 'Error del resultado' . $e->getMessage();
+                    }
+                } */
 
-                if ((string)$resultado === 'OK') {
+
+
+                if (strpos($respuestaXml, '<resultado>OK</resultado>') !== false) {
                     $factura->enviados = 'enviado';
-                    $factura->estado_proceso = 'procesada';
+                    $factura->estado_proceso = 'presentada';
                     $factura->error = null;
                 } else {
                     $factura->enviados = 'pendiente';
                     $factura->estado_proceso = 'bloqueada';
                     $factura->error = json_encode($respuestaXml);
                 }
+
 
                 //Cambiamos el estado de la factura, diciendo que se ha enviado y procesado, y lo guardamos
 
@@ -118,6 +128,8 @@ class VerifactuController extends Controller
 
                 //Luego de que de error lo guardamos en una tabla distinta
                 $data = [
+                    'serie' => $factura->serie,
+                    'numFactura' => $factura->numFactura,
                     'idVersion' => $factura->idVersion,
                     'idInstalacion' => $factura->idInstalacion,
                     'idEmisorFactura' => $factura->idEmisorFactura,

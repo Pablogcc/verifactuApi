@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('facturas', function (Blueprint $table) {
             $table->id();
+
+            $table->string('serie', 2);
+            $table->string('numFactura', 8);
+
             $table->string('idVersion');
             $table->string('idInstalacion');
 
