@@ -17,9 +17,9 @@ Route::get('/user', function (Request $request) {
 Route::post('/validaciondni', [ConsultaCDIController::class, 'validarDNI']);
 
 //Ruta para comprobar y firmar las facturas: http://127.0.0.1:8000/api/generateVerifactu
-Route::get('generateVerifactu', [VerifactuController::class, 'verifactu']);
+Route::post('generateVerifactu', [VerifactuController::class, 'verifactu']);
 
 //Ruta para comprobar y firmar las facturas bloqueadas: http://127.0.0.1:8000/api/generateVerifactuLock
-Route::get('generateVerifactuLock', [VerifactuLockController::class, 'verifactuLock']);
+Route::post('generateVerifactuLock', [VerifactuLockController::class, 'verifactuLock']);
 
 

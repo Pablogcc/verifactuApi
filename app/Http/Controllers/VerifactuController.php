@@ -55,9 +55,26 @@ class VerifactuController extends Controller
 
                 $respuestaXml = $verifactuService->enviarFactura($xml);
 
-                if (!str_starts_with(trim($respuestaXml), '<?xml')) {
+                $esXmlValido = false;
+                $xmlString = null;
+
+                libxml_use_internal_errors(true);
+                $decoded = json_decode($respuestaXml, true);
+
+                //$testXml = simplexml_load_string($respuestaXml);
+                if (!isset($decoded['response'])) {
+                    //$xmlString = $decoded['response'];
+                    continue;
+                }
+
+                $xmlString = $decoded['response'];
+
+                $xml = simplexml_load_string($xmlString);
+
+
+                /*if (!str_starts_with(trim($respuestaXml), '<?xml')) {
                     $factura->enviados = 'pendiente';
-                    $factura->estado_proceso = 'bloqueada';
+                    $factura->estado_proceso = 'ejemplo';
                     $factura->error = response()->json([
                         'success' => false,
                         'message' => 'La AEAT devolvió una respuesta no válida',
@@ -66,7 +83,7 @@ class VerifactuController extends Controller
 
                     $factura->save();
                     continue;
-                }
+                }*/
 
                 $respuestaXmlObj = simplexml_load_string($respuestaXml);
                 //$respuestaXmlObj->registerXPathNamespace('tikR', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd');
@@ -82,7 +99,7 @@ class VerifactuController extends Controller
 
                 //$estadoRegistro = (string)($respuestaXmlObj('//tikR:EstadoRegistro')[0] ?? '');
                 $estadoRegistro = (string) $respuestaLinea?->children($namespaces['tikR'])->EstadoRegistro ?? '';
-                
+
                 //$descripcionError = (string)($respuestaXmlObj->xpath('//tikR:DescripcionErrorRegistro')[0] ?? '');
                 $descripcionError = (string) $respuestaLinea?->children($namespaces['tikR'])->DescripcionErrorRegistro ?? '';
 
