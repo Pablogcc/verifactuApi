@@ -87,7 +87,7 @@ return new class extends Migration
             $table->double('cuotaRecargoEquivalencia3')->nullable();
             $table->double('cuotaRecargoEquivalencia4')->nullable();
 
-            //DetalleDesglose2
+            //DetalleDesglose2(A PARTE)
             $table->string('claveRegimenSegundo')->default('01');
             $table->string('calificacionOperacionSegundo')->default('S1');
             $table->double('tipoImpositivoSegundo')->default(21);
@@ -99,10 +99,11 @@ return new class extends Migration
             $table->double('importeTotal');
             $table->string('primerRegistro')->nullable();
 
-            //RegistroAnterior
+            //RegistroAnterior(A PARTE)
             $table->string('IDEmisorFacturaAnterior');
             $table->string('numSerieFacturaAnterior');
             $table->string('FechaExpedicionFacturaFacturaAnterior');
+
             $table->string('huellaAnterior');
 
             // Registro adicional

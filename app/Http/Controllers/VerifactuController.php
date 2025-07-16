@@ -65,49 +65,55 @@ class VerifactuController extends Controller
                     ], 500);
 
                     $factura->save();
+                    continue;
                 }
 
-                try {
-                    $respuestaXmlObj = simplexml_load_string($respuestaXml);
-                    $ns = $respuestaXmlObj->getNamespaces(true);
-                } catch (\Exception $e) {
-                    $factura->enviados = 'pendiente';
-                    $factura->estado_proceso = 'bloqueada';
-                    $factura->error = response()->json([
-                        'success' => false,
-                        'message' => 'Error al parsear la respuesta de la AEAT',
-                        'error' => $e->getMessage(),
-                        //'respuesta' => $respuestaXml,
-                    ], 500);
-                }
+                $respuestaXmlObj = simplexml_load_string($respuestaXml);
+                //$respuestaXmlObj->registerXPathNamespace('tikR', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd');
 
-                /*
-                $resultado = null;
-                if ($respuestaXmlObj && isset($ns['soapenv']) && isset($ns['sum'])) {
-                    try {
-                        $resultado = $respuestaXmlObj
-                            ->children($ns['soapenv'])
-                            ->Body
-                            ->children($ns['sum'])
-                            ->RegFactuSistemaFacturacionResponse
-                            ->resultado ?? null;
-                    } catch (\Throwable $e) {
-                        $factura->error = 'Error del resultado' . $e->getMessage();
-                    }
-                } */
+                $namespaces = $respuestaXmlObj->getNamespaces(true);
+                $body = $respuestaXmlObj->children($namespaces['env'])->Body ?? null;
 
+                $respuesta = $body?->children($namespaces['tikR'])->RespuestaRegFacturacion ?? null;
 
+                $respuestaLinea = $respuesta?->children($namespaces['tikR'])->RespuestaLinea ?? null;
 
-                if (strpos($respuestaXml, '<resultado>OK</resultado>') !== false) {
+                //------------------------------------------------
+
+                //$estadoRegistro = (string)($respuestaXmlObj('//tikR:EstadoRegistro')[0] ?? '');
+                $estadoRegistro = (string) $respuestaLinea?->children($namespaces['tikR'])->EstadoRegistro ?? '';
+                
+                //$descripcionError = (string)($respuestaXmlObj->xpath('//tikR:DescripcionErrorRegistro')[0] ?? '');
+                $descripcionError = (string) $respuestaLinea?->children($namespaces['tikR'])->DescripcionErrorRegistro ?? '';
+
+                $registroDuplicado = (string) $respuestaLinea?->children($namespaces['tikR'])->RegistroDuplicado ?? null;
+
+                //$estadoRegistroDuplicado = (string) ($respuestaXmlObj->xpath('//tikR:EstadoRegistroDuplicado'));
+                $estadoRegistroDuplicado = (string) $registroDuplicado?->children($namespaces['tik'])->EstadoRegistroDuplicado ?? '';
+
+                if ($estadoRegistro === 'Correcto') {
                     $factura->enviados = 'enviado';
                     $factura->estado_proceso = 'presentada';
                     $factura->error = null;
+                } elseif ($estadoRegistro === 'Incorrecto') {
+                    $mensaje = "Incorrecto: $descripcionError";
+                    if (!empty($estadoRegistroDuplicado)) {
+                        $mensaje .= " | RegistroDuplicado: $estadoRegistroDuplicado";
+                    }
+                    $factura->enviados = 'pendiente';
+                    $factura->estado_proceso = 'rechazada';
+                    $factura->error = $mensaje;
+                } elseif ($estadoRegistroDuplicado === 'AceptadaConErrores') {
+                    $factura->enviados = 'enviado';
+                    $factura->estado_proceso = 'presentada';
+                    $factura->error = "AceptadaConErrores: $descripcionError";
                 } else {
                     $factura->enviados = 'pendiente';
                     $factura->estado_proceso = 'bloqueada';
-                    $factura->error = json_encode($respuestaXml);
+                    $factura->error = "Respuesta desconocida";
                 }
 
+                $factura->save();
 
                 //Cambiamos el estado de la factura, diciendo que se ha enviado y procesado, y lo guardamos
 
