@@ -71,6 +71,7 @@ class ProcesarFacturasInsertadas extends Command
 
                 $respuestaXml = $verifactuService->enviarFactura($xml);
 
+
                 if (!str_starts_with(trim($respuestaXml), '<?xml')) {
                     $factura->enviados = 'pendiente';
                     $factura->estado_proceso = 'bloqueada';
@@ -106,6 +107,7 @@ class ProcesarFacturasInsertadas extends Command
                     $factura->error = json_encode($respuestaXml);
                 }
 
+                
                 $factura->save();
 
                 //Calculamos el tiempo que ha tardado la factura en generarse y en firmarse como xml, en milisegundos

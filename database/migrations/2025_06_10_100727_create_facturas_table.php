@@ -126,8 +126,9 @@ return new class extends Migration
 
             $table->string('enviados')->default('pendiente');
             $table->text('error')->nullable();
+            //$table->integer('estado_proceso')->default('0');
             $table->string('estado_proceso')->default('desbloqueada');
-            
+            $table->string('estado_registro')->default('sinPresentar');
             $table->timestamps();
         });
     }

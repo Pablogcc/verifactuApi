@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Facturas;
+use App\Services\BloqueoXmlGenerator;
 use App\Services\ClientesSOAPVerifactu;
 use App\Services\FacturaXmlGenerator;
 use App\Services\FirmaXmlGenerator;
@@ -21,6 +22,8 @@ class VerifactuController extends Controller
 
         $facturas = Facturas::where('enviados', 'pendiente')
             ->where('estado_proceso', 'desbloqueada')->get();
+
+        $facturasLock = Facturas::where('estado_proceso', 'bloqueada')->get();
 
 
         foreach ($facturas as $factura) {
@@ -55,39 +58,83 @@ class VerifactuController extends Controller
 
                 $respuestaXml = $verifactuService->enviarFactura($xml);
 
-                $esXmlValido = false;
-                $xmlString = null;
-
-                libxml_use_internal_errors(true);
-                $decoded = json_decode($respuestaXml, true);
-
-                //$testXml = simplexml_load_string($respuestaXml);
-                if (!isset($decoded['response'])) {
-                    //$xmlString = $decoded['response'];
-                    continue;
-                }
-
-                $xmlString = $decoded['response'];
-
-                $xml = simplexml_load_string($xmlString);
-
-
-                /*if (!str_starts_with(trim($respuestaXml), '<?xml')) {
+                //try {}
+                if (!str_starts_with(trim($respuestaXml), '<?xml')) {
                     $factura->enviados = 'pendiente';
-                    $factura->estado_proceso = 'ejemplo';
+                    $factura->estado_proceso = 'bloqueada';
                     $factura->error = response()->json([
                         'success' => false,
-                        'message' => 'La AEAT devolvió una respuesta no válida',
+                        'message' => 'Respuesta no válida',
                         'respuesta' => $respuestaXml,
                     ], 500);
 
                     $factura->save();
-                    continue;
-                }*/
+                } else {
+                    libxml_use_internal_errors(true);
+                    $respuestaXmlObj = simplexml_load_string($respuestaXml);
+                    if ($respuestaXmlObj === false) {
+                        $erroresXml = libxml_get_errors();
+                        $erroresMensajes = array_map(fn($e) => trim($e->message), $erroresXml);
+                        libxml_clear_errors();
 
-                $respuestaXmlObj = simplexml_load_string($respuestaXml);
+                        $factura->enviados = 'pendiente';
+                        $factura->estado_proceso = 'bloqueada';
+                        $factura->error = response()->json([
+                            'success' => false,
+                            'message' => "Error al parsear la respuesta XML",
+                            'errores_xml' => $respuestaXml,
+                            'respuesta' => $respuestaXml,
+                        ], 500);
+                        $factura->save();
+                    } else {
+                        $ns = $respuestaXmlObj->getNamespaces(true);
+
+                        $resultado = $respuestaXmlObj->xpath('//resultado');
+                        if ($resultado && trim((string)$resultado[0]) === 'OK') {
+                        }
+                    }
+                }
+
+                try {
+                    $respuestaXmlObj = simplexml_load_string($respuestaXml);
+                    $ns = $respuestaXmlObj->getNamespaces(true);
+                } catch (\Exception $e) {
+                    $factura->enviados = 'pendiente';
+                    $factura->estado_proceso = 'bloqueada';
+                    $factura->error = response()->json([
+                        'success' => false,
+                        'message' => 'Error al parsear la respuesta de la AEAT',
+                        'error' => $e->getMessage()
+                    ], 500);
+                }
+
+                if (strpos($respuestaXml, '<resultado>OK</;resultado>') !== false) {
+                    $factura->enviados = 'enviado';
+                    $factura->estado_proceso = 'presentada';
+                    $factura->error = null;
+                } else {
+                    $factura->enviados = 'pendiente';
+                    $factura->estado_proceso = 'rechazada';
+                    $factura->error = json_encode($respuestaXml);
+                }
+
+                $factura->save();
+
+                //Calculamos el tiempo que ha tardado la factura en generarse y en firmarse como xml, en milisegundos
+                $tiempoMs = intval((microtime(true) - $inicio) * 1000);
+                //Sumamos todas las facturas que se han generado y firmado en ese minuto
+                $totalFacturas++;
+                //Sumamos todo el tiempo que han tardado todas las facturas en generarse y en firmarse para luego hacer la media de todas
+                $totalTiempo += $tiempoMs;
+            } catch (\Throwable $e) {
+                //Si sucede algún error(error de nif, error de conexión, error forzado...) que siga en pendiente, que pase de desbloqueada a bloqueada, se genere el error de porque y se guarde
+                $factura->enviados = 'pendiente';
+                $factura->estado_proceso = 'bloqueada';
+                $factura->error = $e->getMessage();
+                $factura->save();
+
+
                 //$respuestaXmlObj->registerXPathNamespace('tikR', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd');
-
                 $namespaces = $respuestaXmlObj->getNamespaces(true);
                 $body = $respuestaXmlObj->children($namespaces['env'])->Body ?? null;
 
@@ -266,5 +313,99 @@ class VerifactuController extends Controller
             'success' => true,
             'message' => "Facturas generadas $totalFacturas",
         ]);
+    }
+
+    public function verifactuLcok(Request $request)
+    {
+        $$verifactuService = new ClientesSOAPVerifactu();
+
+        $totalFacturas = 0;
+        $totalTiempo = 0;
+
+        $facturasLock = Facturas::where('estado_proceso', 'bloqueada')
+            ->where('estado_registro', 'sinPresentar')->get();
+
+        foreach ($facturasLock as $factura) {
+            $inicio = microtime(true);
+
+            try {
+                $xml = (new BloqueoXmlGenerator())->generateXml($factura);
+
+                $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
+                $ruta = $carpetaOrigen . '\facturasLock_' . $factura->numSerieFactura . '.xml';
+                file_put_contents($ruta, $xml);
+
+                $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
+                $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
+                $rutaDestino = $carpetaDestino . '\facturasFirmadasLock_' . $factura->numSerieFactura . '.xml';
+                file_put_contents($rutaDestino, $xmlFirmado);
+
+                $respuestaXml = $verifactuService->enviarFactura($xml);
+
+                if (!str_starts_with(trim($respuestaXml), '<?xml')) {
+                    $factura->enviados = 'pendiente';
+                    $factura->estado_proceso = 'bloqueada';
+                    $factura->error = response()->json([
+                        'success' => false,
+                        'message' => 'La AEAT devolvió una respuesta inválida',
+                    ], 500);
+                }
+
+                try {
+                    
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Error al parsear la respuesta de la AEAT',
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+                $factura->save();
+                $tiempoMs = intval((microtime(true) - $inicio) * 1000);
+                $totalFacturas++;
+                $totalTiempo += $tiempoMs;
+                $factura->error = null;
+
+                if ($factura->estado_proceso == 'procesada') {
+                    DB::table('facturas')->update([
+                        'enviados' => 'enviado',
+                        'error' => null,
+                        'estado_proceso' => 'procesada',
+                        'estado_registro' => 'presentada',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            } catch (\Exception $e) {
+                $factura->enviados = 'pendiente';
+                $factura->estado_proceso = 'bloqueada';
+                $factura->estado_resgistro = 'sin_presentar';
+                $factura->error = $e->getMessage();
+                $factura->save();
+            }
+        }
+
+        if ($totalFacturas > 0) {
+            $mediaTiempo = intval($totalTiempo / $totalFacturas);
+            DB::table('facturas_logs')->insert([
+                'cantidad_facturas' => $totalFacturas,
+                'media_tiempo_ms' => $mediaTiempo,
+                'periodo' => now()->startOfMinute(),
+                'tipo_factura' => 'bloqueadas',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
+
+        $log = DB::table('facturas_logs')->orderBy('created_at', 'desc')->first();
+
+        if ($log) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Facturas presentadas',
+                'log' => $log
+            ]);
+        }
     }
 }
