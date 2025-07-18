@@ -16,15 +16,11 @@ class VerifactuController extends Controller
     {
         $verifactuService = new ClientesSOAPVerifactu();
 
-
         $totalFacturas = 0;
         $totalTiempo = 0;
 
-        $facturas = Facturas::where('enviados', 'pendiente')
-            ->where('estado_proceso', 'desbloqueada')->get();
-
-        $facturasLock = Facturas::where('estado_proceso', 'bloqueada')->get();
-
+        $facturas = Facturas::where('estado_proceso', 0)
+            ->where('estado_registro', 0)->get();
 
         foreach ($facturas as $factura) {
             $inicio = microtime(true);
@@ -58,10 +54,10 @@ class VerifactuController extends Controller
 
                 $respuestaXml = $verifactuService->enviarFactura($xml);
 
-                //try {}
+                
                 if (!str_starts_with(trim($respuestaXml), '<?xml')) {
-                    $factura->enviados = 'pendiente';
-                    $factura->estado_proceso = 'bloqueada';
+                    $factura->estado_proceso = 1;
+                    $factura->estado_registro = 0;
                     $factura->error = response()->json([
                         'success' => false,
                         'message' => 'Respuesta no válida',
@@ -77,8 +73,8 @@ class VerifactuController extends Controller
                         $erroresMensajes = array_map(fn($e) => trim($e->message), $erroresXml);
                         libxml_clear_errors();
 
-                        $factura->enviados = 'pendiente';
-                        $factura->estado_proceso = 'bloqueada';
+                        $factura->estado_registro = 0;
+                        $factura->estado_proceso = 1;
                         $factura->error = response()->json([
                             'success' => false,
                             'message' => "Error al parsear la respuesta XML",
@@ -99,8 +95,8 @@ class VerifactuController extends Controller
                     $respuestaXmlObj = simplexml_load_string($respuestaXml);
                     $ns = $respuestaXmlObj->getNamespaces(true);
                 } catch (\Exception $e) {
-                    $factura->enviados = 'pendiente';
-                    $factura->estado_proceso = 'bloqueada';
+                    $factura->estado_registro = 0;
+                    $factura->estado_proceso = 1;
                     $factura->error = response()->json([
                         'success' => false,
                         'message' => 'Error al parsear la respuesta de la AEAT',
@@ -109,16 +105,18 @@ class VerifactuController extends Controller
                 }
 
                 if (strpos($respuestaXml, '<resultado>OK</;resultado>') !== false) {
-                    $factura->enviados = 'enviado';
-                    $factura->estado_proceso = 'presentada';
+                    $factura->estado_registro = 1;
+                    $factura->estado_proceso = 0;
                     $factura->error = null;
                 } else {
-                    $factura->enviados = 'pendiente';
-                    $factura->estado_proceso = 'rechazada';
+                    $factura->estado_registro = 2;
+                    $factura->estado_proceso = 0;
                     $factura->error = json_encode($respuestaXml);
                 }
 
                 $factura->save();
+
+                //---------------------------------------
 
                 //Calculamos el tiempo que ha tardado la factura en generarse y en firmarse como xml, en milisegundos
                 $tiempoMs = intval((microtime(true) - $inicio) * 1000);
@@ -128,8 +126,8 @@ class VerifactuController extends Controller
                 $totalTiempo += $tiempoMs;
             } catch (\Throwable $e) {
                 //Si sucede algún error(error de nif, error de conexión, error forzado...) que siga en pendiente, que pase de desbloqueada a bloqueada, se genere el error de porque y se guarde
-                $factura->enviados = 'pendiente';
-                $factura->estado_proceso = 'bloqueada';
+                $factura->estado_proceso = 1;
+                $factura->estado_registro = 1;
                 $factura->error = $e->getMessage();
                 $factura->save();
 
@@ -156,32 +154,29 @@ class VerifactuController extends Controller
                 $estadoRegistroDuplicado = (string) $registroDuplicado?->children($namespaces['tik'])->EstadoRegistroDuplicado ?? '';
 
                 if ($estadoRegistro === 'Correcto') {
-                    $factura->enviados = 'enviado';
-                    $factura->estado_proceso = 'presentada';
+                    $factura->estado_registro = 1;
+                    $factura->estado_proceso = 0;
                     $factura->error = null;
                 } elseif ($estadoRegistro === 'Incorrecto') {
                     $mensaje = "Incorrecto: $descripcionError";
                     if (!empty($estadoRegistroDuplicado)) {
                         $mensaje .= " | RegistroDuplicado: $estadoRegistroDuplicado";
                     }
-                    $factura->enviados = 'pendiente';
-                    $factura->estado_proceso = 'rechazada';
+                    $factura->etsado_registro = 2;
+                    $factura->estado_proceso = 0;
                     $factura->error = $mensaje;
-                } elseif ($estadoRegistroDuplicado === 'AceptadaConErrores') {
-                    $factura->enviados = 'enviado';
-                    $factura->estado_proceso = 'presentada';
+                } elseif ($estadoRegistroDuplicado === 'AceptadoConErrores') {
+                    $factura->estado_registro = 1;
+                    $factura->estado_proceso = 0;
                     $factura->error = "AceptadaConErrores: $descripcionError";
                 } else {
-                    $factura->enviados = 'pendiente';
-                    $factura->estado_proceso = 'bloqueada';
+                    $factura->estado_registro = 0;
+                    $factura->estado_proceso = 1;
                     $factura->error = "Respuesta desconocida";
                 }
 
                 $factura->save();
 
-                //Cambiamos el estado de la factura, diciendo que se ha enviado y procesado, y lo guardamos
-
-                $factura->save();
 
                 //Calculamos el tiempo que ha tardado la factura en generarse y en firmarse como xml, en milisegundos
                 $tiempoMs = intval((microtime(true) - $inicio) * 1000);
@@ -191,8 +186,8 @@ class VerifactuController extends Controller
                 $totalTiempo += $tiempoMs;
             } catch (\Throwable $e) {
                 //Si sucede algún error(error de nif, error de conexión, error forzado...) que siga en pendiente, que pase de desbloqueada a bloqueada, se genere el error de porque y se guarde
-                $factura->enviados = 'pendiente';
-                $factura->estado_proceso = 'bloqueada';
+                $factura->estado_registro = 0;
+                $factura->estado_proceso = 1;
                 $factura->error = $e->getMessage();
                 $factura->save();
 
@@ -315,9 +310,14 @@ class VerifactuController extends Controller
         ]);
     }
 
+
+
+
     public function verifactuLcok(Request $request)
     {
         $$verifactuService = new ClientesSOAPVerifactu();
+
+        $facturasLock = Facturas::where('estado_proceso', 'bloqueada')->get();
 
         $totalFacturas = 0;
         $totalTiempo = 0;
@@ -352,7 +352,6 @@ class VerifactuController extends Controller
                 }
 
                 try {
-                    
                 } catch (\Exception $e) {
                     return response()->json([
                         'success' => false,

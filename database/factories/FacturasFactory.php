@@ -65,7 +65,7 @@ class FacturasFactory extends Factory
             'identificadorSoftware' => '77',
             'versionSoftware' => '2.0.3',
             'numeroInstalacion' => '383',
-            'estado_proceso' => 'desbloqueada',
+            'estado_proceso' => 0,
             'created_at' => now(),
             'updated_at' => now()
         ];

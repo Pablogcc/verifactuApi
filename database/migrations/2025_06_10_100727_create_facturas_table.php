@@ -124,11 +124,11 @@ return new class extends Migration
             $table->string('tipoUsoPosibleMultiOT')->default('S');
             $table->string('indicadorMultiplesOT')->default('S');
 
-            $table->string('enviados')->default('pendiente');
+            //$table->string('enviados')->default('pendiente');
             $table->text('error')->nullable();
-            //$table->integer('estado_proceso')->default('0');
-            $table->string('estado_proceso')->default('desbloqueada');
-            $table->string('estado_registro')->default('sinPresentar');
+            $table->integer('estado_proceso')->default(0);
+            //$table->string('estado_proceso')->default('desbloqueada');
+            $table->integer('estado_registro')->default(0);
             $table->timestamps();
         });
     }
