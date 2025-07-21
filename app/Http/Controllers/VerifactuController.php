@@ -33,7 +33,7 @@ class VerifactuController extends Controller
                 $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
 
                 //Creamos la ruta: donde va a estar situado el xml, como va a empezar el nombre del archivo(facturas_F2024-0001) y que acabe por .xml
-                $ruta = $carpetaOrigen . '\facturas_' . $factura->numSerieFactura . '.xml';
+                $ruta = $carpetaOrigen . '\facturas_' . $factura->nombreCliente . '.xml';
                 //Guardamos el xml en la ruta creada
                 file_put_contents($ruta, $xml);
 
@@ -46,7 +46,7 @@ class VerifactuController extends Controller
                 $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
 
                 //Creamos la ruta: donde va a estar situado el xml firmado, como va a empezar el nombre del archivo(factura_firmada_F2024-0001) y que acabe por .xml
-                $rutaDestino = $carpetaDestino . '\factura_firmada_' . $factura->numSerieFactura . '.xml';
+                $rutaDestino = $carpetaDestino . '\factura_firmada_' . $factura->nombreCliente . '.xml';
                 //Guardamos el xml firmado en la ruta creada
                 file_put_contents($rutaDestino, $xmlFirmado);
 
@@ -54,7 +54,7 @@ class VerifactuController extends Controller
 
                 $respuestaXml = $verifactuService->enviarFactura($xml);
 
-                
+
                 if (!str_starts_with(trim($respuestaXml), '<?xml')) {
                     $factura->estado_proceso = 1;
                     $factura->estado_registro = 0;
@@ -70,7 +70,7 @@ class VerifactuController extends Controller
                     $respuestaXmlObj = simplexml_load_string($respuestaXml);
                     if ($respuestaXmlObj === false) {
                         $erroresXml = libxml_get_errors();
-                        $erroresMensajes = array_map(fn($e) => trim($e->message), $erroresXml);
+                        //$erroresMensajes = array_map(fn($e) => trim($e->message), $erroresXml);
                         libxml_clear_errors();
 
                         $factura->estado_registro = 0;
@@ -109,7 +109,7 @@ class VerifactuController extends Controller
                     $factura->estado_proceso = 0;
                     $factura->error = null;
                 } else {
-                    $factura->estado_registro = 2;
+                    $factura->estado_registro = 4;
                     $factura->estado_proceso = 0;
                     $factura->error = json_encode($respuestaXml);
                 }
@@ -127,7 +127,7 @@ class VerifactuController extends Controller
             } catch (\Throwable $e) {
                 //Si sucede algún error(error de nif, error de conexión, error forzado...) que siga en pendiente, que pase de desbloqueada a bloqueada, se genere el error de porque y se guarde
                 $factura->estado_proceso = 1;
-                $factura->estado_registro = 1;
+                $factura->estado_registro = 0;
                 $factura->error = $e->getMessage();
                 $factura->save();
 
@@ -162,7 +162,7 @@ class VerifactuController extends Controller
                     if (!empty($estadoRegistroDuplicado)) {
                         $mensaje .= " | RegistroDuplicado: $estadoRegistroDuplicado";
                     }
-                    $factura->etsado_registro = 2;
+                    $factura->etsado_registro = 3;
                     $factura->estado_proceso = 0;
                     $factura->error = $mensaje;
                 } elseif ($estadoRegistroDuplicado === 'AceptadoConErrores') {
@@ -310,9 +310,6 @@ class VerifactuController extends Controller
         ]);
     }
 
-
-
-
     public function verifactuLcok(Request $request)
     {
         $$verifactuService = new ClientesSOAPVerifactu();
@@ -406,5 +403,125 @@ class VerifactuController extends Controller
                 'log' => $log
             ]);
         }
+    }
+
+    public function verifactuPrueba(Request $request)
+    {
+        $verifactuService = new ClientesSOAPVerifactu();
+
+        $totalFacturas = 0;
+        $totalTiempo = 0;
+
+        $facturas = Facturas::where('estado_proceso', 0)
+            ->where('estado_registro', 0)->get();
+
+        foreach ($facturas as $factura) {
+            $inicio = microtime(true);
+
+            try {
+                // Generar y guardar XML
+                $xml = (new FacturaXmlGenerator())->generateXml($factura);
+                $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
+                $ruta = $carpetaOrigen . '\facturas_' . $factura->nombreCliente . '.xml';
+                file_put_contents($ruta, $xml);
+
+                // Firmar y guardar XML firmado
+                $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
+                $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
+                $rutaDestino = $carpetaDestino . '\factura_firmada_' . $factura->nombreCliente . '.xml';
+                file_put_contents($rutaDestino, $xmlFirmado);
+
+                // Enviar factura
+                $respuestaXml = $verifactuService->enviarFactura($xml);
+
+                /*if (is_string($respuesta)) {
+                    $json = json_decode($respuesta, true);
+                    if (json_last_error() === JSON_ERROR_NONE && isset($json['response'])) {
+                        $respuestaXml = $json['response'];
+                    } else {
+                        $respuestaXml = $respuesta;
+                    }
+                } else {
+                    $respuestaXml = $respuesta;
+                }*/
+
+                libxml_use_internal_errors(true);
+                $respuestaXmlObj = simplexml_load_string($respuestaXml);
+
+                if ($respuestaXmlObj !== false) {
+                    $resultado = $respuestaXmlObj->xpath('//resultado');
+                    $valorResultado = $resultado ? trim((string)$resultado[0]) : '';
+
+                    $estadoRegistro = '';
+                    $descripcionError = '';
+                    $aceptadoConErrores = false;
+
+                    $namespaces = $respuestaXmlObj->getNamespaces(true);
+                    if (isset($namespaces['tikR'])) {
+                        $body = $respuestaXmlObj->children($namespaces['env'])->Body ?? null;
+                        $respuestaSII = $body?->children($namespaces['tikR'])->RespuestaRegFactuSistemaFacturacion ?? null;
+                        $respuestaLinea = $respuestaSII?->children($namespaces['tikR'])->RespuestaLinea ?? null;
+                        $estadoRegistro = (string) $respuestaLinea?->children($namespaces['tikR'])->EstadoRegistro ?? '';
+                        $descripcionError = (string) $respuestaLinea?->children($namespaces['tikR'])->DescripcionErrorRegistro ?? '';
+                        $registroDuplicado = $respuestaLinea?->children($namespaces['tikR'])->RegistroDuplicado ?? null;
+                        $estadoRegistroDuplicado = (string) $registroDuplicado?->children($namespaces['tik'])->EstadoRegistroDuplicado ?? '';
+                        if ($estadoRegistroDuplicado === 'AceptadoConErrores') {
+                            $aceptadoConErrores = true;
+                        }
+                    }
+                    //$aceptadoConErrores
+                    if ($estadoRegistro === 'Correcto' || $estadoRegistro === 'AceptadoConErrores') {
+                        $factura->estado_proceso = 0;
+                        $factura->estado_registro = 1;
+                        $factura->error = $aceptadoConErrores ? 'Aceptada con errores: ' . $descripcionError : null;
+                    } elseif ($estadoRegistro === 'Incorrecto') {
+                        $factura->estado_proceso = 0;
+                        $factura->estado_registro = 2;
+                        $factura->error = 'Rechazada: ' . $descripcionError;
+                    } else {
+                        // Añadimos debug para entender qué falló
+                        $factura->estado_proceso = 1;
+                        $factura->estado_registro = 0;
+                        $factura->error = "Respuesta no reconocida: EstadoRegistro=$estadoRegistro - aceptadoConErrores=$aceptadoConErrores - XML bruto: $respuestaXml";
+                    }
+                } else {
+                    $factura->estado_proceso = 1;
+                    $factura->estado_registro = 0;
+                    $factura->error = 'Respuesta no es XML válido: ' . $respuestaXml;
+                }
+
+
+                $factura->save();
+
+                // Tiempo de proceso
+                $tiempoMs = intval((microtime(true) - $inicio) * 1000);
+                $totalFacturas++;
+                $totalTiempo += $tiempoMs;
+            } catch (\Throwable $e) {
+                // Error general
+                $factura->estado_proceso = 1; // bloqueada
+                $factura->estado_registro = 0; // sin presentar
+                $factura->error = $e->getMessage();
+                $factura->save();
+            }
+        }
+
+        // Guardar logs
+        if ($totalFacturas > 0) {
+            $mediaTiempo = intval($totalTiempo / $totalFacturas);
+            DB::table('facturas_logs')->insert([
+                'cantidad_facturas' => $totalFacturas,
+                'media_tiempo_ms' => $mediaTiempo,
+                'periodo' => now()->startOfMinute(),
+                'tipo_factura' => 'desbloqueadas',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Facturas generadas $totalFacturas",
+        ]);
     }
 }

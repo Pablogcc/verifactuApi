@@ -21,4 +21,5 @@ Route::post('generateVerifactu', [VerifactuController::class, 'verifactu']);
 //Ruta para comprobar y firmar las facturas bloqueadas: http://127.0.0.1:8000/api/generateVerifactuLock
 Route::post('generateVerifactuLock', [VerifactuController::class, 'verifactuLock']);
 
+Route::post('generatePrueba', [VerifactuController::class, 'verifactuPrueba']);
 

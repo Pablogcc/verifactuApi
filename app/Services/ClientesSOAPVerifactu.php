@@ -44,7 +44,7 @@ class ClientesSOAPVerifactu
         curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-       // Certificados y claves para el cURL
+        // Certificados y claves para el cURL
         curl_setopt($ch, CURLOPT_SSLCERT, $this->crtPem);
         curl_setopt($ch, CURLOPT_SSLKEY, $this->keyPem);
         curl_setopt($ch, CURLOPT_SSLCERTPASSWD, $this->pass);
@@ -60,27 +60,20 @@ class ClientesSOAPVerifactu
         if (curl_errno($ch)) {
             $error = curl_error($ch);
             curl_close($ch);
-            return response()->json([
-                'status' => 'error',
-                'message' => "Error de conexión con la AEAT: $error"
-            ], 500);
+            throw new \Exception("Error de conexión con la AEAT: $error");
         }
 
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         if ($httpCode !== 200) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "Respuesta HTTP no exitosa: $httpCode",
-                'body' => $response
-            ], $httpCode);
+            throw new \Exception("Respuesta HTTP no exitosa: $httpCode\n$response");
         }
 
-        return response()->json([
+        /*return response()->json([
             'status' => 'ok',
             'response' => $response
-        ]);
-
+        ]);*/
+        return $response;
     }
 }
