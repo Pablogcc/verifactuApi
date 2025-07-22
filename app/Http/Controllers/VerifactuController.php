@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\DB;
 
 class VerifactuController extends Controller
 {
-    
-     public function verifactuPrueba(Request $request)
+
+    public function verifactuPrueba(Request $request)
     {
         $verifactuService = new ClientesSOAPVerifactu();
 
@@ -46,18 +46,36 @@ class VerifactuController extends Controller
                 $respuestaXmlObj = simplexml_load_string($respuestaXml);
 
                 if ($respuestaXmlObj !== false) {
+                    $namespaces = $respuestaXmlObj->getNamespaces(true);
+                    $body = $respuestaXmlObj->children($namespaces['env'])->Body ?? null;
+
+                    $faultString = '';
+                    if ($body) {
+                        $faultNodes = $body->children($namespaces['env'])->Fault ?? null;
+                        if ($faultNodes) {
+                            foreach ($faultNodes->children() as $child) {
+                                if ($child->getName() === 'faultstring') {
+                                    $faultString = (string) $child;
+                                    break;
+                                }
+                            }
+                            
+                        }
+                        
+                    }
 
                     $estadoRegistro = '';
                     $descripcionError = '';
                     $aceptadoConErrores = false;
+                    $descripcionError2 = '';
 
-                    $namespaces = $respuestaXmlObj->getNamespaces(true);
                     if (isset($namespaces['tikR'])) {
-                        $body = $respuestaXmlObj->children($namespaces['env'])->Body ?? null;
                         $respuestaSII = $body?->children($namespaces['tikR'])->RespuestaRegFactuSistemaFacturacion ?? null;
                         $respuestaLinea = $respuestaSII?->children($namespaces['tikR'])->RespuestaLinea ?? null;
+
                         $estadoRegistro = (string) $respuestaLinea?->children($namespaces['tikR'])->EstadoRegistro ?? '';
                         $descripcionError = (string) $respuestaLinea?->children($namespaces['tikR'])->DescripcionErrorRegistro ?? '';
+
                         $registroDuplicado = $respuestaLinea?->children($namespaces['tikR'])->RegistroDuplicado ?? null;
                         $estadoRegistroDuplicado = (string) $registroDuplicado?->children($namespaces['tik'])->EstadoRegistroDuplicado ?? '';
                         if ($estadoRegistroDuplicado === 'AceptadoConErrores') {
@@ -65,27 +83,32 @@ class VerifactuController extends Controller
                         }
                         $descripcionError2 = (string) $registroDuplicado?->children($namespaces['tik'])->DescripcionErrorRegistro ?? '';
                     }
-                    
+                    /*EstadoRegistro=$estadoRegistro - aceptadoConErrores=$aceptadoConErrores - XML bruto: $respuestaXml*/
                     if ($estadoRegistro === 'Correcto' || $estadoRegistro === 'AceptadoConErrores') {
                         $factura->estado_proceso = 0;
                         $factura->estado_registro = 1;
-                        $factura->error = ($estadoRegistro === 'AceptadoConErrores' || $aceptadoConErrores) 
-                        ? 'Aceptada con errores: ' . $descripcionError : null;
+                        $factura->error = ($estadoRegistro === 'AceptadoConErrores' || $aceptadoConErrores)
+                            ? 'Aceptada con errores: ' . $descripcionError
+                            : null;
                     } elseif ($estadoRegistro === 'Incorrecto') {
                         $factura->estado_proceso = 0;
                         $factura->estado_registro = 2;
                         $factura->error = 'Rechazada: ' . $descripcionError . PHP_EOL . 'Descripción Error Registro Duplicado: ' . $descripcionError2;
                     } else {
-                        // Añadimos debug para entender qué falló
+                        //
                         $factura->estado_proceso = 1;
                         $factura->estado_registro = 0;
-                        $factura->error = "Respuesta no reconocida: EstadoRegistro=$estadoRegistro - aceptadoConErrores=$aceptadoConErrores - XML bruto: $respuestaXml";
+                        $factura->error = $faultString
+                            ? "Respuesta no reconocida: $faultString"
+                            : "Respuesta no reconocida: EstadoRegistro=$estadoRegistro - aceptadoConErrores=$aceptadoConErrores - XML bruto: $respuestaXml";
                     }
                 } else {
                     $factura->estado_proceso = 1;
                     $factura->estado_registro = 0;
                     $factura->error = 'Respuesta no es XML válido: ' . $respuestaXml;
                 }
+
+
 
 
                 $factura->save();
@@ -216,6 +239,4 @@ class VerifactuController extends Controller
             ]);
         }
     }
-
-   
 }
