@@ -73,13 +73,6 @@ class FacturaXmlGenerator
             'TipoImpositivo' => $factura->tipoImpositivo,
             'BaseImponibleOimporteNoSujeto' => $factura->baseImponibleOimporteNoSujeto,
             'CuotaRepercutida' => $factura->cuotaRepercutida,
-        ],
-        [
-            'ClaveRegimen' => $factura->claveRegimenSegundo,
-            'CalificacionOperacion' => $factura->calificacionOperacionSegundo,
-            'TipoImpositivo' => $factura->tipoImpositivoSegundo,
-            'BaseImponibleOimporteNoSujeto' => $factura->baseImponibleOimporteNoSujetosegundo,
-            'CuotaRepercutida' => $factura->cuotaRepercutidaSegundo,
         ]
     ] as $detalleData) {
         $detalle = $dom->createElement('sum1:DetalleDesglose');
@@ -100,7 +93,7 @@ class FacturaXmlGenerator
     $registroAnterior = $dom->createElement('sum1:RegistroAnterior');
     $registroAnterior->appendChild($dom->createElement('sum1:IDEmisorFactura', $factura->IDEmisorFacturaAnterior));
     $registroAnterior->appendChild($dom->createElement('sum1:NumSerieFactura', $factura->numSerieFactura));
-    $registroAnterior->appendChild($dom->createElement('sum1:FechaExpedicionFactura', $factura->FechaExpedicionFacturaFacturaAnterior));
+    $registroAnterior->appendChild($dom->createElement('sum1:FechaExpedicionFactura', $factura->FechaExpedicionFacturaAnterior));
     $registroAnterior->appendChild($dom->createElement('sum1:Huella', $factura->huellaAnterior));
     $encadenamiento->appendChild($registroAnterior);
     $registroAlta->appendChild($encadenamiento);

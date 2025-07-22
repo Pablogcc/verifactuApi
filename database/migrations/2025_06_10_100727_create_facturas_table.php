@@ -87,13 +87,12 @@ return new class extends Migration
             $table->double('cuotaRecargoEquivalencia3')->nullable();
             $table->double('cuotaRecargoEquivalencia4')->nullable();
 
-            //DetalleDesglose2(A PARTE)
+            /*DetalleDesglose2(A PARTE)
             $table->string('claveRegimenSegundo')->default('01');
             $table->string('calificacionOperacionSegundo')->default('S1');
             $table->double('tipoImpositivoSegundo')->default(21);
             $table->double('baseImponibleOimporteNoSujetosegundo')->default(100);
-            $table->double('cuotaRepercutidaSegundo')->default(21);
-
+            $table->double('cuotaRepercutidaSegundo')->default(21);*/
 
             $table->double('cuotaTotal');
             $table->double('importeTotal');
@@ -102,7 +101,7 @@ return new class extends Migration
             //RegistroAnterior(A PARTE)
             $table->string('IDEmisorFacturaAnterior');
             $table->string('numSerieFacturaAnterior');
-            $table->string('FechaExpedicionFacturaFacturaAnterior');
+            $table->string('FechaExpedicionFacturaAnterior');
 
             $table->string('huellaAnterior');
 
