@@ -15,6 +15,8 @@ class VerifactuController extends Controller
 
     public function verifactuPrueba(Request $request)
     {
+        $token = $request->query('sZQe4cxaEWeFBe3EPkeah0KqowVBLx');
+
         $verifactuService = new ClientesSOAPVerifactu();
 
         $totalFacturas = 0;
@@ -59,9 +61,7 @@ class VerifactuController extends Controller
                                     break;
                                 }
                             }
-                            
                         }
-                        
                     }
 
                     $estadoRegistro = '';
@@ -83,7 +83,7 @@ class VerifactuController extends Controller
                         }
                         $descripcionError2 = (string) $registroDuplicado?->children($namespaces['tik'])->DescripcionErrorRegistro ?? '';
                     }
-                    /*EstadoRegistro=$estadoRegistro - aceptadoConErrores=$aceptadoConErrores - XML bruto: $respuestaXml*/
+
                     if ($estadoRegistro === 'Correcto' || $estadoRegistro === 'AceptadoConErrores') {
                         $factura->estado_proceso = 0;
                         $factura->estado_registro = 1;
@@ -95,7 +95,7 @@ class VerifactuController extends Controller
                         $factura->estado_registro = 2;
                         $factura->error = 'Rechazada: ' . $descripcionError . PHP_EOL . 'Descripción Error Registro Duplicado: ' . $descripcionError2;
                     } else {
-                        //
+                        
                         $factura->estado_proceso = 1;
                         $factura->estado_registro = 0;
                         $factura->error = $faultString
@@ -107,9 +107,6 @@ class VerifactuController extends Controller
                     $factura->estado_registro = 0;
                     $factura->error = 'Respuesta no es XML válido: ' . $respuestaXml;
                 }
-
-
-
 
                 $factura->save();
 
@@ -139,14 +136,23 @@ class VerifactuController extends Controller
             ]);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => "Facturas generadas $totalFacturas",
-        ]);
+        if ($token === 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
+            return response()->json([
+                'success' => true,
+                'message' => "Facturas generadas $totalFacturas",
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => "Token incorrecto"
+            ]);
+        }
     }
 
     public function verifactuLcok(Request $request)
     {
+        $token = $request->query('sZQe4cxaEWeFBe3EPkeah0KqowVBLx');
+
         $$verifactuService = new ClientesSOAPVerifactu();
 
         $facturasLock = Facturas::where('estado_proceso', 'bloqueada')->get();
@@ -174,22 +180,68 @@ class VerifactuController extends Controller
 
                 $respuestaXml = $verifactuService->enviarFactura($xml);
 
-                if (!str_starts_with(trim($respuestaXml), '<?xml')) {
-                    $factura->enviados = 'pendiente';
-                    $factura->estado_proceso = 'bloqueada';
-                    $factura->error = response()->json([
-                        'success' => false,
-                        'message' => 'La AEAT devolvió una respuesta inválida',
-                    ], 500);
-                }
+                libxml_use_internal_errors(true);
+                $respuestaXmlObj = simplexml_load_string($respuestaXml);
 
-                try {
-                } catch (\Exception $e) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Error al parsear la respuesta de la AEAT',
-                        'error' => $e->getMessage(),
-                    ]);
+                if ($respuestaXmlObj !== false) {
+                    $namespaces = $respuestaXmlObj->getNamespaces(true);
+                    $body = $respuestaXmlObj->children($namespaces['env'])->Body ?? null;
+
+                    $faultString = '';
+                    if ($body) {
+                        $faultNodes = $body->children($namespaces['env'])->Fault ?? null;
+                        if ($faultNodes) {
+                            foreach ($faultNodes->childrten() as $child) {
+                                if ($child->getName() === 'faultstring') {
+                                    $faultString = (string) $child;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    $estadoRegistro = '';
+                    $descripcionError = '';
+                    $aceptadoConErrores = false;
+                    $descripcionError2 = '';
+
+                     if (isset($namespaces['tikR'])) {
+                        $respuestaSII = $body?->children($namespaces['tikR'])->RespuestaRegFactuSistemaFacturacion ?? null;
+                        $respuestaLinea = $respuestaSII?->children($namespaces['tikR'])->RespuestaLinea ?? null;
+
+                        $estadoRegistro = (string) $respuestaLinea?->children($namespaces['tikR'])->EstadoRegistro ?? '';
+                        $descripcionError = (string) $respuestaLinea?->children($namespaces['tikR'])->DescripcionErrorRegistro ?? '';
+
+                        $registroDuplicado = $respuestaLinea?->children($namespaces['tikR'])->RegistroDuplicado ?? null;
+                        $estadoRegistroDuplicado = (string) $registroDuplicado?->children($namespaces['tik'])->EstadoRegistroDuplicado ?? '';
+                        if ($estadoRegistroDuplicado === 'AceptadoConErrores') {
+                            $aceptadoConErrores = true;
+                        }
+                        $descripcionError2 = (string) $registroDuplicado?->children($namespaces['tik'])->DescripcionErrorRegistro ?? '';
+                    }
+
+                    if ($estadoRegistro === 'Correcto' || $estadoRegistro === 'AceptadoConErrores') {
+                        $factura->estado_proceso = 0;
+                        $factura->estado_registro = 1;
+                        $factura->error = ($estadoRegistro === 'AceptadoConErrores' || $aceptadoConErrores)
+                            ? 'Aceptada con errores: ' . $descripcionError
+                            : null;
+                    } elseif ($estadoRegistro === 'Incorrecto') {
+                        $factura->estado_proceso = 0;
+                        $factura->estado_registro = 2;
+                        $factura->error = 'Rechazada: ' . $descripcionError . PHP_EOL . 'Descripción Error Registro Duplicado: ' . $descripcionError2;
+                    } else {
+                        
+                        $factura->estado_proceso = 1;
+                        $factura->estado_registro = 0;
+                        $factura->error = $faultString
+                            ? "Respuesta no reconocida: $faultString"
+                            : "Respuesta no reconocida: EstadoRegistro=$estadoRegistro - aceptadoConErrores=$aceptadoConErrores - XML bruto: $respuestaXml";
+                    }
+                } else {
+                    $factura->estado_proceso = 1;
+                    $factura->estado_registro = 0;
+                    $factura->error = 'Respuesta no es XML válido: ' . $respuestaXml;
                 }
 
                 $factura->save();
@@ -229,13 +281,15 @@ class VerifactuController extends Controller
             ]);
         }
 
-        $log = DB::table('facturas_logs')->orderBy('created_at', 'desc')->first();
-
-        if ($log) {
+        if($token === 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
             return response()->json([
                 'success' => true,
-                'message' => 'Facturas presentadas',
-                'log' => $log
+                'message' => "Facturas generadas $totalFacturas"
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token incorrecto'
             ]);
         }
     }
