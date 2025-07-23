@@ -25,6 +25,9 @@ return new class extends Migration
             $table->string('numSerieFactura');
             $table->string('fechaExpedicionFactura');
 
+            //trigger de filtración
+            $table->string('ejercicio');
+
             $table->string('refExterna')->default('');
             $table->string('nombreEmisor');
             $table->string('cifEmisor');
@@ -99,9 +102,9 @@ return new class extends Migration
             $table->string('primerRegistro')->nullable();
 
             //RegistroAnterior(A PARTE)
-            $table->string('IDEmisorFacturaAnterior');
-            $table->string('numSerieFacturaAnterior');
-            $table->string('FechaExpedicionFacturaAnterior');
+            $table->string('IDEmisorFacturaAnterior')->nullable();
+            $table->string('numSerieFacturaAnterior')->nullable();
+            $table->string('FechaExpedicionFacturaAnterior')->nullable();
 
             $table->string('huellaAnterior');
 

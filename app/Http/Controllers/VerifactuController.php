@@ -15,7 +15,7 @@ class VerifactuController extends Controller
 
     public function verifactuPrueba(Request $request)
     {
-        $token = $request->query('sZQe4cxaEWeFBe3EPkeah0KqowVBLx');
+        $token = $request->query('token');
 
         $verifactuService = new ClientesSOAPVerifactu();
 
@@ -31,14 +31,15 @@ class VerifactuController extends Controller
             try {
                 // Generar y guardar XML
                 $xml = (new FacturaXmlGenerator())->generateXml($factura);
-                $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
-                $ruta = $carpetaOrigen . '\facturas_' . $factura->nombreCliente . '.xml';
+                $carpetaOrigen = storage_path('facturas');
+                
+                $ruta = $carpetaOrigen . '/facturas_' . $factura->nombreCliente . '.xml';
                 file_put_contents($ruta, $xml);
 
-                // Firmar y guardar XML firmado
                 $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
-                $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
-                $rutaDestino = $carpetaDestino . '\factura_firmada_' . $factura->nombreCliente . '.xml';
+                $carpetaDestino = storage_path('facturasFirmadas');
+
+                $rutaDestino = $carpetaDestino . '/factura_firmada_' . $factura->nombreCliente . '.xml';
                 file_put_contents($rutaDestino, $xmlFirmado);
 
                 // Enviar factura
@@ -95,7 +96,7 @@ class VerifactuController extends Controller
                         $factura->estado_registro = 2;
                         $factura->error = 'Rechazada: ' . $descripcionError . PHP_EOL . 'Descripción Error Registro Duplicado: ' . $descripcionError2;
                     } else {
-                        
+
                         $factura->estado_proceso = 1;
                         $factura->estado_registro = 0;
                         $factura->error = $faultString
@@ -151,7 +152,7 @@ class VerifactuController extends Controller
 
     public function verifactuLcok(Request $request)
     {
-        $token = $request->query('sZQe4cxaEWeFBe3EPkeah0KqowVBLx');
+        $token = $request->query('token');
 
         $$verifactuService = new ClientesSOAPVerifactu();
 
@@ -205,7 +206,7 @@ class VerifactuController extends Controller
                     $aceptadoConErrores = false;
                     $descripcionError2 = '';
 
-                     if (isset($namespaces['tikR'])) {
+                    if (isset($namespaces['tikR'])) {
                         $respuestaSII = $body?->children($namespaces['tikR'])->RespuestaRegFactuSistemaFacturacion ?? null;
                         $respuestaLinea = $respuestaSII?->children($namespaces['tikR'])->RespuestaLinea ?? null;
 
@@ -231,7 +232,7 @@ class VerifactuController extends Controller
                         $factura->estado_registro = 2;
                         $factura->error = 'Rechazada: ' . $descripcionError . PHP_EOL . 'Descripción Error Registro Duplicado: ' . $descripcionError2;
                     } else {
-                        
+
                         $factura->estado_proceso = 1;
                         $factura->estado_registro = 0;
                         $factura->error = $faultString
@@ -281,7 +282,7 @@ class VerifactuController extends Controller
             ]);
         }
 
-        if($token === 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
+        if ($token === 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
             return response()->json([
                 'success' => true,
                 'message' => "Facturas generadas $totalFacturas"
