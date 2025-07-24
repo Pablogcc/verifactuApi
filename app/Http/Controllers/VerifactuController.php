@@ -37,7 +37,6 @@ class VerifactuController extends Controller
                 if ($numero > 1) {
                     //$numFacturaAnterior = str_pad($numero - 1, 8, '0', STR_PAD_LEFT);
                     $numFacturaAnterior = $numero - 1;
-                    
 
                     // Busca la factura anterior con misma serie
                     $facturaAnterior = Facturas::where('serie', $serie)
@@ -63,32 +62,16 @@ class VerifactuController extends Controller
                     $factura->FechaExpedicionFacturaAnterior = $factura->fechaExpedicionFactura;
                 }
 
-
-
-                $xml = (new FacturaXmlGenerator())->generateXml($factura);
-
-                $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
-                $ruta = $carpetaOrigen . '\facturasLock_' . $factura->idEmisorFactura . '.xml';
-                file_put_contents($ruta, $xml);
-
-                $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
-                $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
-                $rutaDestino = $carpetaDestino . '\facturasFirmadasLock_' . $factura->idEmisorFactura . '.xml';
-                file_put_contents($rutaDestino, $xmlFirmado);
-
-
                 // Generar y guardar XML(Storage)
-                /*$xml = (new FacturaXmlGenerator())->generateXml($factura);
+                $xml = (new FacturaXmlGenerator())->generateXml($factura);
                 $carpetaOrigen = storage_path('facturas');
-                
-                $ruta = $carpetaOrigen . '/facturas_' . $factura->nombreCliente . '.xml';
+                $ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
                 file_put_contents($ruta, $xml);
 
                 $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
-                $carpetaDestino = storage_path('facturasFirmadas');
-
-                $rutaDestino = $carpetaDestino . '/factura_firmada_' . $factura->nombreCliente . '.xml';
-                file_put_contents($rutaDestino, $xmlFirmado);*/
+                $carpetaDestino = storage_path('\facturasFirmadas');
+                $rutaDestino = $carpetaDestino . '/' . $factura->nombreEmisor . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
+                file_put_contents($rutaDestino, $xmlFirmado);
 
                 // Enviar factura
                 $respuestaXml = $verifactuService->enviarFactura($xml);
