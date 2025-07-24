@@ -60,6 +60,8 @@ return new class extends Migration
             $table->string('codigoPais');
             $table->string('idType')->default('NIF');
 
+            $table->string('idTypeNum')->default('01');
+
             // Datos fiscales
             $table->string('cupon')->default('N');
             $table->string('impuesto')->default('IVA');
