@@ -72,7 +72,7 @@ class FacturaXmlGenerator
                     'ClaveRegimen' => $factura->claveRegimen,
                     'CalificacionOperacion' => $factura->calificacionOperacion,
                     'TipoImpositivo' => $factura->tipoImpositivo,
-                    'BaseImponibleOimporteNoSujeto' => $factura->baseImponibleOimporteNoSujeto,
+                    'BaseImponibleOimporteNoSujeto' => $factura->baseImponibleACoste,
                     'CuotaRepercutida' => $factura->cuotaRepercutida,
                 ]
             ] as $detalleData
@@ -87,8 +87,8 @@ class FacturaXmlGenerator
         $registroAlta->appendChild($desglose);
 
         // Totales
-        $registroAlta->appendChild($dom->createElement('sum1:CuotaTotal', $factura->cuotaTotal));
-        $registroAlta->appendChild($dom->createElement('sum1:ImporteTotal', $factura->importeTotal));
+        $registroAlta->appendChild($dom->createElement('sum1:CuotaTotal', $this->formatearImporte($factura->cuotaTotal)));
+        $registroAlta->appendChild($dom->createElement('sum1:ImporteTotal', $this->formatearImporte($factura->importeTotal)));
 
         // Encadenamiento
         $encadenamiento = $dom->createElement('sum1:Encadenamiento');
@@ -122,5 +122,19 @@ class FacturaXmlGenerator
         $regFactu->appendChild($registroFactura);
 
         return $dom->saveXML();
+    }
+
+    private function formatearImporte($valor)
+    {
+        $valor = floatval($valor);
+        $decimales = strlen(substr(strrchr((string)$valor, "."), 1));
+
+        if ($decimales === 0) {
+            return number_format($valor, 1, '.', '');
+        } elseif ($decimales === 1) {
+            return number_format($valor, 2, '.', '');
+        } else {
+            return number_format($valor, 2, '.', '');
+        }
     }
 }

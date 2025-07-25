@@ -60,17 +60,18 @@ class VerifactuController extends Controller
                     $factura->IDEmisorFacturaAnterior = $factura->idEmisorFactura;
                     $factura->numSerieFacturaAnterior = $factura->serie . '/0000000';
                     $factura->FechaExpedicionFacturaAnterior = $factura->fechaExpedicionFactura;
+                    $factura->huellaAnterior = $factura->huella;
                 }
 
                 // Generar y guardar XML(Storage)
                 $xml = (new FacturaXmlGenerator())->generateXml($factura);
                 $carpetaOrigen = storage_path('facturas');
-                $ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
+                $ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
                 file_put_contents($ruta, $xml);
 
                 $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
                 $carpetaDestino = storage_path('\facturasFirmadas');
-                $rutaDestino = $carpetaDestino . '/' . $factura->nombreEmisor . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
+                $rutaDestino = $carpetaDestino . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
                 file_put_contents($rutaDestino, $xmlFirmado);
 
                 // Enviar factura
