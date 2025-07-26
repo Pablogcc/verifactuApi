@@ -14,7 +14,7 @@
           <sum1:IDVersion>1.0</sum1:IDVersion>
           <sum1:IDFactura>
             <sum1:IDEmisorFactura>48456925L</sum1:IDEmisorFactura>
-            <sum1:NumSerieFactura>07/0000001</sum1:NumSerieFactura>
+            <sum1:NumSerieFactura>07/0000002</sum1:NumSerieFactura>
             <sum1:FechaExpedicionFactura>24-07-2025</sum1:FechaExpedicionFactura>
           </sum1:IDFactura>
           <sum1:NombreRazonEmisor>ALBERTO BARBERA FERRANDEZ</sum1:NombreRazonEmisor>

@@ -35,7 +35,6 @@ class VerifactuController extends Controller
                 $cifEmisor = $factura->idEmisorFactura;
 
                 if ($numero > 1) {
-                    //$numFacturaAnterior = str_pad($numero - 1, 8, '0', STR_PAD_LEFT);
                     $numFacturaAnterior = $numero - 1;
 
                     // Busca la factura anterior con misma serie
@@ -182,13 +181,11 @@ class VerifactuController extends Controller
         }
     }
 
-    public function verifactuLcok(Request $request)
+    public function verifactuLock(Request $request)
     {
         $token = $request->query('token');
 
-        $$verifactuService = new ClientesSOAPVerifactu();
-
-        $facturasLock = Facturas::where('estado_proceso', 'bloqueada')->get();
+        $verifactuService = new ClientesSOAPVerifactu();
 
         $totalFacturas = 0;
         $totalTiempo = 0;
@@ -200,15 +197,48 @@ class VerifactuController extends Controller
             $inicio = microtime(true);
 
             try {
-                $xml = (new BloqueoXmlGenerator())->generateXml($factura);
+                $numero = $factura->numFactura;
+                $serie = $factura->serie;
+                $fechaEjercicio = $factura->ejercicio;
+                $cifEmisor = $factura->idEmisorFactura;
 
-                $carpetaOrigen = getenv('USERPROFILE') . '\facturas';
-                $ruta = $carpetaOrigen . '\facturasLock_' . $factura->numSerieFactura . '.xml';
+                if ($numero > 1) {
+                    $numFacturaAnterior = $numero - 1;
+
+                    // Busca la factura anterior con misma serie
+                    $facturaAnterior = Facturas::where('serie', $serie)
+                        ->where('numFactura', $numFacturaAnterior)
+                        ->where('ejercicio', $fechaEjercicio)
+                        ->where('idEmisorFactura', $cifEmisor)
+                        ->first();
+
+                    if ($facturaAnterior) {
+                        $factura->IDEmisorFacturaAnterior = $facturaAnterior->idEmisorFactura;
+                        $factura->numSerieFacturaAnterior = $facturaAnterior->numSerieFactura;
+                        $factura->FechaExpedicionFacturaAnterior = $facturaAnterior->fechaExpedicionFactura;
+                    } else {
+                        // No encontrada: deja vacíos o nulos
+                        $factura->IDEmisorFacturaAnterior = '';
+                        $factura->numSerieFacturaAnterior = '';
+                        $factura->FechaExpedicionFacturaAnterior = '';
+                    }
+                } else {
+                    // Primera factura: no tiene anterior
+                    $factura->IDEmisorFacturaAnterior = $factura->idEmisorFactura;
+                    $factura->numSerieFacturaAnterior = $factura->serie . '/0000000';
+                    $factura->FechaExpedicionFacturaAnterior = $factura->fechaExpedicionFactura;
+                    $factura->huellaAnterior = $factura->huella;
+                }
+
+                $xml = (new FacturaXmlGenerator())->generateXml($factura);
+
+                $carpetaOrigen = storage_path('facturas');
+                $ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
                 file_put_contents($ruta, $xml);
 
                 $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
-                $carpetaDestino = getenv('USERPROFILE') . '\facturasFirmadas';
-                $rutaDestino = $carpetaDestino . '\facturasFirmadasLock_' . $factura->numSerieFactura . '.xml';
+                $carpetaDestino = storage_path('facturasFirmadas');
+                $rutaDestino = $carpetaDestino . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
                 file_put_contents($rutaDestino, $xmlFirmado);
 
                 $respuestaXml = $verifactuService->enviarFactura($xml);
@@ -224,7 +254,7 @@ class VerifactuController extends Controller
                     if ($body) {
                         $faultNodes = $body->children($namespaces['env'])->Fault ?? null;
                         if ($faultNodes) {
-                            foreach ($faultNodes->childrten() as $child) {
+                            foreach ($faultNodes->children() as $child) {
                                 if ($child->getName() === 'faultstring') {
                                     $faultString = (string) $child;
                                     break;
@@ -278,25 +308,13 @@ class VerifactuController extends Controller
                 }
 
                 $factura->save();
+
                 $tiempoMs = intval((microtime(true) - $inicio) * 1000);
                 $totalFacturas++;
                 $totalTiempo += $tiempoMs;
-                $factura->error = null;
-
-                if ($factura->estado_proceso == 'procesada') {
-                    DB::table('facturas')->update([
-                        'enviados' => 'enviado',
-                        'error' => null,
-                        'estado_proceso' => 'procesada',
-                        'estado_registro' => 'presentada',
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                }
             } catch (\Exception $e) {
-                $factura->enviados = 'pendiente';
-                $factura->estado_proceso = 'bloqueada';
-                $factura->estado_resgistro = 'sin_presentar';
+                $factura->estado_proceso = 1;
+                $factura->estado_registro = 0;
                 $factura->error = $e->getMessage();
                 $factura->save();
             }

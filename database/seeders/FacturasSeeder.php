@@ -23,7 +23,7 @@ class FacturasSeeder extends Seeder
                 'idVersion' => '1.0',
                 'idInstalacion' => '_73J0TGQG2',
                 'idEmisorFactura' => '48456925L',
-                'numSerieFactura' => '07/0000001',
+                'numSerieFactura' => '07/0000002',
                 'fechaExpedicionFactura' => '24-07-2025',
                 'nombreEmisor' => 'ALBERTO BARBERA FERRANDEZ',
                 'cifEmisor' => '48456925L',
@@ -59,7 +59,7 @@ class FacturasSeeder extends Seeder
                 'identificadorSoftware' => '77',
                 'versionSoftware' => '2.1.4',
                 'numeroInstalacion' => '383',
-                'estado_proceso' => 0,
+                'estado_proceso' => 1,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
