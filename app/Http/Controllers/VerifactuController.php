@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Facturas;
+use App\Models\Emisores;
 use App\Services\BloqueoXmlGenerator;
 use App\Services\ClientesSOAPVerifactu;
 use App\Services\FacturaXmlGenerator;
@@ -69,7 +70,7 @@ class VerifactuController extends Controller
                 file_put_contents($ruta, $xml);
 
                 $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
-                $carpetaDestino = storage_path('\facturasFirmadas');
+                $carpetaDestino = storage_path('facturasFirmadas');
                 $rutaDestino = $carpetaDestino . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
                 file_put_contents($rutaDestino, $xmlFirmado);
 
@@ -181,11 +182,37 @@ class VerifactuController extends Controller
         }
     }
 
+    public function pruebaCert(Request $request)
+    {
+        $data = $request->validate([
+            'cif' => 'required|string'
+        ]);
+
+        $emisor = Emisores::where('cif', $data['cif'])->first();
+
+        $fechaCaducidad = $emisor->fechaValidez;
+        $hoy = date('Y-m-d');
+
+        if ($fechaCaducidad >= $hoy) {
+            return response()->json([
+                'success' => true,
+                'message' => "El certificado no está caducado"
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => "El certificado está caducado"
+            ]);
+        }
+    }
+
+
+
     public function verifactuLock(Request $request)
     {
         $token = $request->query('token');
 
-        $verifactuService = new ClientesSOAPVerifactu();
+        
 
         $totalFacturas = 0;
         $totalTiempo = 0;
@@ -195,6 +222,8 @@ class VerifactuController extends Controller
 
         foreach ($facturasLock as $factura) {
             $inicio = microtime(true);
+
+            $verifactuService = new ClientesSOAPVerifactu($facturasLock->idEmisorFactura);
 
             try {
                 $numero = $factura->numFactura;
@@ -236,7 +265,7 @@ class VerifactuController extends Controller
                 $ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
                 file_put_contents($ruta, $xml);
 
-                $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml);
+                $xmlFirmado = (new FirmaXmlGenerator())->firmaXml($xml, $factura->idEmisorFactura);
                 $carpetaDestino = storage_path('facturasFirmadas');
                 $rutaDestino = $carpetaDestino . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
                 file_put_contents($rutaDestino, $xmlFirmado);
