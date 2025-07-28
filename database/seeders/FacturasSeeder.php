@@ -59,7 +59,7 @@ class FacturasSeeder extends Seeder
                 'identificadorSoftware' => '77',
                 'versionSoftware' => '2.1.4',
                 'numeroInstalacion' => '383',
-                'estado_proceso' => 1,
+                'estado_proceso' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ],

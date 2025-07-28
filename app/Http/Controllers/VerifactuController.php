@@ -20,6 +20,7 @@ class VerifactuController extends Controller
 
         $verifactuService = new ClientesSOAPVerifactu();
 
+
         $totalFacturas = 0;
         $totalTiempo = 0;
 
@@ -75,6 +76,8 @@ class VerifactuController extends Controller
                 file_put_contents($rutaDestino, $xmlFirmado);
 
                 // Enviar factura
+                //Paso por parámetros el cif de la factura para actualizar la ruta de almacenamiento de certificado
+                $verifactuService->actualizarRutas($factura->idEmisorFactura);
                 $respuestaXml = $verifactuService->enviarFactura($xml);
 
                 libxml_use_internal_errors(true);

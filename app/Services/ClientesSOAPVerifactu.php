@@ -10,23 +10,39 @@ use Illuminate\Support\Facades\Http;
 
 class ClientesSOAPVerifactu
 {
-    protected string $endpoint;
-    protected string $certPath;
-    protected string $certPassword;
-    protected string $keyPem;
-    protected string $crtPem;
-    protected string $pass;
+    public string $endpoint;
+    public string $certPath;
+    public string $certPassword;
+    public string $keyPem;
+    public string $crtPem;
+    public string $pass;
+    public String $rutaEmisor = '';
 
     public function __construct()
     {
+
+
+
+
         //Pasamos la url y el certificado con su contraseña
         $this->endpoint = "https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP";
-        $this->keyPem = base_path("storage/certs/verifactu-key.pem");
-        $this->crtPem = base_path("storage/certs/verifactu-cert.pem");
+        $this->keyPem = base_path("storage/certs/{$this->rutaEmisor}/key.pem");
+        $this->crtPem = base_path("storage/certs/{$this->rutaEmisor}/cert.pem");
         $this->pass = env('PFX_CERT_PASSWORD');
     }
 
 
+    //Creamos el método de actualizar las rutas pasando por parámetros $ruta, que es el cif de la empresa
+    //Cada empresa almacena su certificado en una carpeta cuyo nombre es el mismo cif 
+    //Los archivos se almacenan dentro de las carpetas dentro de cert.pem y key.pem
+
+    public function actualizarRutas(string $ruta)
+    {
+        
+        $this->rutaEmisor = $ruta;
+        $this->keyPem = base_path("storage/certs/{$this->rutaEmisor}/key.pem");
+        $this->crtPem = base_path("storage/certs/{$this->rutaEmisor}/cert.pem");
+    }
 
     public function enviarFactura(string $xml)
     {
