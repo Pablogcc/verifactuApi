@@ -132,8 +132,8 @@ class VerifactuController extends Controller
                         $factura->error = 'Rechazada: ' . $descripcionError . PHP_EOL . 'Descripción Error Registro Duplicado: ' . $descripcionError2;
                     } else {
 
-                        $factura->estado_proceso = 1;
-                        $factura->estado_registro = 0;
+                        $factura->estado_proceso = 0;
+                        $factura->estado_registro = 2;
                         $factura->error = $faultString
                             ? "Respuesta no reconocida: $faultString"
                             : "Respuesta no reconocida: EstadoRegistro=$estadoRegistro - aceptadoConErrores=$aceptadoConErrores - XML bruto: $respuestaXml";
@@ -215,7 +215,7 @@ class VerifactuController extends Controller
     {
         $token = $request->query('token');
 
-        
+
 
         $totalFacturas = 0;
         $totalTiempo = 0;

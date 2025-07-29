@@ -34,11 +34,11 @@ class FacturaXmlGenerator
         $obligado->appendChild($dom->createElement('sum1:NombreRazon', $factura->nombreEmisor));
         $obligado->appendChild($dom->createElement('sum1:NIF', $factura->idEmisorFactura));
         $cabecera->appendChild($obligado);
-		if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
-			$remisionvoluntaria = $dom->createElement('sum1:RemisionVoluntaria');
-			$remisionvoluntaria->appendChild($dom->createElement('sum1:Incidencia', 'N'));
-			$cabecera->appendChild($remisionvoluntaria);
-		}
+        if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
+            $remisionvoluntaria = $dom->createElement('sum1:RemisionVoluntaria');
+            $remisionvoluntaria->appendChild($dom->createElement('sum1:Incidencia', 'N'));
+            $cabecera->appendChild($remisionvoluntaria);
+        }
         $regFactu->appendChild($cabecera);
 
         // sum:RegistroFactura > sum1:RegistroAlta
@@ -57,31 +57,31 @@ class FacturaXmlGenerator
 
         // sum1:NombreRazonEmisor y demás campos...
         $registroAlta->appendChild($dom->createElement('sum1:NombreRazonEmisor', $factura->nombreEmisor));
-		if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
-		$registroAlta->appendChild($dom->createElement('sum1:RechazoPrevio'));
-		}
+        if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
+            $registroAlta->appendChild($dom->createElement('sum1:RechazoPrevio'));
+        }
         $registroAlta->appendChild($dom->createElement('sum1:TipoFactura', $factura->tipoFactura));
 
-		
-		if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
+
+        if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
             $registroAlta->appendChild($dom->createElement('sum1:TipoRectificativa', 'I'));
         }
-		
-		if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
+
+        if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
             $facturasRectificadas = $dom->createElement('sum1:FacturasRectificadas');
-    		$idFacturaRectificada = $dom->createElement('sum1:IDFacturaRectificada');
-    		$idFacturaRectificada->appendChild($dom->createElement('sum1:IDEmisorFactura', $factura->idEmisorFacturaRectificada));
-    		$idFacturaRectificada->appendChild($dom->createElement('sum1:NumSerieFactura', $factura->numSerieFacturaRectificada));
-    		$idFacturaRectificada->appendChild($dom->createElement('sum1:FechaExpedicionFactura', $factura->fechaExpedicionFacturaRectificada));
-    		$facturasRectificadas->appendChild($idFacturaRectificada);
-    		$registroAlta->appendChild($facturasRectificadas);
+            $idFacturaRectificada = $dom->createElement('sum1:IDFacturaRectificada');
+            $idFacturaRectificada->appendChild($dom->createElement('sum1:IDEmisorFactura', $factura->idEmisorFacturaRectificada));
+            $idFacturaRectificada->appendChild($dom->createElement('sum1:NumSerieFactura', $factura->numSerieFacturaRectificada));
+            $idFacturaRectificada->appendChild($dom->createElement('sum1:FechaExpedicionFactura', $factura->fechaExpedicionFacturaRectificada));
+            $facturasRectificadas->appendChild($idFacturaRectificada);
+            $registroAlta->appendChild($facturasRectificadas);
         }
-		
-		$registroAlta->appendChild($dom->createElement('sum1:DescripcionOperacion', $factura->descripcionOperacion));
-        
-		$registroAlta->appendChild($dom->createElement('sum1:FacturaSimplificadaArt7273'));
-    	$registroAlta->appendChild($dom->createElement('sum1:Macrodato'));
-		
+
+        $registroAlta->appendChild($dom->createElement('sum1:DescripcionOperacion', $factura->descripcionOperacion));
+
+        $registroAlta->appendChild($dom->createElement('sum1:FacturaSimplificadaArt7273'));
+        $registroAlta->appendChild($dom->createElement('sum1:Macrodato'));
+
         // sum1:Destinatarios
         $destinatarios = $dom->createElement('sum1:Destinatarios');
         $idDest = $dom->createElement('sum1:IDDestinatario');
@@ -90,37 +90,37 @@ class FacturaXmlGenerator
         $destinatarios->appendChild($idDest);
         $registroAlta->appendChild($destinatarios);
 
-		$registroAlta->appendChild($dom->createElement('sum1:Cupon'));
+        $registroAlta->appendChild($dom->createElement('sum1:Cupon'));
 
         // sum1:Desglose
-   $esRectificativa = in_array($factura->tipoFactura, ['R1', 'R2', 'R3', 'R4']);
+        $esRectificativa = in_array($factura->tipoFactura, ['R1', 'R2', 'R3', 'R4']);
 
-$desglose = $dom->createElement('sum1:Desglose');
+        $desglose = $dom->createElement('sum1:Desglose');
 
-for ($i = 1; $i <= 4; $i++) {
-    $tipoKey = $i === 1 ? 'tipoImpositivo' : "tipoImpositivo{$i}";
-    $baseKey = $i === 1 ? 'baseImponibleACoste' : "baseImponibleACoste{$i}";
-    $cuotaKey = $i === 1 ? 'cuotaRepercutida' : "cuotaRepercutida{$i}";
+        for ($i = 1; $i <= 4; $i++) {
+            $tipoKey = $i === 1 ? 'tipoImpositivo' : "tipoImpositivo{$i}";
+            $baseKey = $i === 1 ? 'baseImponibleACoste' : "baseImponibleACoste{$i}";
+            $cuotaKey = $i === 1 ? 'cuotaRepercutida' : "cuotaRepercutida{$i}";
 
 
-    if ($factura->$tipoKey !== null && $factura->$baseKey !== null && $factura->$cuotaKey !== null) {
-        $detalle = $dom->createElement('sum1:DetalleDesglose');
+            if ($factura->$tipoKey !== null && $factura->$baseKey !== null && $factura->$cuotaKey !== null) {
+                $detalle = $dom->createElement('sum1:DetalleDesglose');
 
-        if ($esRectificativa) {
-            $detalle->appendChild($dom->createElement('sum1:Impuesto', '01'));
+                if ($esRectificativa) {
+                    $detalle->appendChild($dom->createElement('sum1:Impuesto', '01'));
+                }
+
+                $detalle->appendChild($dom->createElement('sum1:ClaveRegimen', '01'));
+                $detalle->appendChild($dom->createElement('sum1:CalificacionOperacion', 'S1'));
+                $detalle->appendChild($dom->createElement('sum1:TipoImpositivo', number_format($factura->$tipoKey, 2, '.', '')));
+                $detalle->appendChild($dom->createElement('sum1:BaseImponibleOimporteNoSujeto', number_format($factura->$baseKey, 2, '.', '')));
+                $detalle->appendChild($dom->createElement('sum1:CuotaRepercutida', number_format($factura->$cuotaKey, 2, '.', '')));
+
+                $desglose->appendChild($detalle);
+            }
         }
 
-        $detalle->appendChild($dom->createElement('sum1:ClaveRegimen', '01'));
-        $detalle->appendChild($dom->createElement('sum1:CalificacionOperacion', 'S1'));
-        $detalle->appendChild($dom->createElement('sum1:TipoImpositivo', number_format($factura->$tipoKey, 2, '.', '')));
-        $detalle->appendChild($dom->createElement('sum1:BaseImponibleOimporteNoSujeto', number_format($factura->$baseKey, 2, '.', '')));
-        $detalle->appendChild($dom->createElement('sum1:CuotaRepercutida', number_format($factura->$cuotaKey, 2, '.', '')));
-
-        $desglose->appendChild($detalle);
-    }
-}
-
-$registroAlta->appendChild($desglose);
+        $registroAlta->appendChild($desglose);
 
 
 
@@ -163,8 +163,8 @@ $registroAlta->appendChild($desglose);
 
         return $dom->saveXML();
     }
-	
-	 private function formatearImporte($valor)
+
+    private function formatearImporte($valor)
     {
         $valor = floatval($valor);
         $decimales = strlen(substr(strrchr((string)$valor, "."), 1));
