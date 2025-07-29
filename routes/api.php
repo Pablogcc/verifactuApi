@@ -23,4 +23,4 @@ Route::post('generateVerifactu', [VerifactuController::class, 'verifactuPrueba']
 
 Route::get('pruebaCerts', [VerifactuController::class, 'pruebaCert']);
 
-Route::get('convertirCertificados',  [CertificadosController::class, 'convertir']);
+Route::post('convertirCertificados',  [CertificadosController::class, 'convertir']);
