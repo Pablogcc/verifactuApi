@@ -20,19 +20,22 @@
           <sum1:NombreRazonEmisor>ALBERTO BARBERA FERRANDEZ</sum1:NombreRazonEmisor>
           <sum1:TipoFactura>F1</sum1:TipoFactura>
           <sum1:DescripcionOperacion>Venta</sum1:DescripcionOperacion>
+          <sum1:FacturaSimplificadaArt7273/>
+          <sum1:Macrodato/>
           <sum1:Destinatarios>
             <sum1:IDDestinatario>
               <sum1:NombreRazon>LIMPIEZAS MAMEGA</sum1:NombreRazon>
               <sum1:NIF>B53247078</sum1:NIF>
             </sum1:IDDestinatario>
           </sum1:Destinatarios>
+          <sum1:Cupon/>
           <sum1:Desglose>
             <sum1:DetalleDesglose>
               <sum1:ClaveRegimen>01</sum1:ClaveRegimen>
               <sum1:CalificacionOperacion>S1</sum1:CalificacionOperacion>
-              <sum1:TipoImpositivo>21</sum1:TipoImpositivo>
-              <sum1:BaseImponibleOimporteNoSujeto>50.5</sum1:BaseImponibleOimporteNoSujeto>
-              <sum1:CuotaRepercutida>10.5</sum1:CuotaRepercutida>
+              <sum1:TipoImpositivo>21.00</sum1:TipoImpositivo>
+              <sum1:BaseImponibleOimporteNoSujeto>50.50</sum1:BaseImponibleOimporteNoSujeto>
+              <sum1:CuotaRepercutida>10.50</sum1:CuotaRepercutida>
             </sum1:DetalleDesglose>
           </sum1:Desglose>
           <sum1:CuotaTotal>10.0</sum1:CuotaTotal>
@@ -56,7 +59,7 @@
             <sum1:TipoUsoPosibleMultiOT>S</sum1:TipoUsoPosibleMultiOT>
             <sum1:IndicadorMultiplesOT>S</sum1:IndicadorMultiplesOT>
           </sum1:SistemaInformatico>
-          <sum1:FechaHoraHusoGenRegistro>2025-07-24T14:34:31+02:00</sum1:FechaHoraHusoGenRegistro>
+          <sum1:FechaHoraHusoGenRegistro>2025-07-30T10:00:31+02:00</sum1:FechaHoraHusoGenRegistro>
           <sum1:TipoHuella>01</sum1:TipoHuella>
           <sum1:Huella>33AEEC700D82618E396295CB6DED3076ED99DB313483A9370B6D9740BD643944</sum1:Huella>
         </sum1:RegistroAlta>

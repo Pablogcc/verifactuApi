@@ -4,13 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Facturas;
-use App\Models\Emisores;
-use App\Services\BloqueoXmlGenerator;
 use App\Services\ClientesSOAPVerifactu;
 use App\Services\DateTimeServer;
 use App\Services\FacturaXmlGenerator;
-use App\Services\FirmaXmlGenerator;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class VerifactuController extends Controller
 {
@@ -22,6 +20,9 @@ class VerifactuController extends Controller
 
         //Llamamos al servicio del certificado digital para luego enviarselo a la api
         $verifactuService = new ClientesSOAPVerifactu();
+
+        //Llamamos al servicio de la fecha, hora y zona horaria del servidor
+        $servicio = new DateTimeServer();
 
         //Guardamos el total de facturas que se han guardado
         $totalFacturas = 0;
@@ -43,6 +44,23 @@ class VerifactuController extends Controller
                 $fechaEjercicio = $factura->ejercicio;
                 $cifEmisor = $factura->idEmisorFactura;
 
+                //Almacenamos también la fechaHoraHusoGenRegistro para comprobar que no es posterior a la de la fecha actual
+                $fechaGeneracion = $factura->fechaHoraHusoGenRegistro;
+
+                //Aquí comprobamos si la fechaHoraHusoGenRegistro es posterior a la fecha actual
+                if ($fechaGeneracion) {
+                    $fechaGeneracionCarbon = Carbon::parse($fechaGeneracion);
+                    $fechaActualServidor = Carbon::now();
+
+                    if ($fechaGeneracionCarbon->gt($fechaActualServidor)) {
+                        $factura->estado_proceso = 0;
+                        $factura->estado_registro = 2;
+                        $factura->error = "La fecha de la factura es posterior a la fecha actual";
+                        $factura->save();
+                        break;
+                    }
+                }
+
                 //Filtramos los datos de la factura anterior, para luego pornerlos en los campos de la huella actual y poder calcular la huella
                 //Si es la primera factura de la serie, se ponen los mismos datos que la misma
                 if ($numero > 1) {
@@ -55,7 +73,7 @@ class VerifactuController extends Controller
                         ->where('idEmisorFactura', $cifEmisor)
                         ->first();
 
-                        //Si tenemos la factura anterior, entonces se rellenan los campos de la factura anterior en los campos de la factura actual
+                    //Si tenemos la factura anterior, entonces se rellenan los campos de la factura anterior en los campos de la factura actual
                     if ($facturaAnterior) {
                         $factura->IDEmisorFacturaAnterior = $facturaAnterior->idEmisorFactura;
                         $factura->numSerieFacturaAnterior = $facturaAnterior->numSerieFactura;
@@ -141,6 +159,7 @@ class VerifactuController extends Controller
                     } elseif ($estadoRegistro === 'Incorrecto') {
                         $factura->estado_proceso = 0;
                         $factura->estado_registro = 2;
+                        $factura->error = 'Rechazada: ' . $descripcionError;
                     } else {
 
                         $factura->estado_proceso = 0;
@@ -359,15 +378,4 @@ class VerifactuController extends Controller
             ]);
         }
     }
-
-
-    public function pruebaFechaHora(Request $request) {
-
-        $servicio = new DateTimeServer();
-        $datos = $servicio->dateTimeService();
-
-        return response()->json($datos);
-    }
-
-
 }

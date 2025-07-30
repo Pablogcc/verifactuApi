@@ -51,7 +51,7 @@ class FacturasSeeder extends Seeder
                 'numSerieFacturaAnterior' => '07/00000004',
                 'FechaExpedicionFacturaAnterior' => '24-07-2025',
                 'huella' => '33AEEC700D82618E396295CB6DED3076ED99DB313483A9370B6D9740BD643944',
-                'fechaHoraHusoGenRegistro' => '2025-07-24T14:34:31+02:00',
+                'fechaHoraHusoGenRegistro' => '2025-07-31T10:00:31+02:00',
                 'tipoHuella' => '01',
                 'nombreFabricanteSoftware' => 'SAUBER OFIMATICA S.L.',
                 'nifFabricanteSoftware' => 'B53816435',
