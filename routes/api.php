@@ -24,3 +24,5 @@ Route::post('generateVerifactu', [VerifactuController::class, 'verifactuPrueba']
 Route::get('pruebaCerts', [VerifactuController::class, 'pruebaCert']);
 
 Route::post('convertirCertificados',  [CertificadosController::class, 'convertir']);
+
+Route::get('fechaHoraActual', [VerifactuController::class, 'pruebaFechaHora']);
