@@ -24,7 +24,11 @@ class CertificadosController extends Controller
         $emisor = Emisores::where('cif', $data['cif'])->get();
 
 
-        //return $emisor[0]['certificado'];
+        if (!$emisor) {
+            return response()->json([
+                'success' => false
+            ]);
+        }
 
         try {
             $desencriptador = new Encriptar();
@@ -38,8 +42,9 @@ class CertificadosController extends Controller
             ////Ejemplo uso del método encriptar string(Contraseña)
             //$contrasenna = $desencriptador->encryptString("Verifactu");
         } catch (\Throwable $e) {
-            return $e->getMessage();
+            return response()->json([
+                'success' => false
+            ]);
         }
-
     }
 }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->longText('certificado_Key');
             $table->text('password');
             $table->date('fechaValidez');
-            $table->string('correoElectronico');
+            $table->string('correoAdministrativo');
             $table->string('nombreEmpresa');
             $table->timestamps();
         });
