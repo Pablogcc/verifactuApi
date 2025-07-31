@@ -19,7 +19,7 @@ class FacturasSeeder extends Seeder
         DB::table('facturas')->insert([
             [
                 'serie' => '07',
-                'numFactura' => '1',
+                'numFactura' => '2',
                 'idVersion' => '1.0',
                 'idInstalacion' => '_73J0TGQG2',
                 'idEmisorFactura' => '48456925L',
@@ -32,9 +32,10 @@ class FacturasSeeder extends Seeder
                 'descripcionOperacion' => 'Venta',
                 'huellaAnterior' => 'FFF480A390C36E87746E645FCE6DF4161982FF753E859AFA4643CB4E65B018E2',
                 'nombreCliente' => 'LIMPIEZAS MAMEGA',
-                'nifCliente' => 'B53247078',
+                'nifCliente' => 'DE210045333',
                 'codigoPais' => 'ES',
                 'idType' => 'NIF',
+                'idTypeNum' => '02',
                 'cupon' => 'N',
                 'impuesto' => 'IVA',
                 'claveRegimen' => '01',

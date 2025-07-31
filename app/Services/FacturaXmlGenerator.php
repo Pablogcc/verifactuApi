@@ -86,7 +86,16 @@ class FacturaXmlGenerator
         $destinatarios = $dom->createElement('sum1:Destinatarios');
         $idDest = $dom->createElement('sum1:IDDestinatario');
         $idDest->appendChild($dom->createElement('sum1:NombreRazon', $factura->nombreCliente));
-        $idDest->appendChild($dom->createElement('sum1:NIF', $factura->nifCliente));
+        if ($factura->idTypeNum === '02' || $factura->idTypeNum === '03') {
+            $idOtro = $dom->createElement('sum1:IDOtro');
+            $idOtro->appendChild($dom->createElement('sum1:CodigoPais', $factura->codigoPais));
+            $idOtro->appendChild($dom->createElement('sum1:IDType', $factura->idTypeNum));
+            $idOtro->appendChild($dom->createElement('sum1:ID', $factura->nifCliente));
+            $idDest->appendChild($idOtro);
+        } elseif ($factura->idTypeNum === '01') {
+            $idDest->appendChild($dom->createElement('sum1:NIF', $factura->nifCliente));
+        }
+
         $destinatarios->appendChild($idDest);
         $registroAlta->appendChild($destinatarios);
 

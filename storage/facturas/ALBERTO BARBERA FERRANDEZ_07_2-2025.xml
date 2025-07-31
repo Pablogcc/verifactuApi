@@ -14,7 +14,7 @@
           <sum1:IDVersion>1.0</sum1:IDVersion>
           <sum1:IDFactura>
             <sum1:IDEmisorFactura>48456925L</sum1:IDEmisorFactura>
-            <sum1:NumSerieFactura>07/0000001</sum1:NumSerieFactura>
+            <sum1:NumSerieFactura>07/0000002</sum1:NumSerieFactura>
             <sum1:FechaExpedicionFactura>24-07-2025</sum1:FechaExpedicionFactura>
           </sum1:IDFactura>
           <sum1:NombreRazonEmisor>ALBERTO BARBERA FERRANDEZ</sum1:NombreRazonEmisor>
@@ -26,7 +26,7 @@
             <sum1:IDDestinatario>
               <sum1:NombreRazon>LIMPIEZAS MAMEGA</sum1:NombreRazon>
               <sum1:IDOtro>
-                <sum1:CodigoPais/>
+                <sum1:CodigoPais>ES</sum1:CodigoPais>
                 <sum1:IDType>02</sum1:IDType>
                 <sum1:ID>DE210045333</sum1:ID>
               </sum1:IDOtro>
@@ -46,10 +46,10 @@
           <sum1:ImporteTotal>60.50</sum1:ImporteTotal>
           <sum1:Encadenamiento>
             <sum1:RegistroAnterior>
-              <sum1:IDEmisorFactura>48456925L</sum1:IDEmisorFactura>
-              <sum1:NumSerieFactura>07/0000000</sum1:NumSerieFactura>
-              <sum1:FechaExpedicionFactura>24-07-2025</sum1:FechaExpedicionFactura>
-              <sum1:Huella>33AEEC700D82618E396295CB6DED3076ED99DB313483A9370B6D9740BD643944</sum1:Huella>
+              <sum1:IDEmisorFactura/>
+              <sum1:NumSerieFactura/>
+              <sum1:FechaExpedicionFactura/>
+              <sum1:Huella>FFF480A390C36E87746E645FCE6DF4161982FF753E859AFA4643CB4E65B018E2</sum1:Huella>
             </sum1:RegistroAnterior>
           </sum1:Encadenamiento>
           <sum1:SistemaInformatico>
