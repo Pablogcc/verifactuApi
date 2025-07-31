@@ -62,6 +62,8 @@ class ConsultaCDIController extends Controller
                         $nombreReal = trim((string) $nombreNodo[0]);
                         $messageText = $nombreReal;
                     }
+                } else {
+                    $messageText = $resultado;
                 }
             }
         }

@@ -52,9 +52,10 @@ class Encriptar
         $pfxPassword = $passwordCert; // Pon la contraseña del PFX si tiene una
         $ok = openssl_pkcs12_read($binaryContent, $certs, $pfxPassword);
         if (!$ok) {
-            http_response_code(500);
-            echo "Error al leer el archivo .pfx con openssl_pkcs12_read.";
-            return;
+            // http_response_code(500);
+            // echo "Error al leer el archivo .pfx con openssl_pkcs12_read.";
+            // return;
+             throw new \Exception("La contraseña del certificado es incorrecta.");
         }
 
         // 7) Separar clave privada, certificado y CA (si existen)
@@ -141,7 +142,7 @@ class Encriptar
 
         if ($decryptedString === false) {
             http_response_code(500);
-            echo "Error al desencriptar.";
+             throw new \Exception("Error al desencriptar");
             return;
         }
 
