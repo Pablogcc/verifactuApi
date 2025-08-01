@@ -71,8 +71,7 @@ class ConsultaCDIController extends Controller
         //Enviamos el token por el body, si está identificado, en el success pondremos "true" y en el message mostramos el nombre
         return response()->json([
             'success' => $success,
-            'message' => $messageText,
-            'token' => 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx',
+            'message' => $messageText
         ]);
     }
 }

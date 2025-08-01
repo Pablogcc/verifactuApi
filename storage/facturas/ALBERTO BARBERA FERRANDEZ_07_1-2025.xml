@@ -25,11 +25,7 @@
           <sum1:Destinatarios>
             <sum1:IDDestinatario>
               <sum1:NombreRazon>LIMPIEZAS MAMEGA</sum1:NombreRazon>
-              <sum1:IDOtro>
-                <sum1:CodigoPais/>
-                <sum1:IDType>02</sum1:IDType>
-                <sum1:ID>DE210045333</sum1:ID>
-              </sum1:IDOtro>
+              <sum1:NIF>48456925L</sum1:NIF>
             </sum1:IDDestinatario>
           </sum1:Destinatarios>
           <sum1:Cupon/>

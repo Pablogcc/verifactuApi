@@ -33,7 +33,7 @@ class FacturasSeeder extends Seeder
                 'huellaAnterior' => 'FFF480A390C36E87746E645FCE6DF4161982FF753E859AFA4643CB4E65B018E2',
                 'nombreCliente' => 'LIMPIEZAS MAMEGA',
                 'nifCliente' => 'DE210045333',
-                'codigoPais' => 'ES',
+                'codigoPais' => 'DE',
                 'idType' => 'NIF',
                 'idTypeNum' => '02',
                 'cupon' => 'N',
