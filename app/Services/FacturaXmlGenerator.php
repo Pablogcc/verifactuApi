@@ -131,10 +131,6 @@ class FacturaXmlGenerator
 
         $registroAlta->appendChild($desglose);
 
-
-
-
-
         // Totales
         $registroAlta->appendChild($dom->createElement('sum1:CuotaTotal', $this->formatearImporte($factura->cuotaTotal)));
         $registroAlta->appendChild($dom->createElement('sum1:ImporteTotal', $this->formatearImporte($factura->importeTotal)));

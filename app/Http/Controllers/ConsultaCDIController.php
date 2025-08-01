@@ -26,7 +26,6 @@ class ConsultaCDIController extends Controller
         $data = $request->validate([
             'nif' => 'required|string',
             'nombre' => 'required|string',
-            'idTypeNum' => 'required|string',
             'token' => ['required', 'string', 'in:sZQe4cxaEWeFBe3EPkeah0KqowVBLx']
         ], $message);
 
