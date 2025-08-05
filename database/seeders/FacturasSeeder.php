@@ -2,11 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Str;
-use Illuminate\Support\Facades\Hash;
+
 
 class FacturasSeeder extends Seeder
 {
@@ -21,7 +19,6 @@ class FacturasSeeder extends Seeder
                 'serie' => '07',
                 'numFactura' => '2',
                 'idVersion' => '1.0',
-                'idInstalacion' => '_73J0TGQG2',
                 'idEmisorFactura' => '48456925L',
                 'numSerieFactura' => '07/0000002',
                 'fechaExpedicionFactura' => '24-07-2025',

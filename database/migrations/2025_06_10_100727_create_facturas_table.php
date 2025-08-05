@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('numFactura', 8);
 
             $table->string('idVersion');
-            $table->string('idInstalacion');
 
             //IDFactura
             $table->string('idEmisorFactura');
