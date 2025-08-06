@@ -77,6 +77,7 @@ class VerifactuController extends Controller
                         $factura->IDEmisorFacturaAnterior = $facturaAnterior->idEmisorFactura;
                         $factura->numSerieFacturaAnterior = $facturaAnterior->numSerieFactura;
                         $factura->FechaExpedicionFacturaAnterior = $facturaAnterior->fechaExpedicionFactura;
+                        $factura->HuellaAnterior = $facturaAnterior->huella;
                     } else {
                         // No encontrada: deja vacíos o nulos
                         $factura->IDEmisorFacturaAnterior = '';
@@ -88,7 +89,7 @@ class VerifactuController extends Controller
                     $factura->IDEmisorFacturaAnterior = $factura->idEmisorFactura;
                     $factura->numSerieFacturaAnterior = $factura->serie . '/0000000';
                     $factura->FechaExpedicionFacturaAnterior = $factura->fechaExpedicionFactura;
-                    $factura->huellaAnterior = $factura->huella;
+                    $factura->huellaAnterior = /*$factura->huella*/ "FFF480A390C36E87746E645FCE6DF4161982FF753E859AFA4643CB4E65B018E2";
                 }
 
                 // Generar y guardar XML(Storage/facturas/...)

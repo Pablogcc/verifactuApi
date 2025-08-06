@@ -26,9 +26,27 @@ class ConsultaCDIController extends Controller
         $data = $request->validate([
             'nif' => 'required|string',
             'nombre' => 'required|string',
+            'idTypeNum' => 'nullable|string|in:01,02,03',
             'token' => ['required', 'string', 'in:sZQe4cxaEWeFBe3EPkeah0KqowVBLx']
         ], $message);
 
+        //Si el idTypeNum está vacío o no tiene etiqueta, se pondrá por defecto "01"
+         $idTypeNum = $data['idTypeNum'] ?? '01';
+
+         //Si el idTypeNum es "02" o "03", entonces será un nif intracomunitario o un nif extranjero 
+         if ($idTypeNum === '02') {
+            return response()->json([
+                'success' => true,
+                'message' => 'NIF intracomunitario correcto'
+            ]);
+        }
+
+         if ($idTypeNum === '03') {
+            return response()->json([
+                'success' => true,
+                'message' => 'NIF extrajero correcto'
+            ]);
+        }
 
         //Cogemos el NIF y el NOMBRE de esa factura elegida y la ponemos en mayúsculas
         $nif = strtoupper($data['nif']);
