@@ -24,7 +24,7 @@
           <sum1:Macrodato/>
           <sum1:Destinatarios>
             <sum1:IDDestinatario>
-              <sum1:NombreRazon>LIMPIEZAS MAMEGA</sum1:NombreRazon>
+              <sum1:NombreRazon>Alberto Barbera Ferrandez</sum1:NombreRazon>
               <sum1:NIF>48456925L</sum1:NIF>
             </sum1:IDDestinatario>
           </sum1:Destinatarios>
@@ -45,7 +45,7 @@
               <sum1:IDEmisorFactura>48456925L</sum1:IDEmisorFactura>
               <sum1:NumSerieFactura>07/0000000</sum1:NumSerieFactura>
               <sum1:FechaExpedicionFactura>24-07-2025</sum1:FechaExpedicionFactura>
-              <sum1:Huella>FFF480A390C36E87746E645FCE6DF4161982FF753E859AFA4643CB4E65B018E2</sum1:Huella>
+              <sum1:Huella>33AEEC700D82618E396295CB6DED3076ED99DB313483A9370B6D9740BD643944</sum1:Huella>
             </sum1:RegistroAnterior>
           </sum1:Encadenamiento>
           <sum1:SistemaInformatico>

@@ -175,9 +175,12 @@ class VerifactuController extends Controller
 
                 //Tiempo de proceso
                 //Aquí calculamos el tiempo que se ha tardado la factura en milisegundos en generar todos los procesos anteriores y sumarlos entre todas las facturas para saber la media
-                $tiempoMs = intval((microtime(true) - $inicio) * 1000);
-                $totalFacturas++;
-                $totalTiempo += $tiempoMs;
+
+                if ($factura->estado_registro === 1) {
+                    $tiempoMs = intval((microtime(true) - $inicio) * 1000);
+                    $totalFacturas++;
+                    $totalTiempo += $tiempoMs;
+                }
             } catch (\Throwable $e) {
                 // Error general
                 //Si hay algún tipo de error en el servidor o interno, la factura se queda bloqueada y se guarda
@@ -221,14 +224,14 @@ class VerifactuController extends Controller
         $token = $request->query('token');
 
         $verifactuService = new ClientesSOAPVerifactu();
-        
+
         $totalFacturas = 0;
         $totalTiempo = 0;
 
         $facturasLock = Facturas::where('estado_proceso', 1)
             ->where('estado_registro', 0)->get();
 
-         foreach ($facturasLock as $factura) {
+        foreach ($facturasLock as $factura) {
             //Guardamos el tiempo que tarda una factura en generarse y mandarse a la API
             $inicio = microtime(true);
 

@@ -5,7 +5,7 @@
     <sum:RegFactuSistemaFacturacion>
       <sum:Cabecera>
         <sum1:ObligadoEmision>
-          <sum1:NombreRazon>ALBERTO BARBERA FERRANDEZ</sum1:NombreRazon>
+          <sum1:NombreRazon>SAUBER OFIMATICA S.L.</sum1:NombreRazon>
           <sum1:NIF>B53816435</sum1:NIF>
         </sum1:ObligadoEmision>
       </sum:Cabecera>
@@ -17,7 +17,7 @@
             <sum1:NumSerieFactura>07/0000002</sum1:NumSerieFactura>
             <sum1:FechaExpedicionFactura>24-07-2025</sum1:FechaExpedicionFactura>
           </sum1:IDFactura>
-          <sum1:NombreRazonEmisor>ALBERTO BARBERA FERRANDEZ</sum1:NombreRazonEmisor>
+          <sum1:NombreRazonEmisor>SAUBER OFIMATICA S.L.</sum1:NombreRazonEmisor>
           <sum1:TipoFactura>F1</sum1:TipoFactura>
           <sum1:DescripcionOperacion>Venta</sum1:DescripcionOperacion>
           <sum1:FacturaSimplificadaArt7273/>
@@ -28,7 +28,7 @@
               <sum1:IDOtro>
                 <sum1:CodigoPais>DE</sum1:CodigoPais>
                 <sum1:IDType>02</sum1:IDType>
-                <sum1:ID>DE210045333</sum1:ID>
+                <sum1:ID>B53816435</sum1:ID>
               </sum1:IDOtro>
             </sum1:IDDestinatario>
           </sum1:Destinatarios>
