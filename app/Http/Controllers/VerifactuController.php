@@ -20,9 +20,6 @@ class VerifactuController extends Controller
         //Llamamos al servicio del certificado digital para luego enviarselo a la api
         $verifactuService = new ClientesSOAPVerifactu();
 
-        //Llamamos al servicio de la fecha, hora y zona horaria del servidor
-
-
         //Guardamos el total de facturas que se han guardado
         $totalFacturas = 0;
         $totalTiempo = 0;
@@ -89,7 +86,7 @@ class VerifactuController extends Controller
                     $factura->IDEmisorFacturaAnterior = $factura->idEmisorFactura;
                     $factura->numSerieFacturaAnterior = $factura->serie . '/0000000';
                     $factura->FechaExpedicionFacturaAnterior = $factura->fechaExpedicionFactura;
-                    $factura->huellaAnterior = /*$factura->huella*/ "FFF480A390C36E87746E645FCE6DF4161982FF753E859AFA4643CB4E65B018E2";
+                    $factura->huellaAnterior = $factura->huella;
                 }
 
                 // Generar y guardar XML(Storage/facturas/...)
