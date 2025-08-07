@@ -34,28 +34,11 @@ class VerifactuController extends Controller
             $inicio = microtime(true);
 
             try {
-                //Almacenamos los datos del numero de serie, la fecha y el cif del emisor
+                //Almacenamos los datos del numero de serie, el numero de la factura, la fecha(ejercicio) y el cif del emisor
                 $numero = $factura->numFactura;
                 $serie = $factura->serie;
                 $fechaEjercicio = $factura->ejercicio;
                 $cifEmisor = $factura->idEmisorFactura;
-
-                //Almacenamos también la fechaHoraHusoGenRegistro para comprobar que no es posterior a la de la fecha actual
-                $fechaGeneracion = $factura->fechaHoraHusoGenRegistro;
-
-                //Aquí comprobamos si la fechaHoraHusoGenRegistro es posterior a la fecha actual
-                if ($fechaGeneracion) {
-                    $fechaGeneracionCarbon = Carbon::parse($fechaGeneracion);
-                    $fechaActualServidor = Carbon::now();
-
-                    if ($fechaGeneracionCarbon->gt($fechaActualServidor)) {
-                        $factura->estado_proceso = 0;
-                        $factura->estado_registro = 2;
-                        $factura->error = "La fecha de la factura es posterior a la fecha actual";
-                        $factura->save();
-                        break;
-                    }
-                }
 
                 //Filtramos los datos de la factura anterior, para luego pornerlos en los campos de la huella actual y poder calcular la huella
                 //Si es la primera factura de la serie, se ponen los mismos datos que la misma
@@ -100,7 +83,7 @@ class VerifactuController extends Controller
                 $verifactuService->actualizarRutas($factura->idEmisorFactura);
                 $respuestaXml = $verifactuService->enviarFactura($xml);
 
-                //Comprobamos si el xml tiene algún error interno en el cuerpo y lo convertimos as String
+                //Comprobamos si el xml tiene algún error interno en el cuerpo y lo convertimos en un objeto
                 libxml_use_internal_errors(true);
                 $respuestaXmlObj = simplexml_load_string($respuestaXml);
 
