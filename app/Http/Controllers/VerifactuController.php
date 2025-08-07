@@ -74,7 +74,7 @@ class VerifactuController extends Controller
                         $factura->IDEmisorFacturaAnterior = $facturaAnterior->idEmisorFactura;
                         $factura->numSerieFacturaAnterior = $facturaAnterior->numSerieFactura;
                         $factura->FechaExpedicionFacturaAnterior = $facturaAnterior->fechaExpedicionFactura;
-                        $factura->HuellaAnterior = $facturaAnterior->huella;
+                        $factura->huellaAnterior = $facturaAnterior->huella;
                     } else {
                         // No encontrada: deja vacíos o nulos
                         $factura->IDEmisorFacturaAnterior = '';

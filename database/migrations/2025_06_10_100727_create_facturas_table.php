@@ -107,7 +107,7 @@ return new class extends Migration
             $table->string('numSerieFacturaAnterior')->nullable();
             $table->string('FechaExpedicionFacturaAnterior')->nullable();
 
-            $table->string('huellaAnterior');
+            $table->string('huellaAnterior')->nullable();
 
             // Registro adicional
             $table->string('fechaHoraHusoGenRegistro');

@@ -38,7 +38,7 @@
               <sum1:CuotaRepercutida>10.50</sum1:CuotaRepercutida>
             </sum1:DetalleDesglose>
           </sum1:Desglose>
-          <sum1:CuotaTotal>10.0</sum1:CuotaTotal>
+          <sum1:CuotaTotal>10.10</sum1:CuotaTotal>
           <sum1:ImporteTotal>60.50</sum1:ImporteTotal>
           <sum1:Encadenamiento>
             <sum1:RegistroAnterior>
