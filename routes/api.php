@@ -3,6 +3,7 @@
 use App\Console\Commands\ConsultaCDI;
 use App\Http\Controllers\CertificadosController;
 use App\Http\Controllers\ConsultaCDIController;
+use App\Http\Controllers\FacturaElcetronicaController;
 use App\Http\Controllers\FechaHoraServerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -25,3 +26,5 @@ Route::post('generateVerifactu', [VerifactuController::class, 'verifactuPrueba']
 Route::post('convertirCertificados',  [CertificadosController::class, 'convertir']);
 
 Route::get('fechaHoraActual',  [FechaHoraServerController::class, 'fechaHoraZonaHoraria']);
+
+Route::post('facturaElectronica', [FacturaElcetronicaController::class, 'facturaElectronica']);

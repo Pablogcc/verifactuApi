@@ -28,7 +28,8 @@ class Facturas2Seeder extends Seeder
                 'descripcionOperacion' => 'Venta',
                 //'huellaAnterior' => 'FFF480A390C36E87746E645FCE6DF4161982FF753E859AFA4643CB4E65B018E2',
                 'nombreCliente' => 'LIMPIEZAS MAMEGA',
-                'nifCliente' => '48456925L',
+                //NIF intracomunitario: DE210045333
+                'nifCliente' => 'DE210045333',
                 'codigoPais' => 'DE',
                 'idType' => 'NIF',
                 'idTypeNum' => '02',
@@ -56,7 +57,7 @@ class Facturas2Seeder extends Seeder
                 'identificadorSoftware' => '77',
                 'versionSoftware' => '2.1.4',
                 'numeroInstalacion' => '383',
-                'estado_proceso' => 0,
+                'estado_registro' => 1,
                 'created_at' => now(),
                 'updated_at' => now()
             ],

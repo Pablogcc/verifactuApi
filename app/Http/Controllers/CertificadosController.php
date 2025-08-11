@@ -43,7 +43,8 @@ class CertificadosController extends Controller
             //$contrasenna = $desencriptador->encryptString("Verifactu");
         } catch (\Throwable $e) {
             return response()->json([
-                'success' => false
+                'success' => false,
+                'mensaje' => $e->getMessage()
             ]);
         }
     }
