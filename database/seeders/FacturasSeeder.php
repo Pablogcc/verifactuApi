@@ -24,7 +24,7 @@ class FacturasSeeder extends Seeder
                 'fechaExpedicionFactura' => '24-07-2025',
                 'nombreEmisor' => 'ALBERTO BARBERA FERRANDEZ',
                 'cifEmisor' => '48456925L',
-                'tipoFactura' => 'F1',
+                'tipoFactura' => 'F2',
                 'fechaOperacion' => '24-07-2025',
                 'descripcionOperacion' => 'Venta',
                 //'huellaAnterior' => 'FFF480A390C36E87746E645FCE6DF4161982FF753E859AFA4643CB4E65B018E2',

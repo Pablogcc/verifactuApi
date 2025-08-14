@@ -18,16 +18,10 @@
             <sum1:FechaExpedicionFactura>24-07-2025</sum1:FechaExpedicionFactura>
           </sum1:IDFactura>
           <sum1:NombreRazonEmisor>ALBERTO BARBERA FERRANDEZ</sum1:NombreRazonEmisor>
-          <sum1:TipoFactura>F1</sum1:TipoFactura>
+          <sum1:TipoFactura>F2</sum1:TipoFactura>
           <sum1:DescripcionOperacion>Venta</sum1:DescripcionOperacion>
           <sum1:FacturaSimplificadaArt7273/>
           <sum1:Macrodato/>
-          <sum1:Destinatarios>
-            <sum1:IDDestinatario>
-              <sum1:NombreRazon>Alberto Barbera Ferrandez</sum1:NombreRazon>
-              <sum1:NIF>48456925L</sum1:NIF>
-            </sum1:IDDestinatario>
-          </sum1:Destinatarios>
           <sum1:Cupon/>
           <sum1:Desglose>
             <sum1:DetalleDesglose>

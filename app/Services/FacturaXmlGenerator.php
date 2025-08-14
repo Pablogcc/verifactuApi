@@ -63,9 +63,11 @@ class FacturaXmlGenerator
         $registroAlta->appendChild($dom->createElement('sum1:TipoFactura', $factura->tipoFactura));
 
 
-        if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
+        if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4' || $factura->tipoFactura === 'R5') {
             $registroAlta->appendChild($dom->createElement('sum1:TipoRectificativa', 'I'));
         }
+
+        
 
         if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
             $facturasRectificadas = $dom->createElement('sum1:FacturasRectificadas');
@@ -83,6 +85,7 @@ class FacturaXmlGenerator
         $registroAlta->appendChild($dom->createElement('sum1:Macrodato'));
 
         // sum1:Destinatarios
+        if ($factura->tipoFactura === 'F1') {
         $destinatarios = $dom->createElement('sum1:Destinatarios');
         $idDest = $dom->createElement('sum1:IDDestinatario');
         $idDest->appendChild($dom->createElement('sum1:NombreRazon', $factura->nombreCliente));
@@ -95,9 +98,10 @@ class FacturaXmlGenerator
         } elseif ($factura->idTypeNum === '01') {
             $idDest->appendChild($dom->createElement('sum1:NIF', $factura->nifCliente));
         }
-
+    
         $destinatarios->appendChild($idDest);
         $registroAlta->appendChild($destinatarios);
+    }
 
         $registroAlta->appendChild($dom->createElement('sum1:Cupon'));
 
