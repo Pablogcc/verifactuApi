@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Facturas;
 use App\Services\Encriptar;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Emisores;
 use App\Services\FacturaXmlElectronica;
+use App\Services\FirmaXmlGenerator;
 
 class FacturaElcetronicaController extends Controller
 {
@@ -19,11 +20,11 @@ class FacturaElcetronicaController extends Controller
                 'numero' => 'required|integer',
                 'ejercicio' => 'required|integer',
                 'token' => ['required', 'string', 'in:sZQe4cxaEWeFBe3EPkeah0KqowVBLx'],
-                'firmada' => 'required|integer|in:1,0'
+                'firmada' => 'nullable|integer|in:1,0'
             ]
         );
 
-        $firmada = $data['firmada'] ?? '1';
+        $firmada = $data['firmada'] ?? 1;
 
         // $desencriptador = new Encriptar();
         // $desencriptador->decryptBase64AndSaveFile($xml);
@@ -37,39 +38,49 @@ class FacturaElcetronicaController extends Controller
 
         if ($factura) {
 
+            $emisor = Emisores::where('cif', $data['cif'])->first();
+            if (!$emisor) {
+                return response()->json(['mensaje' => "Emisor no encontrado"]);
+            }
+
+            $desencriptador = new Encriptar();
+            $passwordCert = $desencriptador->decryptString($emisor->password);
+            $desencriptador->decryptBase64AndDownloadPfx($passwordCert, $emisor->certificado, $emisor->cif);
+
             // Generar el XML usando los datos reales de la factura
             $xml = (new FacturaXmlElectronica())->generateXml($factura);
+            $xmlFirmado =  (new FirmaXmlGenerator())->firmaXml($xml, $data['cif'],  $passwordCert);
 
-            
+
+            if ($firmada === 0) {
+                $xmlBase64 = base64_encode($xml);
+                $encriptado = $desencriptador->encryptBase64InputReturnBase64($xmlBase64);
+            } else {
+                $xmlBase64 = base64_encode($xmlFirmado);
+                $encriptado = $desencriptador->encryptBase64InputReturnBase64($xmlBase64);
+            }
 
             // Guardar XML en storage/app/facturasElectronicas
             $carpetaOrigen = storage_path('facturasElectronicas');
             $ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
-            file_put_contents($ruta, $xml);
+            file_put_contents($ruta, $xmlFirmado);
+
+
 
             if ($factura->estado_registro === 1) {
-                if ($firmada === 1) {
-                    return response()->json([
-                        'resultado' => true,
-                        'factura' => "Factura encriptada firmada",
-                        'delete' => $factura
-                    ]);
-                } else {
-                    return response()->json([
-                        'resultado' => true,
-                        'factura' => "Factura encriptada sin firmar",
-                        'delete' => $factura
-                    ]);
-                }
+                return response()->json([
+                    'resultado' => true,
+                    'factura' => $encriptado
+                ]);
             } elseif ($factura->estado_registro === 2) {
                 return response()->json([
                     'resultado' => false,
-                    'mensaje' => "Factura incorrecta"
+                    'mensaje' => "Factura rechazada por la AEAT"
                 ]);
             } else {
                 return response()->json([
                     'resultado' => false,
-                    'mensaje' => "Esperar 3 minutos"
+                    'mensaje' => "Esperar 3 minutos para la siguiente solicitud"
                 ]);
             }
         } elseif (!$factura) {

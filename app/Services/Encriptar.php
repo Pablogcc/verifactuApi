@@ -156,14 +156,10 @@ class Encriptar
      * @param string $password
      * @return string
      */
-    function encryptBase64InputReturnBase64(string $base64Input, string $password = 'verifactu1234'): string {
-        $xmlContent = base64_decode($base64Input, true);
-        if ($xmlContent === false) {
-            throw new \Exception("Base64 inválido");
-        }
+    function encryptBase64InputReturnBase64(string $base64Input, string $password = 'Sau2025ber'): string {
         $key = hash('sha256', $password, true);
         $iv = openssl_random_pseudo_bytes(16);
-        $ciphertext = openssl_encrypt($xmlContent, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
+        $ciphertext = openssl_encrypt($base64Input, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
         if ($ciphertext === false) {
             throw new \Exception("Error al encriptar");
         }
@@ -178,7 +174,7 @@ class Encriptar
      * @param string $password
      * @return string
      */
-    public function decryptBase64AndSaveFile(string $encryptedBase64, string $filename, string $password = 'verifactu1234') {
+    public function decryptBase64AndSaveFile(string $encryptedBase64, string $filename, string $password = 'Sau2025ber') {
         $tempDir = __DIR__ . '/temp/';
         if (!is_dir($tempDir)) {
             if (!mkdir($tempDir, 0777, true) && !is_dir($tempDir)) {

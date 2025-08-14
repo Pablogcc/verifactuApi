@@ -2,50 +2,53 @@
 
 namespace App\Services;
 
-use App\Models\Facturas;
-use App\Services\DOMDocument;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 
 class FirmaXmlGenerator
 {
+    public function firmaXml(string $xmlContent, string $cif, string $passwordCert)
+{
+    // 2) Definir rutas de los .pem en storage
+    $keyPath  = storage_path("certs/{$cif}/key.pem");
+    $certPath = storage_path("certs/{$cif}/cert.pem");
 
-    public function firmaXml(string $xmlContent)
-    {
-        //Guardamos el certificado y su contraseña, y comprobamos que se pueda leer
-        $pfxPath = storage_path(env('PFX_CERT_PATH'));
-        $pfxPassword = env('PFX_CERT_PASSWORD');
-        $certStore = [];
-
-        if (!openssl_pkcs12_read(file_get_contents($pfxPath), $certStore, $pfxPassword)) {
-            throw new \Exception("Error al leer el archivo");
-        }
-
-        //Cargamos el XML y creamos un nuevo Security Object
-        $privateKey = $certStore['pkey'];
-        $publicCert = $certStore['cert'];
-
-        $doc = new \DOMDocument();
-        $doc->loadXML($xmlContent);
-        //Quitamos los saltos de línea, espacios, orden de atributos. Así normaliza el XML y no lo deja inválido
-        $objDSig = new XMLSecurityDSig();
-        $objDSig->setCanonicalMethod(XMLSecurityDSig::EXC_C14N);
-        $objDSig->addReference(
-            $doc,
-            XMLSecurityDSig::SHA256,
-            array('http://www.w3.org/2000/09/xmldsig#enveloped-signature')
-        );
-
-        //Creamos una nueva (private) Security key
-        $objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, array('type' => 'private'));
-        //Cargamos la private key
-        $objKey->loadKey($privateKey, false);
-        //Aquí cargamos el XML y lo firmamos
-        $objDSig->sign($objKey);
-        $objDSig->add509Cert($publicCert);
-        $objDSig->appendSignature($doc->documentElement);
-
-        //Y devlovemos el XML firmado
-        return $doc->saveXML();
+    if (!file_exists($keyPath) || !file_exists($certPath)) {
+        throw new \Exception("No se encontraron los archivos PEM para el CIF {$cif}");
     }
+
+    // 3) Leer clave privada y certificado
+    $privateKeyContent = file_get_contents($keyPath);
+    $publicCertContent = file_get_contents($certPath);
+
+    if ($privateKeyContent === false || $publicCertContent === false) {
+        throw new \Exception("Error al leer los archivos PEM para el CIF {$cif}");
+    }
+
+    // 4) Cargar el XML
+    $doc = new \DOMDocument();
+    $doc->loadXML($xmlContent);
+
+    // 5) Configurar la firma
+    $objDSig = new XMLSecurityDSig();
+    $objDSig->setCanonicalMethod(XMLSecurityDSig::EXC_C14N);
+    $objDSig->addReference(
+        $doc,
+        XMLSecurityDSig::SHA256,
+        ['http://www.w3.org/2000/09/xmldsig#enveloped-signature']
+    );
+
+    // 6) Crear la clave privada y cargarla con su contraseña
+    $objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
+    $objKey->loadKey($privateKeyContent, false, false, $passwordCert);
+
+    // 7) Firmar y añadir certificado
+    $objDSig->sign($objKey);
+    $objDSig->add509Cert($publicCertContent);
+    $objDSig->appendSignature($doc->documentElement);
+
+    // 8) Devolver XML firmado
+    return $doc->saveXML();
+}
+
 }
