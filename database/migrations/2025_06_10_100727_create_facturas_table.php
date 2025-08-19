@@ -63,7 +63,7 @@ return new class extends Migration
 
             // Datos fiscales
             $table->string('cupon')->default('N');
-            $table->string('impuesto')->default('IVA');
+            $table->integer('impuesto')->default(01);
 
             //DetalleDesglose 1
             $table->string('claveRegimen')->default('01');

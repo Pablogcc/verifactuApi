@@ -202,7 +202,7 @@ class Encriptar
         return $outputFile;
     }
     
-    // Función para encriptar
+    // Función para encriptar(No usado)
 
     public function encryptpfx(string $plainText, string $password = 'Sau2025ber'): string
     {
