@@ -202,4 +202,33 @@ class Encriptar
         return $outputFile;
     }
     
+    // Función para encriptar
+
+    public function encryptpfx(string $plainText, string $password = 'Sau2025ber'): string
+    {
+        // Derivar clave (SHA-256 → 32 bytes)
+        $key = hash('sha256', $password, true);
+
+        // Generar IV aleatorio de 16 bytes
+        $iv = random_bytes(16);
+        // Encriptar con AES-256-CBC + PKCS7 (OPENSSL_RAW_DATA = no base64 aún)
+        $ciphertext = openssl_encrypt(
+            $plainText,
+            'AES-256-CBC',
+            $key,
+            OPENSSL_RAW_DATA,
+            $iv
+        );
+
+        if ($ciphertext === false) {
+            throw new \RuntimeException("Error en la encriptación.");
+        }
+
+        // Concatenar IV + ciphertext
+        $full = $iv . $ciphertext;
+
+        // Codificar en Base64
+        return base64_encode($full);
+    }
+
 }

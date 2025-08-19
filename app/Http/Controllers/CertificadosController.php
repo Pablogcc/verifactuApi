@@ -21,8 +21,7 @@ class CertificadosController extends Controller
         ]);
 
         //Recogemos todos los campos del cif recibido por el body
-        $emisor = Emisores::where('cif', $data['cif'])->get();
-
+        $emisor = Emisores::where('cif', $data['cif'])->first();
 
         if (!$emisor) {
             return response()->json([
@@ -33,12 +32,37 @@ class CertificadosController extends Controller
         try {
             $desencriptador = new Encriptar();
 
-            $contrasenna = $desencriptador->decryptString($emisor[0]['password']);
+            $contrasenna = $desencriptador->decryptString($emisor->password);
 
 
-            $desencriptador->decryptBase64AndDownloadPfx($contrasenna, $emisor[0]['certificado'], $emisor[0]['cif']);
+            $paths = $desencriptador->decryptBase64AndDownloadPfx($contrasenna, $emisor->certificado, $emisor->cif);
 
+            $certContent = file_get_contents($paths['cert']);
+            if ($certContent === false) {
+                throw new \Exception("No se pudo leer cert.pem");
+            }
 
+            // Convertir en recurso de certificado
+            $cert = openssl_x509_read($certContent);
+            if ($cert === false) {
+                throw new \Exception("No se pudo interpretar el certificado");
+            }
+
+            // Extraer info
+            $certInfo = openssl_x509_parse($cert);
+            if (!$certInfo || !isset($certInfo['validTo_time_t'])) {
+                throw new \Exception("No se pudo obtener la fecha de validez del certificado");
+            }
+
+            // Guardar fecha de caducidad
+            $fechaValidez = date('Y-m-d', $certInfo['validTo_time_t']);
+            $emisor->fechaValidez = $fechaValidez;
+            $emisor->save();
+
+            return response()->json([
+                'respuesta' => true,
+                'fechaValidez' => $fechaValidez
+            ]);
             ////Ejemplo uso del método encriptar string(Contraseña)
             //$contrasenna = $desencriptador->encryptString("Verifactu");
         } catch (\Throwable $e) {

@@ -69,7 +69,7 @@ class FacturaXmlGenerator
 
         
 
-        if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
+        if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4' || $factura->tipoFactura === 'R5') {
             $facturasRectificadas = $dom->createElement('sum1:FacturasRectificadas');
             $idFacturaRectificada = $dom->createElement('sum1:IDFacturaRectificada');
             $idFacturaRectificada->appendChild($dom->createElement('sum1:IDEmisorFactura', $factura->idEmisorFacturaRectificada));

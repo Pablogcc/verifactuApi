@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('emisores', function (Blueprint $table) {
             $table->string('cif');
             $table->longText('certificado');
-            $table->longText('certificado_Key');
             $table->text('password');
             $table->date('fechaValidez');
             $table->string('correoAdministrativo');
