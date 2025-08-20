@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Emisores;
-use App\Models\Facturas;
 use Illuminate\Http\Request;
 use App\Services\Encriptar;
 use DateTime;
@@ -22,15 +21,6 @@ class CertificadosController extends Controller
             'nombreEmpresa' => 'required|string',
             'token' => ['required', 'string', 'in:sZQe4cxaEWeFBe3EPkeah0KqowVBLx']
         ]);
-
-        //Recogemos todos los campos del cif recibido por el body
-        /*$emisor = Emisores::where('cif', $data['cif'])->first();
-
-        if (!$emisor) {
-            return response()->json([
-                'success' => false
-            ]);
-        }*/
 
         try {
             $desencriptador = new Encriptar();
@@ -81,6 +71,13 @@ class CertificadosController extends Controller
             if ($diasRestantes < 0) {
                 throw new \Exception("El certificado ya ha caducado el $fechaValidez");
             }
+
+            if (Emisores::where('cif', $data['cif'])->exists()) {
+            return response()->json([
+                'validado' => 'no',
+                'mensaje' => "El emisor con CIF {$data['cif']} ya existe en la base de datos"
+            ]);
+        }
 
             Emisores::create([
                 'cif' => $data['cif'],
