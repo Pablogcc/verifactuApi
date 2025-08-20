@@ -12,6 +12,8 @@ class CertificadosController extends Controller
     public function convertir(Request $request)
     {
 
+        $fechaValidez = null;
+
         //Recibo por el body el cif del emisor para recoger su certificado
         $data = $request->validate([
             'cif' => 'required|string',
@@ -27,6 +29,9 @@ class CertificadosController extends Controller
 
             $contrasenna = $desencriptador->decryptString($data['password']);
 
+            /*return response()->json([
+                'contraseña_desencriptada' => $contrasenna
+            ]);*/
 
             $paths = $desencriptador->decryptBase64AndDownloadPfx($contrasenna, $data['certificado'], $data['cif']);
 
@@ -72,32 +77,27 @@ class CertificadosController extends Controller
                 throw new \Exception("El certificado ya ha caducado el $fechaValidez");
             }
 
-            if (Emisores::where('cif', $data['cif'])->exists()) {
-            return response()->json([
-                'validado' => 'no',
-                'mensaje' => "El emisor con CIF {$data['cif']} ya existe en la base de datos"
-            ]);
-        }
-
-            Emisores::create([
-                'cif' => $data['cif'],
-                'certificado' => $data['certificado'],
-                'password' => $data['password'],
-                'correoAdministrativo' => $data['correoAdministrativo'],
-                'nombreEmpresa' => $data['nombreEmpresa'],
-                'fechaValidez' => $fechaValidez
-            ]);
+            $emisor = Emisores::updateOrCreate(
+                ['cif' => $data['cif']],
+                [
+                    'certificado'          => $data['certificado'],
+                    'password'             => $data['password'],
+                    'correoAdministrativo' => $data['correoAdministrativo'],
+                    'nombreEmpresa'        => $data['nombreEmpresa'],
+                    'fechaValidez'         => $fechaValidez
+                ]
+            );
 
             if ($diasRestantes <= 20) {
                 return response()->json([
-                'validado' => 'si',
-                'fechaValidez' => $fechaValidez,
-                'mensaje' => "El certificado caduca en menos de 20 días"
-            ]);
+                    'validado' => true,
+                    'fechaValidez' => $fechaValidez,
+                    'mensaje' => "El certificado caduca en menos de 20 días"
+                ]);
             }
 
             return response()->json([
-                'validado' => 'si',
+                'validado' => true,
                 'fechaValidez' => $fechaValidez
             ]);
 
@@ -105,7 +105,7 @@ class CertificadosController extends Controller
             //$contrasenna = $desencriptador->encryptString("Verifactu");
         } catch (\Throwable $e) {
             return response()->json([
-                'validado' => 'no',
+                'validado' => false,
                 'fechaValidez' => $fechaValidez,
                 'mensaje' => $e->getMessage()
             ]);
