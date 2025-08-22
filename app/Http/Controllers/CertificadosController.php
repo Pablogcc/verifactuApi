@@ -9,6 +9,7 @@ use DateTime;
 
 class CertificadosController extends Controller
 {
+
     public function convertir(Request $request)
     {
 
@@ -55,20 +56,34 @@ class CertificadosController extends Controller
             $fechaValidez = date('Y-m-d', $certInfo['validTo_time_t']);
 
             //También extraemos el cif del emisor, para comprobar si es el mismo que el correspondiente
-            $nifCertificado = $certInfo['subject']['serialNumber'] ?? null;
+            $cifCertificado = null;
 
-            if (!$nifCertificado) {
-                throw new \Exception("El certificado no contiene un NIF/CIF válido");
+            //Buscamos en el primer campo si está el cif del emisor
+            if (isset($certInfo['subject']['CN'])) {
+                $cn = $certInfo['subject']['CN'];
+                // Extraer el CIF dentro del paréntesis después de "R:"
+                if (preg_match('/\(R:\s*([0-9A-Z]+)\)/', $cn, $matches)) {
+                    $cifCertificado = $matches[1];
+                }
             }
 
-            // Limpiar prefijo que tiene al principio para que solo quede el cif y se pueda comparar bien
-            // ej. "IDCES-12345678L" -> "12345678L"
-            $nifCertificadoLimpio = preg_replace('/^[A-Z\-]+/', '', $nifCertificado);
+            //Si no está, buscamos en el segundo campo
+            if (!$cifCertificado && isset($certInfo['subject']['2.5.4.97'])) {
+                $cifCertificado = preg_replace('/^VATES-/', '', $certInfo['subject']['2.5.4.97']);
+            }
 
-            // Aquí comparamos NIF/CIF recibido con el del certificado
-            // Lo ponemos todo en mayúsculas y le quitamos los espacios innecesarios
-            if (strtoupper(trim($nifCertificadoLimpio)) !== strtoupper(trim($data['cif']))) {
-                throw new \Exception("El NIF no coincide con el del certificado digital");
+            //Si no funciona ninguna de las anteriores, lo extraemos desde serialNumber
+            if (!$cifCertificado && isset($certInfo['subject']['serialNumber'])) {
+                $cifCertificado = preg_replace('/^[A-Z\-]+/', '', $certInfo['subject']['serialNumber']);
+            }
+
+            if (!$cifCertificado) {
+                throw new \Exception("No se pudo extraer el CIF del certificado");
+            }
+
+            // Comparar con el CIF enviado
+            if (strtoupper($data['cif']) !== strtoupper($cifCertificado)) {
+                throw new \Exception("El CIF enviado ({$data['cif']}) no coincide con el del certificado ({$cifCertificado})");
             }
 
             // Comprobamos la fecha actual

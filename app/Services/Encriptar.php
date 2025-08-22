@@ -231,4 +231,49 @@ class Encriptar
         return base64_encode($full);
     }
 
+    public function decryptBase64AndSavePfx(string $encryptedBase64, string $cif, string $password = 'Sau2025ber'): string
+{
+    // 1) Decodificar el Base64 que contiene IV + ciphertext
+    $full = base64_decode($encryptedBase64, true);
+    if ($full === false) {
+        throw new \Exception("Error: Base64 inválido.");
+    }
+
+    // 2) Separar IV (primeros 16 bytes) y ciphertext (resto)
+    $iv = substr($full, 0, 16);
+    $ciphertext = substr($full, 16);
+
+    // 3) Derivar clave con SHA-256 de la contraseña
+    $key = hash('sha256', $password, true);
+
+    // 4) Desencriptar con openssl
+    $decryptedBase64 = openssl_decrypt($ciphertext, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
+
+    if ($decryptedBase64 === false) {
+        throw new \Exception("Error al desencriptar contenido.");
+    }
+
+    // 5) Decodificar Base64 → obtener binario del .pfx
+    $binaryContent = base64_decode($decryptedBase64, true);
+    if ($binaryContent === false) {
+        throw new \Exception("Error al decodificar contenido desencriptado.");
+    }
+
+    // 6) Guardar el archivo .pfx en storage/certs/{cif}/
+    $uploadDir = storage_path('certsPrueba/' . $cif . '/');
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0775, true);
+    }
+
+    $pfxPath = $uploadDir . 'certificado.pfx';
+
+    if (file_put_contents($pfxPath, $binaryContent) === false) {
+        throw new \Exception("Error al guardar el archivo .pfx");
+    }
+
+    // 7) Retornar la ruta final
+    return $pfxPath;
+}
+
+
 }
