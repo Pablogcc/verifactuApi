@@ -14,7 +14,7 @@
           <sum1:IDVersion>1.0</sum1:IDVersion>
           <sum1:IDFactura>
             <sum1:IDEmisorFactura>B53816435</sum1:IDEmisorFactura>
-            <sum1:NumSerieFactura>10/0000001</sum1:NumSerieFactura>
+            <sum1:NumSerieFactura>11/0000001</sum1:NumSerieFactura>
             <sum1:FechaExpedicionFactura>24-07-2025</sum1:FechaExpedicionFactura>
           </sum1:IDFactura>
           <sum1:NombreRazonEmisor>ALBERTO BARBERA FERRANDEZ</sum1:NombreRazonEmisor>
@@ -37,7 +37,7 @@
           <sum1:Encadenamiento>
             <sum1:RegistroAnterior>
               <sum1:IDEmisorFactura>B53816435</sum1:IDEmisorFactura>
-              <sum1:NumSerieFactura>09/0000000</sum1:NumSerieFactura>
+              <sum1:NumSerieFactura>11/0000000</sum1:NumSerieFactura>
               <sum1:FechaExpedicionFactura>24-07-2025</sum1:FechaExpedicionFactura>
               <sum1:Huella>33AEEC700D82618E396295CB6DED3076ED99DB313483A9370B6D9740BD643944</sum1:Huella>
             </sum1:RegistroAnterior>

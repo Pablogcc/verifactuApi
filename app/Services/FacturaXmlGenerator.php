@@ -67,7 +67,7 @@ class FacturaXmlGenerator
             $registroAlta->appendChild($dom->createElement('sum1:TipoRectificativa', 'I'));
         }
 
-        
+
 
         if ($factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4' || $factura->tipoFactura === 'R5') {
             $facturasRectificadas = $dom->createElement('sum1:FacturasRectificadas');
@@ -85,23 +85,23 @@ class FacturaXmlGenerator
         $registroAlta->appendChild($dom->createElement('sum1:Macrodato'));
 
         // sum1:Destinatarios
-        if ($factura->tipoFactura === 'F1') {
-        $destinatarios = $dom->createElement('sum1:Destinatarios');
-        $idDest = $dom->createElement('sum1:IDDestinatario');
-        $idDest->appendChild($dom->createElement('sum1:NombreRazon', $factura->nombreCliente));
-        if ($factura->idTypeNum === '02' || $factura->idTypeNum === '03') {
-            $idOtro = $dom->createElement('sum1:IDOtro');
-            $idOtro->appendChild($dom->createElement('sum1:CodigoPais', $factura->codigoPais));
-            $idOtro->appendChild($dom->createElement('sum1:IDType', $factura->idTypeNum));
-            $idOtro->appendChild($dom->createElement('sum1:ID', $factura->nifCliente));
-            $idDest->appendChild($idOtro);
-        } elseif ($factura->idTypeNum === '01') {
-            $idDest->appendChild($dom->createElement('sum1:NIF', $factura->nifCliente));
+        if ($factura->tipoFactura === 'F1' || $factura->tipoFactura === 'F3' || $factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
+            $destinatarios = $dom->createElement('sum1:Destinatarios');
+            $idDest = $dom->createElement('sum1:IDDestinatario');
+            $idDest->appendChild($dom->createElement('sum1:NombreRazon', $factura->nombreCliente));
+            if ($factura->idTypeNum === '02' || $factura->idTypeNum === '03') {
+                $idOtro = $dom->createElement('sum1:IDOtro');
+                $idOtro->appendChild($dom->createElement('sum1:CodigoPais', $factura->codigoPais));
+                $idOtro->appendChild($dom->createElement('sum1:IDType', $factura->idTypeNum));
+                $idOtro->appendChild($dom->createElement('sum1:ID', $factura->nifCliente));
+                $idDest->appendChild($idOtro);
+            } elseif ($factura->idTypeNum === '01') {
+                $idDest->appendChild($dom->createElement('sum1:NIF', $factura->nifCliente));
+            }
+
+            $destinatarios->appendChild($idDest);
+            $registroAlta->appendChild($destinatarios);
         }
-    
-        $destinatarios->appendChild($idDest);
-        $registroAlta->appendChild($destinatarios);
-    }
 
         $registroAlta->appendChild($dom->createElement('sum1:Cupon'));
 
