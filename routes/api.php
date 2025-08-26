@@ -28,3 +28,5 @@ Route::post('convertirCertificados',  [CertificadosController::class, 'convertir
 Route::get('fechaHoraActual',  [FechaHoraServerController::class, 'fechaHoraZonaHoraria']);
 
 Route::post('facturaElectronica', [FacturaElcetronicaController::class, 'facturaElectronica']);
+
+Route::get('notificacionCertificado', [CertificadosController::class, 'notificacion']);

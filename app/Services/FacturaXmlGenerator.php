@@ -85,6 +85,7 @@ class FacturaXmlGenerator
         $registroAlta->appendChild($dom->createElement('sum1:Macrodato'));
 
         // sum1:Destinatarios
+        // Si TipoFactura es F1 o F3 o R1 o R2 o R3 o R4 el bloque Destinatarios tiene que estar cumplimentado.
         if ($factura->tipoFactura === 'F1' || $factura->tipoFactura === 'F3' || $factura->tipoFactura === 'R1' || $factura->tipoFactura === 'R2' || $factura->tipoFactura === 'R3' || $factura->tipoFactura === 'R4') {
             $destinatarios = $dom->createElement('sum1:Destinatarios');
             $idDest = $dom->createElement('sum1:IDDestinatario');

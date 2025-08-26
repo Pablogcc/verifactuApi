@@ -6,6 +6,8 @@ use App\Models\Emisores;
 use Illuminate\Http\Request;
 use App\Services\Encriptar;
 use DateTime;
+use Illuminate\Support\Facades\DB;
+
 
 class CertificadosController extends Controller
 {
@@ -132,5 +134,48 @@ class CertificadosController extends Controller
                 'mensaje' => $e->getMessage()
             ]);
         }
+    }
+
+    public function notificacion(Request $request)
+    {
+        $hoy = new DateTime();
+        $emisores = Emisores::all();
+
+        $resultado = [];
+
+        foreach ($emisores as $emisor) {
+            if (!$emisor->fechaValidez) {
+                $resultado[] = [
+                    'cif' => $emisor->cif,
+                    'nombreEmpresa' => $emisor->nombreEmpresa,
+                    'mensaje' => "No tiene fecha de validez registrada"
+                ];
+                continue;
+            }
+
+            $fechaExpira = new \DateTime($emisor->fechaValidez);
+            $diasRestantes = (int)$hoy->diff($fechaExpira)->format('%r%a');
+
+            if ($diasRestantes < 0) {
+                $estado = "Caducado hace" . abs($diasRestantes) . "dias.";
+            } elseif ($diasRestantes <= 10) {
+                $estado = "Caduca en menos de 10 días";
+            } elseif ($diasRestantes <= 20) {
+                $estado = "Caduca en menos de 20 días";
+            } elseif ($diasRestantes <= 30) {
+                $estado = "Caduca en menos de 30 días";
+            } else {
+                $estado = "Válido (" . $diasRestantes . " días restantes)";
+            }
+
+            $resultado[] = [
+                'cif' => $emisor->cif,
+                'nombreEmpresa' => $emisor->nombreEmpresa,
+                'fechaValidez' => $emisor->fechaValidez,
+                'diasRestantes' => $diasRestantes,
+                'estado' => $estado
+            ];
+        }
+        return response()->json($resultado);
     }
 }
