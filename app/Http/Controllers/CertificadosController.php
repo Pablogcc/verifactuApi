@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\Encriptar;
 use DateTime;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 
 class CertificadosController extends Controller
@@ -136,7 +137,6 @@ class CertificadosController extends Controller
         }
     }
 
-
     public function comprobacionEstado(Request $request)
     {
 
@@ -171,12 +171,11 @@ class CertificadosController extends Controller
         ]);
     }
 
-
-
     public function notificacion(Request $request)
     {
         $hoy = new DateTime();
-        $emisores = Emisores::all();
+        $fechaAviso = (clone $hoy)->modify('+30 days')->format('Y-m-d');
+        $emisores = Emisores::whereDate('fechaValidez', '<=', $fechaAviso)->get();
 
         $resultado = [];
 
@@ -190,19 +189,49 @@ class CertificadosController extends Controller
                 continue;
             }
 
+
+
             $fechaExpira = new \DateTime($emisor->fechaValidez);
             $diasRestantes = (int)$hoy->diff($fechaExpira)->format('%r%a');
 
             if ($diasRestantes < 0) {
-                $estado = "Caducado hace" . abs($diasRestantes) . "dias.";
+                $estado = "Caducado hace " . abs($diasRestantes) . " dias.";
             } elseif ($diasRestantes <= 10) {
                 $estado = "Caduca en menos de 10 días";
+
+                Http::post('https://albelink.com/mail/apimail.php', [
+                    "token" => "noiknlkanioc2151451jass_Asjkduuea227633@#~#",
+                    "emailFrom" => "notificaciones@dspyme.com",
+                    "nameFrom" => "Mi App",
+                    "emailTo" => "pablogc2233@gmail.com",
+                    "nameTo" => $emisor->nombreEmpresa,
+                    "subject" => "Certificado a punto de caducar",
+                    "text" => "<p>Hola {$emisor->nombreEmpresa}, tu certificado caduca en menos de 10 días.</p>"
+                ]);
             } elseif ($diasRestantes <= 20) {
                 $estado = "Caduca en menos de 20 días";
+
+                Http::post('https://albelink.com/mail/apimail.php', [
+                    "token" => "noiknlkanioc2151451jass_Asjkduuea227633@#~#",
+                    "emailFrom" => "notificaciones@dspyme.com",
+                    "nameFrom" => "Mi App",
+                    "emailTo" => "pablogc2233@gmail.com",
+                    "nameTo" => $emisor->nombreEmpresa,
+                    "subject" => "Certificado a punto de caducar",
+                    "text" => "<p>Hola {$emisor->nombreEmpresa}, tu certificado caduca en menos de 20 días.</p>"
+                ]);
             } elseif ($diasRestantes <= 30) {
                 $estado = "Caduca en menos de 30 días";
-            } else {
-                $estado = "Válido (" . $diasRestantes . " días restantes)";
+
+                Http::post('https://albelink.com/mail/apimail.php', [
+                "token" => "noiknlkanioc2151451jass_Asjkduuea227633@#~#",
+                "emailFrom" => "notificaciones@dspyme.com",
+                "nameFrom" => "Mi App",
+                "emailTo" => "pablogc2233@gmail.com",
+                "nameTo" => $emisor->nombreEmpresa,
+                "subject" => "Certificado a punto de caducar",
+                "text" => "<p>Hola {$emisor->nombreEmpresa}, tu certificado caduca en menos de 30 días.</p>"
+            ]);
             }
 
             $resultado[] = [
