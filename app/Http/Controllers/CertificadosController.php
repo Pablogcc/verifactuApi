@@ -136,6 +136,43 @@ class CertificadosController extends Controller
         }
     }
 
+
+    public function comprobacionEstado(Request $request)
+    {
+
+        //Recibo por el body el cif del emisor para recoger su certificado
+        $data = $request->validate([
+            'cif' => 'required|string',
+            'token' => ['required', 'string', 'in:sZQe4cxaEWeFBe3EPkeah0KqowVBLx']
+        ]);
+
+        //Recogemos todos los campos del cif recibido por el body
+        $emisor = Emisores::where('cif', $data['cif'])->first();
+
+
+        if (!$emisor) {
+            return response()->json([
+                'resultado' => false,
+                'mensaje' => "El cif del emisor no tiene certificado digital"
+            ]);
+        }
+
+        $desencriptador = new Encriptar();
+
+        $correo = $desencriptador->decryptString($emisor->correoAdministrativo);
+        $empresa = $desencriptador->decryptString($emisor->nombreEmpresa);
+
+        return response()->json([
+            'resultado' => true,
+            "cif" => $emisor->cif,
+            'fechaVlidez' => $emisor->fechaValidez,
+            'correoAdministrativo' => $correo,
+            'nombreEmpresa' => $empresa
+        ]);
+    }
+
+
+
     public function notificacion(Request $request)
     {
         $hoy = new DateTime();

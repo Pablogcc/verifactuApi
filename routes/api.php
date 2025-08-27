@@ -30,3 +30,5 @@ Route::get('fechaHoraActual',  [FechaHoraServerController::class, 'fechaHoraZona
 Route::post('facturaElectronica', [FacturaElcetronicaController::class, 'facturaElectronica']);
 
 Route::get('notificacionCertificado', [CertificadosController::class, 'notificacion']);
+
+Route::get('comprobarEstado', [CertificadosController::class, 'comprobacionEstado']);
