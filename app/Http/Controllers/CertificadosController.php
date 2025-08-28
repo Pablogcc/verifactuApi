@@ -165,7 +165,7 @@ class CertificadosController extends Controller
         return response()->json([
             'resultado' => true,
             "cif" => $emisor->cif,
-            'fechaValidez' => $emisor->fechaValidez,
+            'fechaVlidez' => $emisor->fechaValidez,
             'correoAdministrativo' => $correo,
             'nombreEmpresa' => $empresa
         ]);
@@ -179,8 +179,6 @@ class CertificadosController extends Controller
 
         $resultado = [];
 
-        $desencriptador = new Encriptar();
-
         foreach ($emisores as $emisor) {
             if (!$emisor->fechaValidez) {
                 $resultado[] = [
@@ -191,61 +189,42 @@ class CertificadosController extends Controller
                 continue;
             }
 
+            $desencriptador = new Encriptar();
+
+            //$correo = $desencriptador->decryptString($emisor->correoAdministrativo);
             $empresa = $desencriptador->decryptString($emisor->nombreEmpresa);
+
             $fechaExpira = new \DateTime($emisor->fechaValidez);
             $diasRestantes = (int)$hoy->diff($fechaExpira)->format('%r%a');
 
             if ($diasRestantes < 0) {
-                $estado = "Caducado hace " . abs($diasRestantes) . " dias.";
-            } elseif ($diasRestantes <= 10) {
+                $estado = "Caducado hace " . abs($diasRestantes) . " días.";
+            } else {
+                // Definimos los límites de aviso
+                $avisos = [10, 20, 30];
 
-                $html = view('emails.certificados_aviso', [
-                    'cif' => $emisor->cif,
-                    'empresa' => $empresa,
-                    'diasRestantes' => $diasRestantes,
-                    'fechaValidez' => $emisor->fechaValidez
-                ])->render();
+                foreach ($avisos as $diasAviso) {
+                    if ($diasRestantes <= $diasAviso) {
+                        $estado = "Caduca en menos de {$diasAviso} días";
 
-                $estado = "Caduca en menos de 10 días";
+                        Http::post('https://albelink.com/mail/apimail.php', [
+                            "token" => "noiknlkanioc2151451jass_Asjkduuea227633@#~#",
+                            "emailFrom" => "notificaciones@dspyme.com",
+                            "nameFrom" => "Mi App",
+                            "emailTo" => "pablogc2233@gmail.com",
+                            "nameTo" => $empresa,
+                            "subject" => "Certificado a punto de caducar",
+                            "text" => "<p>Hola {$empresa}, tu certificado caduca en menos de {$diasAviso} días.</p>"
+                        ]);
 
-                Http::post('https://albelink.com/mail/apimail.php', [
-                    "token" => "noiknlkanioc2151451jass_Asjkduuea227633@#~#",
-                    "emailFrom" => "notificaciones@dspyme.com", // Correo electrónico con el que se envían los mensajes
-                    "nameFrom" => "Demo", // Titulo
-                    "emailTo" => $emisor->correoAdministrativo, // Al correo que se le va a enviar
-                    "nameTo" => $empresa, // Nombre de para quien es
-                    "subject" => "Certificado a punto de caducar", // Asunto
-                    "text" => $html
-                ]);
-            } elseif ($diasRestantes <= 20) {
-                $estado = "Caduca en menos de 20 días";
-
-                Http::post('https://albelink.com/mail/apimail.php', [
-                    "token" => "noiknlkanioc2151451jass_Asjkduuea227633@#~#",
-                    "emailFrom" => "notificaciones@dspyme.com",
-                    "nameFrom" => "Demo",
-                    "emailTo" => "pablogc2233@gmail.com",
-                    "nameTo" => $empresa,
-                    "subject" => "Certificado a punto de caducar",
-                    "text" => "<p>Hola {$empresa}, tu certificado caduca en menos de 20 días.</p>"
-                ]);
-            } elseif ($diasRestantes <= 30) {
-                $estado = "Caduca en menos de 30 días";
-
-                Http::post('https://albelink.com/mail/apimail.php', [
-                    "token" => "noiknlkanioc2151451jass_Asjkduuea227633@#~#",
-                    "emailFrom" => "notificaciones@dspyme.com",
-                    "nameFrom" => "Demo",
-                    "emailTo" => "pablogc2233@gmail.com",
-                    "nameTo" => $empresa,
-                    "subject" => "Certificado a punto de caducar",
-                    "text" => "<p>Hola {$empresa}, tu certificado caduca en menos de 30 días.</p>"
-                ]);
+                        break;
+                    }
+                }
             }
 
             $resultado[] = [
                 'cif' => $emisor->cif,
-                'nombreEmpresa' => $empresa,
+                'nombreEmpresa' => $emisor->nombreEmpresa,
                 'fechaValidez' => $emisor->fechaValidez,
                 'diasRestantes' => $diasRestantes,
                 'estado' => $estado
