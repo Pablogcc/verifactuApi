@@ -149,7 +149,7 @@ class CertificadosController extends Controller
         //Recogemos todos los campos del cif recibido por el body
         $emisor = Emisores::where('cif', $data['cif'])->first();
 
-
+        //Comprobamos que el emisor está registrado en la base de datos
         if (!$emisor) {
             return response()->json([
                 'resultado' => false,
@@ -157,8 +157,9 @@ class CertificadosController extends Controller
             ]);
         }
 
+        //Llamamos al método de desencriptar, para desencriptar el correo administrativo y el nombre de la empresa
         $desencriptador = new Encriptar();
-
+        //Los guardamos en valores para luego utilizarlos
         $correo = $desencriptador->decryptString($emisor->correoAdministrativo);
         $empresa = $desencriptador->decryptString($emisor->nombreEmpresa);
 
@@ -173,12 +174,25 @@ class CertificadosController extends Controller
 
     public function notificacion(Request $request)
     {
+
+        //Añadimos un token a la url para la petición
+        // Y comprobamos que el token es correcto, si no, nos devuelve un JSON de respuesta de token incorrecto
+        $token = $request->query('token');
+
+        if ($token != 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
+            return response()->json([
+                'mensaje' => 'Token incorrecto'
+            ]);
+        }
+        // Lo primero es guardar en variables la fecha actual para saber si a los certificados digitales les quedan menos de 30 días.
+        // Luego buscamos los emisores que sus certificados les falten menos de 30 días. 
         $hoy = new DateTime();
         $fechaAviso = (clone $hoy)->modify('+30 days')->format('Y-m-d');
         $emisores = Emisores::whereDate('fechaValidez', '<=', $fechaAviso)->get();
 
         $resultado = [];
 
+        // Miramos los emisores uno a uno
         foreach ($emisores as $emisor) {
             if (!$emisor->fechaValidez) {
                 $resultado[] = [
@@ -189,42 +203,56 @@ class CertificadosController extends Controller
                 continue;
             }
 
+            // Se llama al método de desencriptar, para poder desencriptar el correo administrativo de la empresa y el nombre de la empresa para luego poder enviar el correo, y lo guardamos en variables
             $desencriptador = new Encriptar();
-
-            //$correo = $desencriptador->decryptString($emisor->correoAdministrativo);
+            $correo = $desencriptador->decryptString($emisor->correoAdministrativo);
             $empresa = $desencriptador->decryptString($emisor->nombreEmpresa);
 
+            // Calculamos los días restantes que le quedan a cada certificado para que se caduque
             $fechaExpira = new \DateTime($emisor->fechaValidez);
             $diasRestantes = (int)$hoy->diff($fechaExpira)->format('%r%a');
 
+            //Se comprueba si caducó el certificado
+            //Si no ha caducado aún, entonces comprobamos cuantos días le quedan
             if ($diasRestantes < 0) {
                 $estado = "Caducado hace " . abs($diasRestantes) . " días.";
             } else {
                 // Definimos los límites de aviso
                 $avisos = [10, 20, 30];
 
+                // Renderizamos en HTML del correo desde el blade y lo guardamos en una variable
+                $html = view('emails.certificados_aviso', [
+                    'cif' => $emisor->cif,
+                    'empresa' => $empresa,
+                    'fechaValidez' => $emisor->fechaValidez,
+                    'diasRestantes' => $diasRestantes
+                ])->render();
+
+                // Revisamos en que rango entra
+                // Ejecutamos la petición POST
                 foreach ($avisos as $diasAviso) {
                     if ($diasRestantes <= $diasAviso) {
                         $estado = "Caduca en menos de {$diasAviso} días";
 
-                        Http::post('https://albelink.com/mail/apimail.php', [
-                            "token" => "noiknlkanioc2151451jass_Asjkduuea227633@#~#",
-                            "emailFrom" => "notificaciones@dspyme.com",
-                            "nameFrom" => "Mi App",
-                            "emailTo" => "pablogc2233@gmail.com",
+                        Http::post(env('MAIL_API_URL'), [
+                            "token" => env('MAIL_API_TOKEN'),
+                            "emailFrom" => env('MAIL_API_FROM'),
+                            "nameFrom" => "Demo",
+                            "emailTo" => 'alberto@sauberofimatica.com',
                             "nameTo" => $empresa,
                             "subject" => "Certificado a punto de caducar",
-                            "text" => "<p>Hola {$empresa}, tu certificado caduca en menos de {$diasAviso} días.</p>"
+                            "text" =>  $html
                         ]);
-
                         break;
                     }
                 }
             }
 
+            // Guardamos la información del emisor en un array de salida
+            // Y devolvemos un JSON de respuesta
             $resultado[] = [
                 'cif' => $emisor->cif,
-                'nombreEmpresa' => $emisor->nombreEmpresa,
+                'nombreEmpresa' => $empresa,
                 'fechaValidez' => $emisor->fechaValidez,
                 'diasRestantes' => $diasRestantes,
                 'estado' => $estado
