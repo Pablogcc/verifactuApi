@@ -7,7 +7,7 @@ use DOMDocument;
 
 class FacturaXmlElectronica
 {
-      public function generateXml(Facturas $factura)
+    public function generateXml(Facturas $factura)
     {
         $dom = new \DOMDocument('1.0', 'UTF-8');
         $dom->formatOutput = true;
@@ -82,13 +82,40 @@ class FacturaXmlElectronica
         $legalB = $dom->createElement('LegalEntity');
         $legalB->appendChild($dom->createElement('CorporateName', $factura->nombreCliente ?? ''));
         $buyer->appendChild($legalB);
+
+        // Bloque si es un organismo público
+        if (!empty($factura->oficontable) && !empty($factura->orggestor) && !empty($factura->utramitadora)) {
+            $adminCentres = $dom->createElement('AdministrativeCentres');
+
+            // Oficina Contable
+            $centre = $dom->createElement('AdministrativeCentre');
+            $centre->appendChild($dom->createElement('CentreCode', $factura->oficontable));
+            $centre->appendChild($dom->createElement('RoleTypeCode', '01'));
+            $centre->appendChild($dom->createElement('Name', 'Oficina Contable'));
+            $adminCentres->appendChild($centre);
+
+            // Órgano Gestor
+            $centre = $dom->createElement('AdministrativeCentre');
+            $centre->appendChild($dom->createElement('CentreCode', $factura->orggestor));
+            $centre->appendChild($dom->createElement('RoleTypeCode', '02'));
+            $centre->appendChild($dom->createElement('Name', 'Órgano Gestor'));
+            $adminCentres->appendChild($centre);
+
+            // Unidad Tramitadora
+            $centre = $dom->createElement('AdministrativeCentre');
+            $centre->appendChild($dom->createElement('CentreCode', $factura->utramitadora));
+            $centre->appendChild($dom->createElement('RoleTypeCode', '03'));
+            $centre->appendChild($dom->createElement('Name', 'Unidad Tramitadora'));
+            $adminCentres->appendChild($centre);
+
+            $buyer->appendChild($adminCentres);
+        }
+        // Final de bloques de organismo público
         $parties->appendChild($buyer);
 
         $root->appendChild($parties);
 
-        //
         // INVOICES
-        //
         $invoices = $dom->createElement('Invoices');
         $invoice = $dom->createElement('Invoice');
 
