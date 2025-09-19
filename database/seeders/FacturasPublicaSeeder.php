@@ -5,18 +5,16 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-
-class FacturasSeeder extends Seeder
+class FacturasPublicaSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-
         DB::table('facturas')->insert([
             [
-                'serie' => '14',
+                'serie' => '13',
                 'numFactura' => '8',
                 'idVersion' => '1.0',
                 'idEmisorFactura' => 'B53816435',
@@ -30,7 +28,7 @@ class FacturasSeeder extends Seeder
                 //'huellaAnterior' => 'FFF480A390C36E87746E645FCE6DF4161982FF753E859AFA4643CB4E65B018E2',
                 'nombreCliente' => 'Alberto Barbera Ferrandez',
                 'nifCliente' => '48456925L',
-                'codigoPais' => 'ESP',
+                'codigoPais' => 'ES',
                 'idType' => 'NIF',
                 'idTypeNum' => '01',
                 'cupon' => 'N',
@@ -61,9 +59,9 @@ class FacturasSeeder extends Seeder
                 'numeroInstalacion' => '383',
                 'estado_proceso' => 0,
                 'estado_registro' => 1,
-                //'oficontable' => '213asfawf214',
-                //'orggestor' => 'WEQ QEW  ET RT E',
-                //'utramitadora' => '-__4353634663463463436434',
+                'oficontable' => '213asfawf214',
+                'orggestor' => 'WEQ QEW ET RT E',
+                'utramitadora' => '-__4353634663463463436434',
                 'created_at' => now(),
                 'updated_at' => now()
             ]

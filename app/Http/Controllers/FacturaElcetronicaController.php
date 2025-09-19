@@ -60,12 +60,22 @@ class FacturaElcetronicaController extends Controller
                 $encriptado = $desencriptador->encryptBase64InputReturnBase64($xmlBase64);
             }
 
-            // Guardar XML en storage/app/facturasElectronicas
+            // Guardar XML en storage/app/facturasElectronicas las facturas frimadas
+            if ($firmada === 1) {
             $carpetaOrigen = storage_path('facturasElectronicas');
+            if (!is_dir($carpetaOrigen)) {
+                mkdir($carpetaOrigen, 0755, true);
+            }
             $ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
             file_put_contents($ruta, $xmlFirmado);
-
-
+            } elseif ($firmada === 0) {
+            $carpetaOrigen = storage_path('facturasElectronicasSinFirmar');
+            if (!is_dir($carpetaOrigen)) {
+                mkdir($carpetaOrigen, 0755, true);
+            }
+            $ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
+            file_put_contents($ruta, $xml);
+            }
 
             if ($factura->estado_registro === 1) {
                 return response()->json([
