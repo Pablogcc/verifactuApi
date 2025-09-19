@@ -57,30 +57,49 @@ class FacturaXmlElectronica
         //
         $parties = $dom->createElement('Parties');
 
-        // SellerParty
+        // SellerParty (DATOS INVENTADOS)
         $seller = $dom->createElement('SellerParty');
         $taxIdS = $dom->createElement('TaxIdentification');
         $taxIdS->appendChild($dom->createElement('PersonTypeCode', 'J'));
         $taxIdS->appendChild($dom->createElement('ResidenceTypeCode', 'R'));
-        // usamos cifEmisor si existe, si no idEmisorFactura
-        $taxIdS->appendChild($dom->createElement('TaxIdentificationNumber', $factura->cifEmisor ?? $factura->idEmisorFactura));
+        $taxIdS->appendChild($dom->createElement('TaxIdentificationNumber', $factura->idEmisorFactura));
         $seller->appendChild($taxIdS);
 
         $legalS = $dom->createElement('LegalEntity');
         $legalS->appendChild($dom->createElement('CorporateName', $factura->nombreEmisor ?? ''));
+
+        // Dirección del emisor (rellena con valores fijos o genéricos si no tienes en DB)
+        $addressS = $dom->createElement('AddressInSpain');
+        $addressS->appendChild($dom->createElement('Address', 'c/ Alcala, 137')); // <-- fijo o configurable
+        $addressS->appendChild($dom->createElement('PostCode', '28001'));
+        $addressS->appendChild($dom->createElement('Town', 'Madrid'));
+        $addressS->appendChild($dom->createElement('Province', 'Madrid'));
+        $addressS->appendChild($dom->createElement('CountryCode', 'ESP'));
+        $legalS->appendChild($addressS);
+
         $seller->appendChild($legalS);
         $parties->appendChild($seller);
 
-        // BuyerParty
+        // BuyerParty (DATOS INVENTADOS EN EL BUYERPARTY NORMAL)
         $buyer = $dom->createElement('BuyerParty');
         $taxIdB = $dom->createElement('TaxIdentification');
         $taxIdB->appendChild($dom->createElement('PersonTypeCode', 'J'));
         $taxIdB->appendChild($dom->createElement('ResidenceTypeCode', 'R'));
-        $taxIdB->appendChild($dom->createElement('TaxIdentificationNumber', $factura->nifCliente ?? ''));
+        $taxIdB->appendChild($dom->createElement('TaxIdentificationNumber', $factura->idEmisorFactura));
         $buyer->appendChild($taxIdB);
 
         $legalB = $dom->createElement('LegalEntity');
         $legalB->appendChild($dom->createElement('CorporateName', $factura->nombreCliente ?? ''));
+
+        // Dirección del cliente (lo mismo: fijo o configurable)
+        $addressB = $dom->createElement('AddressInSpain');
+        $addressB->appendChild($dom->createElement('Address', 'c/ San Vicente, 1')); // <-- fijo o configurable
+        $addressB->appendChild($dom->createElement('PostCode', '41008'));
+        $addressB->appendChild($dom->createElement('Town', 'Sevilla'));
+        $addressB->appendChild($dom->createElement('Province', 'Sevilla'));
+        $addressB->appendChild($dom->createElement('CountryCode', $factura->codigoPais ?? 'ESP'));
+        $legalB->appendChild($addressB);
+
         $buyer->appendChild($legalB);
 
         // Bloque si es un organismo público
@@ -129,7 +148,9 @@ class FacturaXmlElectronica
 
         // InvoiceIssueData
         $issue = $dom->createElement('InvoiceIssueData');
-        $issue->appendChild($dom->createElement('IssueDate', $factura->fechaExpedicionFactura ?? $factura->fechaOperacion ?? ''));
+        $issue->appendChild(
+            $dom->createElement('IssueDate', $this->formatDate($factura->fechaExpedicionFactura ?? $factura->fechaOperacion ?? ''))
+        );
         $issue->appendChild($dom->createElement('InvoiceCurrencyCode', 'EUR'));
         $issue->appendChild($dom->createElement('TaxCurrencyCode', 'EUR'));
         $issue->appendChild($dom->createElement('LanguageName', 'es'));
@@ -203,5 +224,41 @@ class FacturaXmlElectronica
     private function formatAmount($value)
     {
         return number_format((float)$value, 2, '.', '');
+    }
+
+    private function formatDate($date)
+    {
+        if (empty($date)) {
+            return '';
+        }
+
+        $date = trim($date);
+
+        // Intentamos formatos comunes
+        $formats = [
+            'Y-m-d',
+            'Y-m-d H:i:s',
+            'd-m-Y',
+            'd/m/Y',
+            'd.m.Y',
+            'd M Y',
+            'Y/m/d'
+        ];
+
+        foreach ($formats as $fmt) {
+            $dt = \DateTime::createFromFormat($fmt, $date);
+            if ($dt && $dt->format($fmt) === $date) {
+                return $dt->format('Y-m-d');
+            }
+        }
+
+        // Último recurso: strtotime (tolerante con varios formatos)
+        $ts = strtotime(str_replace('/', '-', $date));
+        if ($ts !== false) {
+            return date('Y-m-d', $ts);
+        }
+
+        // Si no se puede parsear, devolvemos el original (puede fallar al validar)
+        return $date;
     }
 }
