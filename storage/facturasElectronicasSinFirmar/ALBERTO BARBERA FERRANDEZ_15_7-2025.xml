@@ -5,7 +5,7 @@
     <Modality>I</Modality>
     <InvoiceIssuerType>EM</InvoiceIssuerType>
     <Batch>
-      <BatchIdentifier>48456925L14</BatchIdentifier>
+      <BatchIdentifier>48456925L15</BatchIdentifier>
       <InvoicesCount>1</InvoicesCount>
       <TotalInvoicesAmount>
         <TotalAmount>60.50</TotalAmount>
@@ -43,6 +43,44 @@
         <ResidenceTypeCode>R</ResidenceTypeCode>
         <TaxIdentificationNumber>B53816435</TaxIdentificationNumber>
       </TaxIdentification>
+      <AdministrativeCentres>
+        <AdministrativeCentre>
+          <CentreCode>L01030993</CentreCode>
+          <RoleTypeCode>01</RoleTypeCode>
+          <AddressInSpain>
+            <Address>Marqués de Arneva, 1</Address>
+            <PostCode>03300</PostCode>
+            <Town>ORIHUELA</Town>
+            <Province>ALICANTE</Province>
+            <CountryCode>ESP</CountryCode>
+          </AddressInSpain>
+          <CentreDescription>OFICINA CONTABLE</CentreDescription>
+        </AdministrativeCentre>
+        <AdministrativeCentre>
+          <CentreCode>L01030993</CentreCode>
+          <RoleTypeCode>02</RoleTypeCode>
+          <AddressInSpain>
+            <Address>Marqués de Arneva, 1</Address>
+            <PostCode>03300</PostCode>
+            <Town>ORIHUELA</Town>
+            <Province>ALICANTE</Province>
+            <CountryCode>ESP</CountryCode>
+          </AddressInSpain>
+          <CentreDescription>ORGANO GESTOR</CentreDescription>
+        </AdministrativeCentre>
+        <AdministrativeCentre>
+          <CentreCode>L01030993</CentreCode>
+          <RoleTypeCode>03</RoleTypeCode>
+          <AddressInSpain>
+            <Address>Marqués de Arneva, 1</Address>
+            <PostCode>03300</PostCode>
+            <Town>ORIHUELA</Town>
+            <Province>ALICANTE</Province>
+            <CountryCode>ESP</CountryCode>
+          </AddressInSpain>
+          <CentreDescription>UNIDAD TRAMITADORA</CentreDescription>
+        </AdministrativeCentre>
+      </AdministrativeCentres>
       <LegalEntity>
         <CorporateName>Alberto Barbera Ferrandez</CorporateName>
         <AddressInSpain>
@@ -52,14 +90,17 @@
           <Province>Sevilla</Province>
           <CountryCode>ESP</CountryCode>
         </AddressInSpain>
+        <ContactDetails>
+          <ElectronicMail/>
+        </ContactDetails>
       </LegalEntity>
     </BuyerParty>
   </Parties>
   <Invoices>
     <Invoice>
       <InvoiceHeader>
-        <InvoiceNumber>8</InvoiceNumber>
-        <InvoiceSeriesCode>14</InvoiceSeriesCode>
+        <InvoiceNumber>7</InvoiceNumber>
+        <InvoiceSeriesCode>15</InvoiceSeriesCode>
         <InvoiceDocumentType>FC</InvoiceDocumentType>
         <InvoiceClass>OO</InvoiceClass>
       </InvoiceHeader>

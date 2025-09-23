@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fe:Facturae xmlns:fe="http://www.facturae.es/Facturae/2014/v3.2.1/Facturae" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+  <FileHeader>
+    <SchemaVersion>3.2.1</SchemaVersion>
+    <Modality>I</Modality>
+    <InvoiceIssuerType>EM</InvoiceIssuerType>
+    <Batch>
+      <BatchIdentifier>B5381643515</BatchIdentifier>
+      <InvoicesCount>1</InvoicesCount>
+      <TotalInvoicesAmount>
+        <TotalAmount>60.50</TotalAmount>
+      </TotalInvoicesAmount>
+      <TotalOutstandingAmount>
+        <TotalAmount>60.50</TotalAmount>
+      </TotalOutstandingAmount>
+      <TotalExecutableAmount>
+        <TotalAmount>60.50</TotalAmount>
+      </TotalExecutableAmount>
+      <InvoiceCurrencyCode>EUR</InvoiceCurrencyCode>
+    </Batch>
+  </FileHeader>
+  <Parties>
+    <SellerParty>
+      <TaxIdentification>
+        <PersonTypeCode>J</PersonTypeCode>
+        <ResidenceTypeCode>R</ResidenceTypeCode>
+        <TaxIdentificationNumber>B53816435</TaxIdentificationNumber>
+      </TaxIdentification>
+      <LegalEntity>
+        <CorporateName>ALBERTO BARBERA FERRANDEZ</CorporateName>
+        <AddressInSpain>
+          <Address>c/ Alcala, 137</Address>
+          <PostCode>28001</PostCode>
+          <Town>Madrid</Town>
+          <Province>Madrid</Province>
+          <CountryCode>ESP</CountryCode>
+        </AddressInSpain>
+      </LegalEntity>
+    </SellerParty>
+    <BuyerParty>
+      <TaxIdentification>
+        <PersonTypeCode>J</PersonTypeCode>
+        <ResidenceTypeCode>R</ResidenceTypeCode>
+        <TaxIdentificationNumber>B53816435</TaxIdentificationNumber>
+      </TaxIdentification>
+      <LegalEntity>
+        <CorporateName>Alberto Barbera Ferrandez</CorporateName>
+        <AddressInSpain>
+          <Address>c/ San Vicente, 1</Address>
+          <PostCode>41008</PostCode>
+          <Town>Sevilla</Town>
+          <Province>Sevilla</Province>
+          <CountryCode>ESP</CountryCode>
+        </AddressInSpain>
+      </LegalEntity>
+    </BuyerParty>
+  </Parties>
+  <Invoices>
+    <Invoice>
+      <InvoiceHeader>
+        <InvoiceNumber>3</InvoiceNumber>
+        <InvoiceSeriesCode>15</InvoiceSeriesCode>
+        <InvoiceDocumentType>FC</InvoiceDocumentType>
+        <InvoiceClass>OO</InvoiceClass>
+      </InvoiceHeader>
+      <InvoiceIssueData>
+        <IssueDate>2025-07-24</IssueDate>
+        <InvoiceCurrencyCode>EUR</InvoiceCurrencyCode>
+        <TaxCurrencyCode>EUR</TaxCurrencyCode>
+        <LanguageName>es</LanguageName>
+      </InvoiceIssueData>
+      <TaxesOutputs>
+        <Tax>
+          <TaxTypeCode>01</TaxTypeCode>
+          <TaxRate>21.00</TaxRate>
+          <TaxableBase>
+            <TotalAmount>50.50</TotalAmount>
+          </TaxableBase>
+          <TaxAmount>
+            <TotalAmount>10.50</TotalAmount>
+          </TaxAmount>
+        </Tax>
+      </TaxesOutputs>
+      <InvoiceTotals>
+        <TotalGrossAmount>50.50</TotalGrossAmount>
+        <TotalGeneralDiscounts>0.00</TotalGeneralDiscounts>
+        <TotalGeneralSurcharges>0.00</TotalGeneralSurcharges>
+        <TotalGrossAmountBeforeTaxes>50.50</TotalGrossAmountBeforeTaxes>
+        <TotalTaxOutputs>10.50</TotalTaxOutputs>
+        <TotalTaxesWithheld>0.00</TotalTaxesWithheld>
+        <InvoiceTotal>60.50</InvoiceTotal>
+        <TotalOutstandingAmount>60.50</TotalOutstandingAmount>
+        <TotalExecutableAmount>60.50</TotalExecutableAmount>
+        <TotalReimbursableExpenses>0.00</TotalReimbursableExpenses>
+      </InvoiceTotals>
+      <Items>
+        <InvoiceLine>
+          <ItemDescription>Venta</ItemDescription>
+          <Quantity>1.00</Quantity>
+          <UnitOfMeasure>01</UnitOfMeasure>
+          <UnitPriceWithoutTax>50.50</UnitPriceWithoutTax>
+          <TotalCost>50.50</TotalCost>
+          <GrossAmount>50.50</GrossAmount>
+          <TaxesOutputs>
+            <Tax>
+              <TaxTypeCode>01</TaxTypeCode>
+              <TaxRate>21.00</TaxRate>
+              <TaxableBase>
+                <TotalAmount>50.50</TotalAmount>
+              </TaxableBase>
+              <TaxAmount>
+                <TotalAmount>10.50</TotalAmount>
+              </TaxAmount>
+            </Tax>
+          </TaxesOutputs>
+        </InvoiceLine>
+      </Items>
+    </Invoice>
+  </Invoices>
+<ds:Signature>
+  <ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+    <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+  <ds:Reference><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><ds:DigestValue>/Jxt0NcYoSJNKQD8zhICvBeSHvwLF6AgHb1tdI1ktc8=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>gvkpWyNG8KjFr1aODHcwOMItveEK1dX6KZrIBVFFukzp8s9bks84F+uEuj9x/QXMaLcjwnLtvDagG1ktf9MZX47k5OJaUOwxOowkq7qI4SOEOZ8R0GcSLOa2nprQKFnmtf1rhoSsivrPlx/duc5VCTNIxg9pJ2tEglU5xWrWQqYe/z20hqXPE22MYPvpTlJjXAJWbltQFeuVzmo4lzIzxUO/BzkMJlA4URiywoht2YqbdrGBL5ZY/EtjkL2fjaHbU39dB32NZeoC34eeLCfSAZl+iHk+5PMUrq1A9LLHMNTDUsmERpFWdIP7MRUBD9PrSLvk5XOu/+wZY6nXRFzopQ==</ds:SignatureValue>
+<ds:KeyInfo><ds:X509Data><ds:X509Certificate>-----BEGIN CERTIFICATE-----
+MIII2DCCB8CgAwIBAgIQbl+ouwFcfDhnH8D1IfU7rzANBgkqhkiG9w0BAQsFADBN
+MQswCQYDVQQGEwJFUzERMA8GA1UECgwIRk5NVC1SQ00xDjAMBgNVBAsMBUNFUkVT
+MRswGQYDVQQDDBJBQyBSZXByZXNlbnRhY2nDs24wHhcNMjQxMDI4MTY1MTAxWhcN
+MjYxMDI4MTY1MTAxWjCCARkxVzBVBgNVBA0MTlJlZzowMzAyNiAvSG9qYTpBLTc5
+ODQ0IC9Ub21vOjI3MTIgL0ZvbGlvOjg2IC9GZWNoYToxOC8wMi8yMDEzIC9JbnNj
+cmlwY2nDs246MzEYMBYGA1UEBRMPSURDRVMtNDg0NTY5MjVMMRAwDgYDVQQqDAdB
+TEJFUlRPMRowGAYDVQQEDBFCQVJCRVJBIEZFUlJBTkRFWjExMC8GA1UEAwwoNDg0
+NTY5MjVMIEFMQkVSVE8gQkFSQkVSQSAoUjogQjUzODE2NDM1KTEYMBYGA1UEYQwP
+VkFURVMtQjUzODE2NDM1MRwwGgYDVQQKDBNTQVVCRVIgT0ZJTUFUSUNBIFNMMQsw
+CQYDVQQGEwJFUzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKXRoPAR
+10F7gK0Sbnxka8uWk0a/NgkgIb2MMzLiCEAYT87z+d70ro1CBxZYkBaYbrCUIr37
+DNTA3pnkjls2x1mhlX0KE3BM7LRG+P42C9vRjR+LURmfOv+Ti5U/9cnjLvYqltx1
+Fak88cKQ4W8RYmWBUfXOP8cmHH5F+CHkacjw+M9RPhVyrsTneiT2Q0o4lMI8+lsP
+Sskm4O+HzlDojD9aty55Gn67glcPYMXvapbGO8KdOMRB+3MHh58J4STl4XSj8VhA
+Ng1XxYQQcS0Cl7K5Yzj9PH74RigO7psYxgFwpQnER7Cp2Og1xO/aHt3vw2pElH74
+oybRWqMELcyhtqECAwEAAaOCBOQwggTgMIH+BgNVHREEgfYwgfOBGEZBQ1RJTy5J
+Tk1BQElORk9WRUdBLkNPTaSB1jCB0zEjMCEGCSsGAQQBrGYBFAwUQWRtaW5pc3Ry
+YWRvciDDum5pY28xHjAcBgkrBgEEAaxmAQcMD1ZBVEVTLUI1MzgxNjQzNTEiMCAG
+CSsGAQQBrGYBBgwTU0FVQkVSIE9GSU1BVElDQSBTTDEeMBwGCSsGAQQBrGYBBAwP
+SURDRVMtNDg0NTY5MjVMMRgwFgYJKwYBBAGsZgEDDAlGRVJSQU5ERVoxFjAUBgkr
+BgEEAaxmAQIMB0JBUkJFUkExFjAUBgkrBgEEAaxmAQEMB0FMQkVSVE8wDAYDVR0T
+AQH/BAIwADAOBgNVHQ8BAf8EBAMCBeAwKgYDVR0lBCMwIQYIKwYBBQUHAwIGCisG
+AQQBgjcKAwwGCSqGSIb3LwEBBTCBggYIKwYBBQUHAQEEdjB0MD0GCCsGAQUFBzAB
+hjFodHRwOi8vb2NzcHJlcC5jZXJ0LmZubXQuZXMvb2NzcHJlcC9PY3NwUmVzcG9u
+ZGVyMDMGCCsGAQUFBzAChidodHRwOi8vd3d3LmNlcnQuZm5tdC5lcy9jZXJ0cy9B
+Q1JFUC5jcnQwHQYDVR0OBBYEFGWlQrqu9lFo+LFev/wtBDPoWbDjMIIBPwYDVR0g
+BIIBNjCCATIwggEYBgorBgEEAaxmAwsBMIIBCDApBggrBgEFBQcCARYdaHR0cDov
+L3d3dy5jZXJ0LmZubXQuZXMvZHBjcy8wgdoGCCsGAQUFBwICMIHNDIHKQ2VydGlm
+aWNhZG8gY3VhbGlmaWNhZG8gZGUgcmVwcmVzZW50YW50ZSBkZSBwLiBqdXLDrWRp
+Y2EgKHJlbGFjacOzbiBjb24gQUFQUCB5IGNvbnRyYXRhY2nDs24pLiBTdWpldG8g
+YSBjb25kaWNpb25lcyBkZSB1c28gc2Vnw7puIERQQyBkZSBGTk1ULVJDTSwgTklG
+OiBRMjgyNjAwNC1KIChDL0pvcmdlIEp1YW4gMTA2LTI4MDA5LU1hZHJpZC1Fc3Bh
+w7FhKTAJBgcEAIvsQAEAMAkGB2CFVAEDBQgwgaYGCCsGAQUFBwEDBIGZMIGWMAgG
+BgQAjkYBATATBgYEAI5GAQYwCQYHBACORgEGATBoBgYEAI5GAQUwXjAtFidodHRw
+czovL3d3dy5jZXJ0LmZubXQuZXMvcGRzL1BEU19lcy5wZGYTAmVzMC0WJ2h0dHBz
+Oi8vd3d3LmNlcnQuZm5tdC5lcy9wZHMvUERTX2VuLnBkZhMCZW4wCwYGBACORgED
+AgEPMB8GA1UdIwQYMBaAFNxQlp/XMYnJEeTvll/2X4JSRmJTMIHhBgNVHR8Egdkw
+gdYwgdOggdCggc2GgZ1sZGFwOi8vbGRhcHJlcC5jZXJ0LmZubXQuZXMvQ049Q1JM
+MjUxMyxPVT1BQyUyMFJlcHJlc2VudGFjaW9uLE9VPUNFUkVTLE89Rk5NVC1SQ00s
+Qz1FUz9jZXJ0aWZpY2F0ZVJldm9jYXRpb25MaXN0O2JpbmFyeT9iYXNlP29iamVj
+dGNsYXNzPWNSTERpc3RyaWJ1dGlvblBvaW50hitodHRwOi8vd3d3LmNlcnQuZm5t
+dC5lcy9jcmxzcmVwL0NSTDI1MTMuY3JsMA0GCSqGSIb3DQEBCwUAA4IBAQCj2Z3O
+BlU6WaPtEKEVjoV9Ve1ZnI9wkOjHPGRcm+vmL0zlkHxQr34q8gZWonQJpblFo4ii
+iXEqVBN0an2xZSIy0m0tkCve1aKIsl/BWYfgkT/0PfzdjPbGpHH/8GkZl94Qht88
+k+rAl7QYlLsXTvIPi5HTgBuFyd7FG2vOB46qAV9RQgpbsAgKxNrLFdJna1RiOUd6
+ndCBMGtmVXYL6ZEXG5crqu4S1UmPdU1X3bThdAHquNYQf9sghFF2i5YoqxmwRtWM
+pt3JWzqGUCMoYqrKuURP/cC9DGfoFwXAEWUCgjAGqcTSaRUF4cTBFhAC+JhcEtQW
+Ofm8djv6q4Md1oA2
+-----END CERTIFICATE-----
+
+-----BEGIN CERTIFICATE-----
+MIIG3DCCBMSgAwIBAgIQYcLU1PaprndVkma5ja/WITANBgkqhkiG9w0BAQsFADA7
+MQswCQYDVQQGEwJFUzERMA8GA1UECgwIRk5NVC1SQ00xGTAXBgNVBAsMEEFDIFJB
+SVogRk5NVC1SQ00wHhcNMTUwNjMwMDk1MTUzWhcNMjkxMjMxMTA1MTUzWjBNMQsw
+CQYDVQQGEwJFUzERMA8GA1UECgwIRk5NVC1SQ00xDjAMBgNVBAsMBUNFUkVTMRsw
+GQYDVQQDDBJBQyBSZXByZXNlbnRhY2nDs24wggEiMA0GCSqGSIb3DQEBAQUAA4IB
+DwAwggEKAoIBAQDCO7E+oUYbuTJaWkEQtIFgcRHD/kHavy+XBFdfCdUzDh9w7Yq4
+kYckBPW/YU1QRa4v35HbajEMCs4cyLnoJy8Wyzq7qrSwmNHhMYDjtGywJXbCo5SZ
+VbIwyagWig8Nb/x9Y5WGWIY76E9agPAoEYOxOG8h1J6ipNoBbq0R+4N4ODaq57AB
+Y7mUSXb4WgjoVg4WxxZw0GGLuc8R1idoX1G/VqxvNymeCZ7o1bEwbs7X3NhRsK21
+w3ju8pkUNZXN6Pkflh9qIslOLiokKbiDwwAZE4nvU//B8Q8FLYk1sgTQTLET2EQZ
+308FlECRp3i6Ay4iezc0Yd3FKIDmOxCdDUcDAgMBAAGjggLIMIICxDASBgNVHRMB
+Af8ECDAGAQH/AgEAMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQU3FCWn9cxickR
+5O+WX/ZfglJGYlMwgZgGCCsGAQUFBwEBBIGLMIGIMEkGCCsGAQUFBzABhj1odHRw
+Oi8vb2NzcGZubXRyY21jYS5jZXJ0LmZubXQuZXMvb2NzcGZubXRyY21jYS9PY3Nw
+UmVzcG9uZGVyMDsGCCsGAQUFBzAChi9odHRwOi8vd3d3LmNlcnQuZm5tdC5lcy9j
+ZXJ0cy9BQ1JBSVpGTk1UUkNNLmNydDAfBgNVHSMEGDAWgBT3fcX9xOiaG3dkp/Ud
+oMy/h2CabTCB6wYDVR0gBIHjMIHgMIHdBgRVHSAAMIHUMCkGCCsGAQUFBwIBFh1o
+dHRwOi8vd3d3LmNlcnQuZm5tdC5lcy9kcGNzLzCBpgYIKwYBBQUHAgIwgZkMgZZT
+dWpldG8gYSBsYXMgY29uZGljaW9uZXMgZGUgdXNvIGV4cHVlc3RhcyBlbiBsYSBE
+ZWNsYXJhY2nDs24gZGUgUHLDoWN0aWNhcyBkZSBDZXJ0aWZpY2FjacOzbiBkZSBs
+YSBGTk1ULVJDTSAoIEMvIEpvcmdlIEp1YW4sIDEwNi0yODAwOS1NYWRyaWQtRXNw
+YcOxYSkwgdQGA1UdHwSBzDCByTCBxqCBw6CBwIaBkGxkYXA6Ly9sZGFwZm5tdC5j
+ZXJ0LmZubXQuZXMvQ049Q1JMLE9VPUFDJTIwUkFJWiUyMEZOTVQtUkNNLE89Rk5N
+VC1SQ00sQz1FUz9hdXRob3JpdHlSZXZvY2F0aW9uTGlzdDtiaW5hcnk/YmFzZT9v
+YmplY3RjbGFzcz1jUkxEaXN0cmlidXRpb25Qb2ludIYraHR0cDovL3d3dy5jZXJ0
+LmZubXQuZXMvY3Jscy9BUkxGTk1UUkNNLmNybDANBgkqhkiG9w0BAQsFAAOCAgEA
+pS/HpvFq3S42VmjXtoNVxdh+m1/NdjoWVY6M2o9c+UZofrZWbaiQ+aNOn6/+Qf/L
+Zk41jD+nEa/O1GkPyAineYtjyW6Ae7ltVPIVIWQa3fALcgyN7s/U31qPooU7Zv7a
+5mghpxapWHvtL9yxpLjrtGsZD32qysIJ2pjDqJa5WeWVKF2RS1zy6Bm/9JzlxzTC
+H03kivP5ltp+cHik/KzJZ+HgPv6BLwO+OYrJ19vGbPuDGgOj7uJTG3XQIlZchTlt
+gCmNRPKs/HOGOyDmWxm07FmrADQ1NWag3gjoH8xcfAlp9aBnm/UXFJuAkGOq8ASr
++A5dpJeDP/rlKphDdxJpG5YKRwRSb7PnAccstmGxynL+K/0ofxAhbWqC6z7KeGyZ
+BTeVIilPhp+xZzJnvFVBjN6s2j7W3+esQkiT4SdY9RN+c3tBuWF54UNc7YVe6KVT
+jzkpev9szp6vUNQ+A45i2KGXRLN6/16nA9fujzITRWmX4tOGABo0aL/wBrf3Po89
+gvZwZRaVQ9Bw/KfEF8eZDhA1MgQKSPJLSXSl58elHGFLUR2CQMGl+mgfPB0qZUUk
+RG/RYpZLocczAz6pfkxA3Mt3DfIyVtA/YJ0O4ZYpdbH9zdJZI1RQEWmFrMOrEAWm
+GIG0SmNpARqOPJsTQJomUcvd3EvA7so2LzLJ+Sjj2So=
+-----END CERTIFICATE-----
+
+-----BEGIN CERTIFICATE-----
+MIIFgzCCA2ugAwIBAgIPXZONMGc2yAYdGsdUhGkHMA0GCSqGSIb3DQEBCwUAMDsx
+CzAJBgNVBAYTAkVTMREwDwYDVQQKDAhGTk1ULVJDTTEZMBcGA1UECwwQQUMgUkFJ
+WiBGTk1ULVJDTTAeFw0wODEwMjkxNTU5NTZaFw0zMDAxMDEwMDAwMDBaMDsxCzAJ
+BgNVBAYTAkVTMREwDwYDVQQKDAhGTk1ULVJDTTEZMBcGA1UECwwQQUMgUkFJWiBG
+Tk1ULVJDTTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBALpxgHpMhm5/
+yBNtwMZ9HACXjywMI7sQmkCpGreHiPibVmr75nuOi5KOpyVdWRHbNi63URcfqQgf
+BBckWKo3Shjf5TnUV/3XwSyRAZHiItQDwFj8d0fsjz50Q7qsNI1NOHZnjrDIbzAz
+WHFctPVrbtQBULgTfmxKo0nRIBnuvMApGGWn3v7v3QqQIecaZ5JCEJhfTzC8PhxF
+tBDXaEAUwED653cXeuYLj2VbPNmaUtu1vZ5Gzz3rkQUCwJaydkxNEJY7kvqcfw+Z
+374jNUUeAlz+taibmSXaXvMiwzn15Cou08YfxGyqxRxqAQVKL9LFwag0Jl1mpdIC
+IfkYtwb1TplvqKtMUejPUBjFd8g5CSxJkjKZqLsXF3mwWsXmo8RZZUc1g16p6DUL
+mbvkzSDGm0oGObVo/CK67lWMK07q87Hj/LaZmtVC+nFNCM+HHmpxffnTtOmlcYF7
+wk5HlqX2doWjKI/pgG6BU6VtX7hI+cL5NqYuSf+4lsKMB7ObiFj86xsc3i1w4peS
+MKGJ47xVqCfWS+2QrYv6YyVZLag13cqXM7zlzced0ezvXg5KkAYmY6252TUtB7p2
+ZSysV4999AeU14ECll2jB0nVetBX+RvnU0Z1qrB5QstocQjpYL05ac70r8NWQMet
+UqIJ5G+GR4of6ygnXYMgrwTJbFaai0b1AgMBAAGjgYMwgYAwDwYDVR0TAQH/BAUw
+AwEB/zAOBgNVHQ8BAf8EBAMCAQYwHQYDVR0OBBYEFPd9xf3E6Jobd2Sn9R2gzL+H
+YJptMD4GA1UdIAQ3MDUwMwYEVR0gADArMCkGCCsGAQUFBwIBFh1odHRwOi8vd3d3
+LmNlcnQuZm5tdC5lcy9kcGNzLzANBgkqhkiG9w0BAQsFAAOCAgEAB5BK3/MjTvDD
+nFFlm5wioooMhfNzKWtN/gHiqQxjAb8EZ6WdmF/9ARP67Jpi6Yb+tmLSbkyU+8B1
+RXxlDPiyN8+sD8+Nb/kZ94/sHvJwnvDKuO+3/3Y3dlv2bojzr2IyIpMNOmqOFGYM
+LVN0V2Ue1bLdI4E7pWYjJ2cJj+F3qkPNZVEI7VFY/uY5+ctHhKQV8Xa7pO6kO8Rf
+77IzlhEYt8llvhjho6Tc+hj507wTmzl6NLrTQfv6MooqtyuGC2mDOL7Nii4LcK2N
+JpLuHvUBKwrZ1pebbuCoGRw6IYsMHkCtA+fdZn71uSANA+iW+YJF1DngoABd15jm
+fZ5nc8OaKveri6E6FO80vFIOiZiaBECEHX5FaZNXzuvO+FB8TxxuBEOb+dY7Ixjp
+6o7RTUaN8Tvkasq6+yO3m/qZASlaWFot4/nUbQ4mrcFuNLwy+AwF+mWj2zs3gyLp
+1txyM/1d8iC9djwj2ij3+RvrWWTV3F9yfiD8zYm1kGdNYno/Tq0dwzn+evQoFt9B
+9kiABdcPUXmsEKvU7ANm5mqwujGSQkBqvjrTcuFqN1W8rB2Vt2lh8kORdOag0wok
+RqEIr9baRRmW1FMdW4R58MD3R++Lj8UGrp1MYp3/RgT408m2ECVAdf4WqslKYIYv
+uu8wd+RU4riEmViAqhOLUTpPSPaLtrM=
+-----END CERTIFICATE-----
+</ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:Signature></fe:Facturae>

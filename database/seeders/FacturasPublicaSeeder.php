@@ -14,7 +14,7 @@ class FacturasPublicaSeeder extends Seeder
     {
         DB::table('facturas')->insert([
             [
-                'serie' => '13',
+                'serie' => '15',
                 'numFactura' => '8',
                 'idVersion' => '1.0',
                 'idEmisorFactura' => 'B53816435',
@@ -28,7 +28,7 @@ class FacturasPublicaSeeder extends Seeder
                 //'huellaAnterior' => 'FFF480A390C36E87746E645FCE6DF4161982FF753E859AFA4643CB4E65B018E2',
                 'nombreCliente' => 'Alberto Barbera Ferrandez',
                 'nifCliente' => '48456925L',
-                'codigoPais' => 'ES',
+                'codigoPais' => 'ESP',
                 'idType' => 'NIF',
                 'idTypeNum' => '01',
                 'cupon' => 'N',

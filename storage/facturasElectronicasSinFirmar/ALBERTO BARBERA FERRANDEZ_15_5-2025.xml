@@ -5,7 +5,7 @@
     <Modality>I</Modality>
     <InvoiceIssuerType>EM</InvoiceIssuerType>
     <Batch>
-      <BatchIdentifier>48456925L13</BatchIdentifier>
+      <BatchIdentifier>B5381643515</BatchIdentifier>
       <InvoicesCount>1</InvoicesCount>
       <TotalInvoicesAmount>
         <TotalAmount>60.50</TotalAmount>
@@ -24,7 +24,7 @@
       <TaxIdentification>
         <PersonTypeCode>J</PersonTypeCode>
         <ResidenceTypeCode>R</ResidenceTypeCode>
-        <TaxIdentificationNumber>48456925L</TaxIdentificationNumber>
+        <TaxIdentificationNumber>B53816435</TaxIdentificationNumber>
       </TaxIdentification>
       <LegalEntity>
         <CorporateName>ALBERTO BARBERA FERRANDEZ</CorporateName>
@@ -41,7 +41,7 @@
       <TaxIdentification>
         <PersonTypeCode>J</PersonTypeCode>
         <ResidenceTypeCode>R</ResidenceTypeCode>
-        <TaxIdentificationNumber>48456925L</TaxIdentificationNumber>
+        <TaxIdentificationNumber>B53816435</TaxIdentificationNumber>
       </TaxIdentification>
       <LegalEntity>
         <CorporateName>Alberto Barbera Ferrandez</CorporateName>
@@ -50,7 +50,7 @@
           <PostCode>41008</PostCode>
           <Town>Sevilla</Town>
           <Province>Sevilla</Province>
-          <CountryCode>ES</CountryCode>
+          <CountryCode>ESP</CountryCode>
         </AddressInSpain>
       </LegalEntity>
     </BuyerParty>
@@ -58,13 +58,13 @@
   <Invoices>
     <Invoice>
       <InvoiceHeader>
-        <InvoiceNumber>3</InvoiceNumber>
-        <InvoiceSeriesCode>13</InvoiceSeriesCode>
+        <InvoiceNumber>5</InvoiceNumber>
+        <InvoiceSeriesCode>15</InvoiceSeriesCode>
         <InvoiceDocumentType>FC</InvoiceDocumentType>
         <InvoiceClass>OO</InvoiceClass>
       </InvoiceHeader>
       <InvoiceIssueData>
-        <IssueDate>24-07-2025</IssueDate>
+        <IssueDate>2025-07-24</IssueDate>
         <InvoiceCurrencyCode>EUR</InvoiceCurrencyCode>
         <TaxCurrencyCode>EUR</TaxCurrencyCode>
         <LanguageName>es</LanguageName>
