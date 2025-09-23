@@ -24,7 +24,11 @@ class FirmaXmlGeneratorElectronica
         if ($privateKeyContent === false || $publicCertContent === false) {
             throw new \Exception("Error al leer los archivos PEM para el CIF {$cif}");
         }
+        // Prueba
+        $doc = new \DOMDocument();
+        $doc->loadXML($xmlContent);
 
+        // ---
         $matches = [];
         preg_match_all(
             '/-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----/s',
@@ -40,6 +44,8 @@ class FirmaXmlGeneratorElectronica
 
         // 4) Cargar el XML
         $doc = new \DOMDocument();
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = false;
         $doc->loadXML($xmlContent);
 
         // 5) Configurar la firma
@@ -60,6 +66,48 @@ class FirmaXmlGeneratorElectronica
         $objDSig->sign($objKey);
         $objDSig->add509Cert($certFirma, false, false);
         $objDSig->appendSignature($doc->documentElement);
+
+        // --- Añadir política de firma obligatoria XAdES ---
+        $sigNode = $doc->getElementsByTagName('Signature')->item(0);
+
+        $qualifyingProps = $doc->createElementNS(
+            'http://uri.etsi.org/01903/v1.3.2#',
+            'xades:QualifyingProperties'
+        );
+        $qualifyingProps->setAttribute('Target', '#' . $sigNode->getAttribute('Id'));
+
+        $signedProps = $doc->createElement('xades:SignedProperties');
+        $signedProps->setAttribute('Id', 'SignedProperties');
+
+        $signedSigProps = $doc->createElement('xades:SignedSignatureProperties');
+
+        // Política de firma
+        $sigPolicyId = $doc->createElement('xades:SignaturePolicyIdentifier');
+        $sigPolicyIdEl = $doc->createElement('xades:SignaturePolicyId');
+        $sigId = $doc->createElement('xades:SigPolicyId');
+        $identifier = $doc->createElement('xades:Identifier', 'http://www.facturae.gob.es/politica_de_firma_formato_facturae/politica_de_firma_formato_facturae_v3_1.pdf');
+        $identifier->setAttribute('Qualifier', 'OIDAsURI');
+        $sigId->appendChild($identifier);
+        $sigPolicyIdEl->appendChild($sigId);
+
+        $hash = $doc->createElement('xades:SigPolicyHash');
+        $digestMethod = $doc->createElement('ds:DigestMethod');
+        $digestMethod->setAttribute('Algorithm', 'http://www.w3.org/2001/04/xmlenc#sha256');
+        $digestValue = $doc->createElement('ds:DigestValue', 'Ohixl6upD6av8N7pEvDABhEL6hM=');
+        $hash->appendChild($digestMethod);
+        $hash->appendChild($digestValue);
+
+        $sigPolicyIdEl->appendChild($hash);
+        $sigPolicyId->appendChild($sigPolicyIdEl);
+        $signedSigProps->appendChild($sigPolicyId);
+
+        $signedProps->appendChild($signedSigProps);
+        $qualifyingProps->appendChild($signedProps);
+
+        $objectNode = $doc->createElement('ds:Object');
+        $objectNode->appendChild($qualifyingProps);
+        $sigNode->appendChild($objectNode);
+        // --- Fin de política de firma ---
 
         // 8) Devolver XML firmado
         return $doc->saveXML();
