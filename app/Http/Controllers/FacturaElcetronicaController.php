@@ -7,7 +7,7 @@ use App\Models\Facturas;
 use App\Services\Encriptar;
 use App\Models\Emisores;
 use App\Services\FacturaXmlElectronica;
-use App\Services\FirmaXmlGenerator;
+use App\Services\FirmaXmlGeneratorElectronica;
 
 class FacturaElcetronicaController extends Controller
 {
@@ -35,7 +35,6 @@ class FacturaElcetronicaController extends Controller
             ->where('ejercicio', $data['ejercicio'])
             ->first();
 
-
         if ($factura) {
 
             $emisor = Emisores::where('cif', $data['cif'])->first();
@@ -49,7 +48,7 @@ class FacturaElcetronicaController extends Controller
 
             // Generar el XML usando los datos reales de la factura
             $xml = (new FacturaXmlElectronica())->generateXml($factura);
-            $xmlFirmado =  (new FirmaXmlGenerator())->firmaXml($xml, $data['cif'],  $passwordCert);
+            $xmlFirmado =  (new FirmaXmlGeneratorElectronica())->firmaXml($xml, $data['cif'],  $passwordCert);
 
 
             if ($firmada === 0) {

@@ -88,20 +88,6 @@ class FacturaXmlElectronica
         $taxIdB->appendChild($dom->createElement('TaxIdentificationNumber', $factura->idEmisorFactura));
         $buyer->appendChild($taxIdB);
 
-        $legalB = $dom->createElement('LegalEntity');
-        $legalB->appendChild($dom->createElement('CorporateName', $factura->nombreCliente ?? ''));
-
-        // Dirección del cliente (lo mismo: fijo o configurable)
-        $addressB = $dom->createElement('AddressInSpain');
-        $addressB->appendChild($dom->createElement('Address', 'c/ San Vicente, 1')); // <-- fijo o configurable
-        $addressB->appendChild($dom->createElement('PostCode', '41008'));
-        $addressB->appendChild($dom->createElement('Town', 'Sevilla'));
-        $addressB->appendChild($dom->createElement('Province', 'Sevilla'));
-        $addressB->appendChild($dom->createElement('CountryCode', $factura->codigoPais ?? 'ESP'));
-        $legalB->appendChild($addressB);
-
-        $buyer->appendChild($legalB);
-
         // Bloque si es un organismo público
         if (!empty($factura->oficontable) && !empty($factura->orggestor) && !empty($factura->utramitadora)) {
             $adminCentres = $dom->createElement('AdministrativeCentres');
@@ -109,26 +95,72 @@ class FacturaXmlElectronica
             // Oficina Contable
             $centre = $dom->createElement('AdministrativeCentre');
             $centre->appendChild($dom->createElement('CentreCode', $factura->oficontable));
-            $centre->appendChild($dom->createElement('RoleTypeCode', '01'));
-            $centre->appendChild($dom->createElement('Name', 'Oficina Contable'));
-            $adminCentres->appendChild($centre);
+            $centre->appendChild($dom->createElement('RoleTypeCode', '01')); // Es 01
 
+            $address = $dom->createElement('AddressInSpain');
+            $address->appendChild($dom->createElement('Address', 'Marqués de Arneva, 1'));
+            $address->appendChild($dom->createElement('PostCode', '03300'));
+            $address->appendChild($dom->createElement('Town', 'ORIHUELA'));
+            $address->appendChild($dom->createElement('Province', 'ALICANTE'));
+            $address->appendChild($dom->createElement('CountryCode', $factura->codigoPais ?? 'ESP'));
+            $centre->appendChild($address);
+
+            $centre->appendChild($dom->createElement('CentreDescription', 'OFICINA CONTABLE'));
+            $adminCentres->appendChild($centre);
+            //------------------------
             // Órgano Gestor
             $centre = $dom->createElement('AdministrativeCentre');
             $centre->appendChild($dom->createElement('CentreCode', $factura->orggestor));
-            $centre->appendChild($dom->createElement('RoleTypeCode', '02'));
-            $centre->appendChild($dom->createElement('Name', 'Órgano Gestor'));
-            $adminCentres->appendChild($centre);
+            $centre->appendChild($dom->createElement('RoleTypeCode', '02')); // Es 02
 
+            $address = $dom->createElement('AddressInSpain');
+            $address->appendChild($dom->createElement('Address', 'Marqués de Arneva, 1'));
+            $address->appendChild($dom->createElement('PostCode', '03300'));
+            $address->appendChild($dom->createElement('Town', 'ORIHUELA'));
+            $address->appendChild($dom->createElement('Province', 'ALICANTE'));
+            $address->appendChild($dom->createElement('CountryCode', $factura->codigoPais ?? 'ESP'));
+            $centre->appendChild($address);
+
+            $centre->appendChild($dom->createElement('CentreDescription', 'ORGANO GESTOR'));
+            $adminCentres->appendChild($centre);
+            //------------------------
             // Unidad Tramitadora
             $centre = $dom->createElement('AdministrativeCentre');
             $centre->appendChild($dom->createElement('CentreCode', $factura->utramitadora));
             $centre->appendChild($dom->createElement('RoleTypeCode', '03'));
-            $centre->appendChild($dom->createElement('Name', 'Unidad Tramitadora'));
+
+            $address = $dom->createElement('AddressInSpain');
+            $address->appendChild($dom->createElement('Address', 'Marqués de Arneva, 1'));
+            $address->appendChild($dom->createElement('PostCode', '03300'));
+            $address->appendChild($dom->createElement('Town', 'ORIHUELA'));
+            $address->appendChild($dom->createElement('Province', 'ALICANTE'));
+            $address->appendChild($dom->createElement('CountryCode', 'ESP'));
+            $centre->appendChild($address);
+
+            $centre->appendChild($dom->createElement('CentreDescription', 'UNIDAD TRAMITADORA'));
             $adminCentres->appendChild($centre);
 
             $buyer->appendChild($adminCentres);
         }
+
+        $legalB = $dom->createElement('LegalEntity');
+        $legalB->appendChild($dom->createElement('CorporateName', $factura->nombreCliente ?? ''));
+
+        // Dirección del cliente (lo mismo: fijo o configurable)
+        $addressB = $dom->createElement('AddressInSpain');
+        $addressB->appendChild($dom->createElement('Address', 'c/ San Vicente, 1'));
+        $addressB->appendChild($dom->createElement('PostCode', '41008'));
+        $addressB->appendChild($dom->createElement('Town', 'Sevilla'));
+        $addressB->appendChild($dom->createElement('Province', 'Sevilla'));
+        $addressB->appendChild($dom->createElement('CountryCode', $factura->codigoPais ?? 'ESP'));
+        $legalB->appendChild($addressB);
+
+        $contact = $dom->createElement('ContactDetails');
+        $contact->appendChild($dom->createElement('ElectronicMail', $factura->emailCliente ?? ''));
+        $legalB->appendChild($contact);
+
+        $buyer->appendChild($legalB);
+
         // Final de bloques de organismo público
         $parties->appendChild($buyer);
 
