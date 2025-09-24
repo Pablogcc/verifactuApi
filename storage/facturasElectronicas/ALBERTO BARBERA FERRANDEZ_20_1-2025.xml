@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fe:Facturae xmlns:fe="http://www.facturae.es/Facturae/2014/v3.2.1/Facturae"
-  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" Id="pfxbf45385f-7db1-58ac-c409-a446ebff1a80">
+  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" Id="pfx22cfe93a-2f7f-1e4d-83cd-b40cbb9d91ff">
   <FileHeader>
     <SchemaVersion>3.2.1</SchemaVersion>
     <Modality>I</Modality>
     <InvoiceIssuerType>EM</InvoiceIssuerType>
     <Batch>
-      <BatchIdentifier>B538164351</BatchIdentifier>
+      <BatchIdentifier>B5381643520</BatchIdentifier>
       <InvoicesCount>1</InvoicesCount>
       <TotalInvoicesAmount>
         <TotalAmount>60.50</TotalAmount>
@@ -63,7 +63,7 @@
     <Invoice>
       <InvoiceHeader>
         <InvoiceNumber>1</InvoiceNumber>
-        <InvoiceSeriesCode>1</InvoiceSeriesCode>
+        <InvoiceSeriesCode>20</InvoiceSeriesCode>
         <InvoiceDocumentType>FC</InvoiceDocumentType>
         <InvoiceClass>OO</InvoiceClass>
       </InvoiceHeader>
@@ -125,16 +125,16 @@
     <ds:SignedInfo>
       <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
       <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
-      <ds:Reference URI="#pfxbf45385f-7db1-58ac-c409-a446ebff1a80">
+      <ds:Reference URI="#pfx22cfe93a-2f7f-1e4d-83cd-b40cbb9d91ff">
         <ds:Transforms>
           <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
         </ds:Transforms>
         <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />
-        <ds:DigestValue>dt22M1sBjjsXTq6NP6OolZGWP0aw93WWK03jzKindgU=</ds:DigestValue>
+        <ds:DigestValue>kxtz+MjwF/rF44bKPdQDjXGYUQTP0pTlCeLQPlei4us=</ds:DigestValue>
       </ds:Reference>
     </ds:SignedInfo>
     <ds:SignatureValue>
-      J/+iF6TibswcbghF3f4B3qy1tjPJEy7v5ylQnu7qtNVX7ZalXkS3DiDRlgyhNGw/UzOlNjoVfS+PT8JV3cI02LFVomc1E1IyVabtvyaNdFpG6FlbFZeVs3RokyUgEX9GfG4iD34QaTHcrJipHq6gvsrYuQxXncNAp2OG+X4dNKiaf/I6dwUTspe9EG/B6ovT/qdMmExLlWWsWgQpni44tvbFh1lAVKStgVoGq6IcB4Ig3PYBRGI84rcrxD42/yw54Nlznn8IWS3OOWT8zN5kiyu7JXperIOUBe5awrSls7FNWfqpZpbEReJo5uKU26n8TkYKQpNHcYM5RaN3i+xcAg==</ds:SignatureValue>
+      Rt22fOAaXrF+fGn8N6Ss9PuttQ/uYXGcKY4sq1kV9NxNWa7IDv5cTKhvJd5FRm/uFmiyN5KXUEVhe3HMkC5XATWR8L8hxEX29XpvGU44p7CIRypH/gBzXtPdu5Pi4Dvyzd+FKb1OeiNBhWXig9FuUq6kJAVokOxIi2pOZz7Pnc+ovsH1RUYesWmZQWGPXAVHjuZP9cE3NiRtdTyuXOqYANrpaOBSe5VzlJQTEOLmZS2X9AH2uDHzdNqyW0i0nXcu2UTLgVLk0ey8ztBlGOpUt5nq2D34YscIeBiix29SdjzYmFraoMTstweropiHRyxi3SVTDpU+eoGXt6+dmyI7TQ==</ds:SignatureValue>
     <ds:KeyInfo>
       <ds:X509Data>
         <ds:X509Certificate>
@@ -144,7 +144,7 @@
     <ds:Object xmlns:xades="http://uri.etsi.org/01903/v1.3.2#">
       <xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#"
         Target="#Signature1">
-        <xades:SignedProperties Id="pfx22cd74b2-1b15-0a9c-a7f8-d02373216dcd">
+        <xades:SignedProperties Id="pfx06ebec7f-f18f-3dac-9cfa-7f85c317e257">
           <xades:SignedSignatureProperties>
             <xades:SignaturePolicyIdentifier>
               <xades:SignaturePolicyId>

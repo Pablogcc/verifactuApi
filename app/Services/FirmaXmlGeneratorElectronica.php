@@ -49,10 +49,15 @@ class FirmaXmlGeneratorElectronica
         $doc->loadXML($xmlContent);
 
         // 5) Configurar la firma
+        
+        
         $objDSig = new XMLSecurityDSig();
         $objDSig->setCanonicalMethod(XMLSecurityDSig::EXC_C14N);
+
+        $facturaNode = $doc->documentElement;
+
         $objDSig->addReference(
-            $doc,
+            $facturaNode,
             XMLSecurityDSig::SHA256,
             ['http://www.w3.org/2000/09/xmldsig#enveloped-signature'],
             ['uri' => '']
@@ -70,6 +75,10 @@ class FirmaXmlGeneratorElectronica
         // --- Añadir política de firma obligatoria XAdES ---
         $sigNode = $doc->getElementsByTagName('Signature')->item(0);
 
+        if (!$sigNode->hasAttribute('Id')) {
+            $sigNode->setAttribute('Id', 'Signature1');
+        }
+
         $qualifyingProps = $doc->createElementNS(
             'http://uri.etsi.org/01903/v1.3.2#',
             'xades:QualifyingProperties'
@@ -85,9 +94,10 @@ class FirmaXmlGeneratorElectronica
         $sigPolicyId = $doc->createElement('xades:SignaturePolicyIdentifier');
         $sigPolicyIdEl = $doc->createElement('xades:SignaturePolicyId');
         $sigId = $doc->createElement('xades:SigPolicyId');
-        $identifier = $doc->createElement('xades:Identifier', 'http://www.facturae.gob.es/politica_de_firma_formato_facturae/politica_de_firma_formato_facturae_v3_1.pdf');
+        $identifier = $doc->createElement('xades:Identifier', 'http://www.facturae.es/politica_de_firma_formato_facturae/politica_de_firma_formato_facturae_v3_1.pdf');
         $identifier->setAttribute('Qualifier', 'OIDAsURI');
         $sigId->appendChild($identifier);
+
         $sigPolicyIdEl->appendChild($sigId);
 
         $hash = $doc->createElement('xades:SigPolicyHash');
@@ -106,7 +116,17 @@ class FirmaXmlGeneratorElectronica
 
         $objectNode = $doc->createElement('ds:Object');
         $objectNode->appendChild($qualifyingProps);
+
         $sigNode->appendChild($objectNode);
+
+        //$signedPropsNode = $doc->getElementById('SignedProperties');
+
+        $objDSig->addReference(
+            $signedProps,
+            XMLSecurityDSig::SHA256,
+            [],
+            ['uri' => '#SignedProperties', 'type', 'http://uri.etsi.org/01903#SignedProperties']
+        );
         // --- Fin de política de firma ---
 
         // 8) Devolver XML firmado
