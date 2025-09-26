@@ -70,7 +70,7 @@ class FacturaXmlElectronica
 
         // Dirección del emisor (rellena con valores fijos o genéricos si no tienes en DB)
         $addressS = $dom->createElement('AddressInSpain');
-        $addressS->appendChild($dom->createElement('Address', 'c/ Alcala, 137')); // <-- fijo o configurable
+        $addressS->appendChild($dom->createElement('Address', 'c/ Alcala, 137'));
         $addressS->appendChild($dom->createElement('PostCode', '28001'));
         $addressS->appendChild($dom->createElement('Town', 'Madrid'));
         $addressS->appendChild($dom->createElement('Province', 'Madrid'));

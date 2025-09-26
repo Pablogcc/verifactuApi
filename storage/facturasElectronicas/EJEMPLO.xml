@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fe:Facturae xmlns:fe="http://www.facturae.es/Facturae/2014/v3.2.1/Facturae"
-  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" Id="pfxbf45385f-7db1-58ac-c409-a446ebff1a80">
+  xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
   <FileHeader>
     <SchemaVersion>3.2.1</SchemaVersion>
     <Modality>I</Modality>
     <InvoiceIssuerType>EM</InvoiceIssuerType>
     <Batch>
-      <BatchIdentifier>B538164351</BatchIdentifier>
+      <BatchIdentifier>B5381643522</BatchIdentifier>
       <InvoicesCount>1</InvoicesCount>
       <TotalInvoicesAmount>
         <TotalAmount>60.50</TotalAmount>
@@ -63,7 +63,7 @@
     <Invoice>
       <InvoiceHeader>
         <InvoiceNumber>1</InvoiceNumber>
-        <InvoiceSeriesCode>1</InvoiceSeriesCode>
+        <InvoiceSeriesCode>22</InvoiceSeriesCode>
         <InvoiceDocumentType>FC</InvoiceDocumentType>
         <InvoiceClass>OO</InvoiceClass>
       </InvoiceHeader>
@@ -121,20 +121,27 @@
       </Items>
     </Invoice>
   </Invoices>
-  <ds:Signature Id="Signature1">
+  <ds:Signature Id="Signature-68d67a387c83f">
     <ds:SignedInfo>
-      <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
-      <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
-      <ds:Reference URI="#pfxbf45385f-7db1-58ac-c409-a446ebff1a80">
+      <ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" />
+      <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" />
+      <ds:Reference URI="#pfx9928c0c9-4396-8176-a451-ec55a79c78e1">
         <ds:Transforms>
           <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
         </ds:Transforms>
-        <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />
-        <ds:DigestValue>dt22M1sBjjsXTq6NP6OolZGWP0aw93WWK03jzKindgU=</ds:DigestValue>
+        <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+        <ds:DigestValue>oWNXWLil2IvDqb194aWjUs6IH4c=</ds:DigestValue>
+      </ds:Reference>
+      <ds:Reference URI="#pfxac6be4d3-7947-0891-d364-5f8cfad3ddeb">
+        <ds:Transforms>
+          <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+        </ds:Transforms>
+        <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+        <ds:DigestValue>2jmj7l5rSw0yVb/vlWAYkK/YBwk=</ds:DigestValue>
       </ds:Reference>
     </ds:SignedInfo>
     <ds:SignatureValue>
-      J/+iF6TibswcbghF3f4B3qy1tjPJEy7v5ylQnu7qtNVX7ZalXkS3DiDRlgyhNGw/UzOlNjoVfS+PT8JV3cI02LFVomc1E1IyVabtvyaNdFpG6FlbFZeVs3RokyUgEX9GfG4iD34QaTHcrJipHq6gvsrYuQxXncNAp2OG+X4dNKiaf/I6dwUTspe9EG/B6ovT/qdMmExLlWWsWgQpni44tvbFh1lAVKStgVoGq6IcB4Ig3PYBRGI84rcrxD42/yw54Nlznn8IWS3OOWT8zN5kiyu7JXperIOUBe5awrSls7FNWfqpZpbEReJo5uKU26n8TkYKQpNHcYM5RaN3i+xcAg==</ds:SignatureValue>
+      JBCzLm3C7sBUa1jM7jMUejTRHyBYZjjbuzHxY0bkFXzElawf3qn9JcqlSHl2YZ8olGlHpBjkw8abKUmNMF3QlAuI/If78IyadkGWSjD6HLGaJKYepPnqH/wWCVxfbLaVrm+0hdBBjoq4hpXxhdM2kAtkFBpaTtIOqdS3E9PWtIvLFOrWDLBMp58uG02UIfyGSsTgdFvBKftSZuMJHk9CnaSQ2F4FTtXkct+M/1XhXbHWF6aMyrbi7g/AkGDdG+4wtSJQQ//o9a0CyxDXkTIrLN3VTZt78biKj7z8oQm4AZhtayTn9uCKUup90Ryjaq7pmjX3Hwb3gepddguxEN0IXg==</ds:SignatureValue>
     <ds:KeyInfo>
       <ds:X509Data>
         <ds:X509Certificate>
@@ -143,22 +150,47 @@
     </ds:KeyInfo>
     <ds:Object xmlns:xades="http://uri.etsi.org/01903/v1.3.2#">
       <xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#"
-        Target="#Signature1">
-        <xades:SignedProperties Id="pfx22cd74b2-1b15-0a9c-a7f8-d02373216dcd">
+        Target="#Signature-68d67a387c83f" Id="Signature-68d67a387c83f-QualifyingProperties">
+        <xades:SignedProperties Id="pfxac6be4d3-7947-0891-d364-5f8cfad3ddeb">
           <xades:SignedSignatureProperties>
+            <xades:SigningTime>2025-09-26T11:34:16Z</xades:SigningTime>
+            <xades:SigningCertificate>
+              <xades:Cert>
+                <xades:CertDigest>
+                  <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+                  <ds:DigestValue>gerUJjYfXexa/g1+oJNnXQ7Vi90=</ds:DigestValue>
+                </xades:CertDigest>
+              </xades:Cert>
+            </xades:SigningCertificate>
             <xades:SignaturePolicyIdentifier>
               <xades:SignaturePolicyId>
                 <xades:SigPolicyId>
-                  <xades:Identifier Qualifier="OIDAsURI">
+                  <xades:Identifier>
                     http://www.facturae.es/politica_de_firma_formato_facturae/politica_de_firma_formato_facturae_v3_1.pdf</xades:Identifier>
+                  <xades:Description>facturae31</xades:Description>
                 </xades:SigPolicyId>
                 <xades:SigPolicyHash>
-                  <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />
+                  <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
                   <ds:DigestValue>Ohixl6upD6av8N7pEvDABhEL6hM=</ds:DigestValue>
                 </xades:SigPolicyHash>
               </xades:SignaturePolicyId>
             </xades:SignaturePolicyIdentifier>
+            <xades:SignerRole>
+              <xades:ClaimedRoles>
+                <xades:ClaimedRole>emisor</xades:ClaimedRole>
+              </xades:ClaimedRoles>
+            </xades:SignerRole>
           </xades:SignedSignatureProperties>
+          <xades:SignedDataObjectProperties>
+            <xades:DataObjectFormat ObjectReference="#Reference-68d67a387ced5">
+              <xades:ObjectIdentifier>
+                <xades:Identifier Qualifier="OIDAsURN">urn:oid:1.2.840.10003.5.109.10</xades:Identifier>
+                <xades:Description />
+              </xades:ObjectIdentifier>
+              <xades:MimeType>text/xml</xades:MimeType>
+              <xades:Encoding>UTF-8</xades:Encoding>
+            </xades:DataObjectFormat>
+          </xades:SignedDataObjectProperties>
         </xades:SignedProperties>
       </xades:QualifyingProperties>
     </ds:Object>
