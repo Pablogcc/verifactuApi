@@ -52,7 +52,7 @@ return new class extends Migration
             $table->string('facturaSinIdentifDestinatarioArt61d')->default('N');
             $table->string('macrodato')->default('N');
             $table->string('emitidaPorTerceroODestinatario')->default('N');
-            
+
             //IDDestinatario
             $table->string('nombreCliente');
             $table->string('nifCliente');
@@ -66,30 +66,30 @@ return new class extends Migration
             $table->integer('impuesto')->default(01);
 
             //DetalleDesglose 1
-            $table->string('claveRegimen')->default('01');
-            $table->string('calificacionOperacion')->default('S1');
-            $table->string('operacionExenta')->default('N');
-            $table->double('tipoImpositivo')->default(21);
-            $table->double('tipoImpositivo2')->nullable();
-            $table->double('tipoImpositivo3')->nullable();
-            $table->double('tipoImpositivo4')->nullable();
+            $table->string('claveRegimen', 2)->default('01');
+            $table->string('calificacionOperacion', 2)->default('S1');
+            $table->string('operacionExenta', 1)->default('N');
+            $table->double('tipoImpositivo', 8, 2)->default(21);
+            $table->double('tipoImpositivo2', 8, 2)->nullable();
+            $table->double('tipoImpositivo3', 8, 2)->nullable();
+            $table->double('tipoImpositivo4', 8, 2)->nullable();
             $table->double('baseImponibleOimporteNoSujeto')->default(13);
-            $table->double('baseImponibleACoste');
-            $table->double('baseImponibleACoste2')->nullable();
-            $table->double('baseImponibleACoste3')->nullable();
-            $table->double('baseImponibleACoste4')->nullable();
+            $table->double('baseImponibleACoste', 8, 2);
+            $table->double('baseImponibleACoste2', 8, 2)->nullable();
+            $table->double('baseImponibleACoste3', 8, 2)->nullable();
+            $table->double('baseImponibleACoste4', 8, 2)->nullable();
             $table->double('cuotaRepercutida')->default(0.4);
-            $table->double('cuotaRepercutida2')->nullable();
-            $table->double('cuotaRepercutida3')->nullable();
-            $table->double('cuotaRepercutida4')->nullable();
-            $table->double('tipoRecargoEquivalencia');
-            $table->double('tipoRecargoEquivalencia2')->nullable();
-            $table->double('tipoRecargoEquivalencia3')->nullable();
-            $table->double('tipoRecargoEquivalencia4')->nullable();
-            $table->double('cuotaRecargoEquivalencia');
-            $table->double('cuotaRecargoEquivalencia2')->nullable();
-            $table->double('cuotaRecargoEquivalencia3')->nullable();
-            $table->double('cuotaRecargoEquivalencia4')->nullable();
+            $table->double('cuotaRepercutida2', 8, 2)->nullable();
+            $table->double('cuotaRepercutida3', 8, 2)->nullable();
+            $table->double('cuotaRepercutida4', 8, 2)->nullable();
+            $table->double('tipoRecargoEquivalencia', 8, 2);
+            $table->double('tipoRecargoEquivalencia2', 8, 2)->nullable();
+            $table->double('tipoRecargoEquivalencia3', 8, 2)->nullable();
+            $table->double('tipoRecargoEquivalencia4', 8, 2)->nullable();
+            $table->double('cuotaRecargoEquivalencia', 8, 2);
+            $table->double('cuotaRecargoEquivalencia2', 8, 2)->nullable();
+            $table->double('cuotaRecargoEquivalencia3', 8, 2)->nullable();
+            $table->double('cuotaRecargoEquivalencia4', 8, 2)->nullable();
 
             /*DetalleDesglose2(A PARTE)
             $table->string('claveRegimenSegundo')->default('01');
@@ -98,8 +98,8 @@ return new class extends Migration
             $table->double('baseImponibleOimporteNoSujetosegundo')->default(100);
             $table->double('cuotaRepercutidaSegundo')->default(21);*/
 
-            $table->double('cuotaTotal');
-            $table->double('importeTotal');
+            $table->double('cuotaTotal', 8);
+            $table->double('importeTotal', 8);
             $table->string('primerRegistro')->nullable();
 
             //RegistroAnterior(A PARTE)
@@ -140,6 +140,41 @@ return new class extends Migration
             $table->text('notas')->nullable();
             $table->string('inicioperiodo')->nullable();
             $table->string('finperiodo')->nullable();
+
+            //Datos dirección del emisor
+            $table->string('emisor_direc', 100);
+            $table->string('emisor_cpostal', 10);
+            $table->string('emisor_ciudad', 50);
+            $table->string('emisor_prov', 50);
+            $table->string('emisor_cpais');
+
+            //Datos dirección del receptor
+            $table->string('receptor_direc', 100);
+            $table->string('receptor_cpostal', 10);
+            $table->string('receptor_ciudad', 50);
+            $table->string('receptor_prov', 50);
+            $table->string('receptor_cpais', 3);
+
+            //Datos dirección del oficontable
+            $table->string('oficontable_direc', 100)->nullable();
+            $table->string('oficontable_cpostal', 10)->nullable();
+            $table->string('oficontable_ciudad', 50)->nullable();
+            $table->string('oficontable_prov', 50)->nullable();
+            $table->string('oficontable_cpais', 3)->nullable();
+
+            //Datos dirección del orggestor
+            $table->string('orggestor_direc', 100)->nullable();
+            $table->string('orggestor_cpostal', 10)->nullable();
+            $table->string('orggestor_ciudad', 50)->nullable();
+            $table->string('orggestor_prov', 50)->nullable();
+            $table->string('orggestor_cpais', 3)->nullable();
+
+            //Datos dirección del utramitadora
+            $table->string('utramitadora_direc', 100)->nullable();
+            $table->string('utramitadora_cpostal', 10)->nullable();
+            $table->string('utramitadora_ciudad', 50)->nullable();
+            $table->string('utramitadora_prov', 50)->nullable();
+            $table->string('utramitadora_cpais', 3)->nullable();
 
             $table->timestamps();
         });

@@ -2,6 +2,7 @@
 
 use App\Console\Commands\ConsultaCDI;
 use App\Http\Controllers\CertificadosController;
+use App\Http\Controllers\CodigoPostalController;
 use App\Http\Controllers\ConsultaCDIController;
 use App\Http\Controllers\FacturaElcetronicaController;
 use App\Http\Controllers\FechaHoraServerController;
@@ -32,3 +33,5 @@ Route::post('facturaElectronica', [FacturaElcetronicaController::class, 'factura
 Route::get('notificacionCertificado', [CertificadosController::class, 'notificacion']);
 
 Route::get('comprobarEstado', [CertificadosController::class, 'comprobacionEstado']);
+
+Route::get('codigoPostal', [CodigoPostalController::class, 'codigoPostal']);

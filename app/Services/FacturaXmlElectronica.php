@@ -70,11 +70,11 @@ class FacturaXmlElectronica
 
         // Dirección del emisor (rellena con valores fijos o genéricos si no tienes en DB)
         $addressS = $dom->createElement('AddressInSpain');
-        $addressS->appendChild($dom->createElement('Address', 'c/ Alcala, 137'));
-        $addressS->appendChild($dom->createElement('PostCode', '28001'));
-        $addressS->appendChild($dom->createElement('Town', 'Madrid'));
-        $addressS->appendChild($dom->createElement('Province', 'Madrid'));
-        $addressS->appendChild($dom->createElement('CountryCode', 'ESP'));
+        $addressS->appendChild($dom->createElement('Address', $factura->emisor_direc));
+        $addressS->appendChild($dom->createElement('PostCode', $factura->emisor_cpostal));
+        $addressS->appendChild($dom->createElement('Town', $factura->emisor_ciudad));
+        $addressS->appendChild($dom->createElement('Province', $factura->emisor_prov));
+        $addressS->appendChild($dom->createElement('CountryCode', $factura->emisor_cpais ?? 'ESP'));
         $legalS->appendChild($addressS);
 
         $seller->appendChild($legalS);
@@ -98,11 +98,11 @@ class FacturaXmlElectronica
             $centre->appendChild($dom->createElement('RoleTypeCode', '01')); // Es 01
 
             $address = $dom->createElement('AddressInSpain');
-            $address->appendChild($dom->createElement('Address', 'Marqués de Arneva, 1'));
-            $address->appendChild($dom->createElement('PostCode', '03300'));
-            $address->appendChild($dom->createElement('Town', 'ORIHUELA'));
-            $address->appendChild($dom->createElement('Province', 'ALICANTE'));
-            $address->appendChild($dom->createElement('CountryCode', $factura->codigoPais ?? 'ESP'));
+            $address->appendChild($dom->createElement('Address', $factura->oficontable_direc));
+            $address->appendChild($dom->createElement('PostCode', $factura->oficontable_cpostal));
+            $address->appendChild($dom->createElement('Town', $factura->oficontable_ciudad));
+            $address->appendChild($dom->createElement('Province', $factura->oficontable_prov));
+            $address->appendChild($dom->createElement('CountryCode', $factura->oficontable_cpais ?? 'ESP'));
             $centre->appendChild($address);
 
             $centre->appendChild($dom->createElement('CentreDescription', 'OFICINA CONTABLE'));
@@ -114,11 +114,11 @@ class FacturaXmlElectronica
             $centre->appendChild($dom->createElement('RoleTypeCode', '02')); // Es 02
 
             $address = $dom->createElement('AddressInSpain');
-            $address->appendChild($dom->createElement('Address', 'Marqués de Arneva, 1'));
-            $address->appendChild($dom->createElement('PostCode', '03300'));
-            $address->appendChild($dom->createElement('Town', 'ORIHUELA'));
-            $address->appendChild($dom->createElement('Province', 'ALICANTE'));
-            $address->appendChild($dom->createElement('CountryCode', $factura->codigoPais ?? 'ESP'));
+            $address->appendChild($dom->createElement('Address', $factura->orggestor_direc));
+            $address->appendChild($dom->createElement('PostCode', $factura->orggestor_cpostal));
+            $address->appendChild($dom->createElement('Town', $factura->orggestor_ciudad));
+            $address->appendChild($dom->createElement('Province', $factura->orggestor_prov));
+            $address->appendChild($dom->createElement('CountryCode', $factura->orggestor_cpais ?? 'ESP'));
             $centre->appendChild($address);
 
             $centre->appendChild($dom->createElement('CentreDescription', 'ORGANO GESTOR'));
@@ -130,11 +130,11 @@ class FacturaXmlElectronica
             $centre->appendChild($dom->createElement('RoleTypeCode', '03'));
 
             $address = $dom->createElement('AddressInSpain');
-            $address->appendChild($dom->createElement('Address', 'Marqués de Arneva, 1'));
-            $address->appendChild($dom->createElement('PostCode', '03300'));
-            $address->appendChild($dom->createElement('Town', 'ORIHUELA'));
-            $address->appendChild($dom->createElement('Province', 'ALICANTE'));
-            $address->appendChild($dom->createElement('CountryCode', 'ESP'));
+            $address->appendChild($dom->createElement('Address', $factura->utramitadora_direc));
+            $address->appendChild($dom->createElement('PostCode', $factura->utramitadora_cpostal));
+            $address->appendChild($dom->createElement('Town', $factura->utramitadora_ciudad));
+            $address->appendChild($dom->createElement('Province', $factura->utramitadora_prov));
+            $address->appendChild($dom->createElement('CountryCode', $factura->utramitadora_cpais ?? 'ESP'));
             $centre->appendChild($address);
 
             $centre->appendChild($dom->createElement('CentreDescription', 'UNIDAD TRAMITADORA'));
@@ -148,11 +148,11 @@ class FacturaXmlElectronica
 
         // Dirección del cliente (lo mismo: fijo o configurable)
         $addressB = $dom->createElement('AddressInSpain');
-        $addressB->appendChild($dom->createElement('Address', 'c/ San Vicente, 1'));
-        $addressB->appendChild($dom->createElement('PostCode', '41008'));
-        $addressB->appendChild($dom->createElement('Town', 'Sevilla'));
-        $addressB->appendChild($dom->createElement('Province', 'Sevilla'));
-        $addressB->appendChild($dom->createElement('CountryCode', $factura->codigoPais ?? 'ESP'));
+        $addressB->appendChild($dom->createElement('Address', $factura->receptor_direc));
+        $addressB->appendChild($dom->createElement('PostCode', $factura->receptor_cpostal));
+        $addressB->appendChild($dom->createElement('Town', $factura->receptor_ciudad));
+        $addressB->appendChild($dom->createElement('Province', $factura->receptor_prov));
+        $addressB->appendChild($dom->createElement('CountryCode', $factura->receptor_cpais ?? 'ESP'));
         $legalB->appendChild($addressB);
 
         $contact = $dom->createElement('ContactDetails');
