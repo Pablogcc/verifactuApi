@@ -59,8 +59,8 @@ class FacturasPublicaSeeder extends Seeder
                 'numeroInstalacion' => '383',
                 'estado_proceso' => 0,
                 'estado_registro' => 1,
-                'oficontable' => '213asfawf214',
-                'orggestor' => 'WEQ QEW ET RT E',
+                'oficontable' => 'L01030993',
+                'orggestor' => 'L01030993',
                 'emisor_direc' => 'Calle Aragón',
                 'emisor_cpostal' => '03300',
                 'emisor_ciudad' => 'Orihuela',
@@ -86,7 +86,7 @@ class FacturasPublicaSeeder extends Seeder
                 'utramitadora_ciudad' => 'Orihuela',
                 'utramitadora_prov' => 'Alicante',
                 'utramitadora_cpais' => 'ESP',
-                'utramitadora' => '-__4353634663463463436434',
+                'utramitadora' => 'L01030993',
                 'created_at' => now(),
                 'updated_at' => now()
             ]

@@ -34,7 +34,8 @@ Route::get('notificacionCertificado', [CertificadosController::class, 'notificac
 
 Route::post('comprobarEstado', [CertificadosController::class, 'comprobacionEstado']);
 
+Route::post('comprobarEstado', [CertificadosController::class, 'comprobacionEstado']);
+
 Route::get('comprobarEstado', [CertificadosController::class, 'comprobacionEstado']);
 
-Route::get('codigoPostal', [CodigoPostalController::class, 'codigoPostal']);
-
+Route::post('codigos-postales', [CodigoPostalController::class, 'codigoPostal']);
