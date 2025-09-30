@@ -74,7 +74,7 @@ class FacturaXmlElectronica
         $addressS->appendChild($dom->createElement('PostCode', $factura->emisor_cpostal));
         $addressS->appendChild($dom->createElement('Town', $factura->emisor_ciudad));
         $addressS->appendChild($dom->createElement('Province', $factura->emisor_prov));
-        $addressS->appendChild($dom->createElement('CountryCode', $factura->emisor_cpais ?? 'ESP'));
+        $addressS->appendChild($dom->createElement('CountryCode', $factura->emisor_cpais));
         $legalS->appendChild($addressS);
 
         $seller->appendChild($legalS);
@@ -152,7 +152,7 @@ class FacturaXmlElectronica
         $addressB->appendChild($dom->createElement('PostCode', $factura->receptor_cpostal));
         $addressB->appendChild($dom->createElement('Town', $factura->receptor_ciudad));
         $addressB->appendChild($dom->createElement('Province', $factura->receptor_prov));
-        $addressB->appendChild($dom->createElement('CountryCode', $factura->receptor_cpais ?? 'ESP'));
+        $addressB->appendChild($dom->createElement('CountryCode', $factura->receptor_cpais));
         $legalB->appendChild($addressB);
 
         $contact = $dom->createElement('ContactDetails');
