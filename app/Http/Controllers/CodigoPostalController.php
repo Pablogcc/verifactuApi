@@ -13,5 +13,7 @@ class CodigoPostalController extends Controller
             'postCode' => 'required|string',
             'token' => ['required', 'string', 'in:sZQe4cxaEWeFBe3EPkeah0KqowVBLx']
         ]);
+
+        
     }
 }
