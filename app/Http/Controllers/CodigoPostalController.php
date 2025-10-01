@@ -26,18 +26,27 @@ class CodigoPostalController extends Controller
         //Buscamos si está ese código postal en la base de datos y los guardamos todos en una variable
         $codPostal = Ciudades::where('postCode', $data['postCode'])->get();
 
-            //Si existe código postal, mostramos todas las ciudades y la provincias con ese código postal
-            if ($codPostal) {
-                return response()->json([
-                    'resultado' => true,
-                    'coincidencias' => $codPostal
-                ]);
-            } else {
-                return response()->json([
-                    'resultado' => false,
-                    'mensaje' => 'Código postal no encontrado'
-                ]);
-            }
-        
+        //Ponemos lo que queremos que se muestre por pantalla de la base de datos, y también el código del país(ESP)
+        $codPostal = $codPostal->map(function ($item) {
+            return [
+                'postCode' => $item->postCode,
+                'ciudad' => $item->ciudad,
+                'provincia' => $item->provincia,
+                'countryCode' => 'ESP'
+            ];
+        });
+
+        //Si existe código postal, mostramos todas las ciudades y la provincias con ese código postal
+        if ($codPostal->isEmpty()) {
+            return response()->json([
+                'resultado' => false,
+                'mensaje' => 'Código postal no encontrado'
+            ]);
+        }
+
+        return response()->json([
+            'resultado' => true,
+            'coincidencias' => $codPostal
+        ]);
     }
 }
