@@ -16,8 +16,8 @@ class FacturasSeeder extends Seeder
 
         DB::table('facturas')->insert([
             [
-                'serie' => '22',
-                'numFactura' => '3',
+                'serie' => 'C1',
+                'numFactura' => '4',
                 'idVersion' => '1.0',
                 'idEmisorFactura' => 'B53816435',
                 'numSerieFactura' => '13/0000001',
