@@ -3,15 +3,24 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Ciudades;
+use App\Models\Poblaciones;
+use App\Services\FormateoCiudad;
 
 class CodigoPostalController extends Controller
 {
+    //Llamamos al servicio y lo guardamos
+    protected $formatter;
+
+    public function __function(FormateoCiudad $formatter)
+    {
+        $this->formatter = $formatter;
+    }
+
     public function codigoPostal(Request $request)
     {
         //Recogemos el campo del código postal y tambien hay que pasar el token para que sea correcto
         $data = $request->validate([
-            'postCode' => 'required|string',
+            'cp' => 'required|string',
             'token' => 'required|string'
         ]);
 
@@ -24,15 +33,16 @@ class CodigoPostalController extends Controller
         }
 
         //Buscamos si está ese código postal en la base de datos y los guardamos todos en una variable
-        $codPostal = Ciudades::where('postCode', $data['postCode'])->get();
+        $codPostal = Poblaciones::where('cp', $data['cp'])->get();
 
         //Ponemos lo que queremos que se muestre por pantalla de la base de datos, y también el código del país(ESP)
         $codPostal = $codPostal->map(function ($item) {
             return [
-                'postCode' => $item->postCode,
-                'ciudad' => $item->ciudad,
-                'provincia' => $item->provincia,
-                'countryCode' => 'ESP'
+                'cp' => $item->cp,
+                'poblacion' => $this->formatter->normalizar($item->poblacion),
+                'provincia_nombre' => $item->provincia_nombre,
+                'cpais' => 'ESP',
+                'pais' => 'España'
             ];
         });
 
