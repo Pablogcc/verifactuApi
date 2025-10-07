@@ -8,14 +8,6 @@ use App\Services\FormateoCiudad;
 
 class CodigoPostalController extends Controller
 {
-    //Llamamos al servicio y lo guardamos
-    protected $formatter;
-
-    public function __function(FormateoCiudad $formatter)
-    {
-        $this->formatter = $formatter;
-    }
-
     public function codigoPostal(Request $request)
     {
         //Recogemos el campo del código postal y tambien hay que pasar el token para que sea correcto
@@ -32,14 +24,18 @@ class CodigoPostalController extends Controller
             ]);
         }
 
+        //Llamamos al servicio para formatear los nombres de las ciudades
+        $formatter = new FormateoCiudad();
+
         //Buscamos si está ese código postal en la base de datos y los guardamos todos en una variable
         $codPostal = Poblaciones::where('cp', $data['cp'])->get();
 
-        //Ponemos lo que queremos que se muestre por pantalla de la base de datos, y también el código del país(ESP)
-        $codPostal = $codPostal->map(function ($item) {
+        //Ponemos lo que queremos que se muestre en el JSON el código postal, la población, la provincia, el país y también el código del país(ESP)
+        //La ciudad se formatea si está separada por ','(Ejemplo: HUERTOS, LOS => LOS HUERTOS)
+        $codPostal = $codPostal->map(function ($item) use ($formatter) {
             return [
                 'cp' => $item->cp,
-                'poblacion' => $this->formatter->normalizar($item->poblacion),
+                'poblacion' => $formatter->normalizar($item->poblacion),
                 'provincia_nombre' => $item->provincia_nombre,
                 'cpais' => 'ESP',
                 'pais' => 'España'
