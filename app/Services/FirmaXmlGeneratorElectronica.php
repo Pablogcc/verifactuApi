@@ -11,19 +11,46 @@ class FirmaXmlGeneratorElectronica
     {
         $keyPath  = storage_path("certs/{$cif}/key.pem");
         $certPath = storage_path("certs/{$cif}/cert.pem");
+        $pfxPath  = storage_path("certs/{$cif}/temp_cert.pfx");
 
+        // 🔹 Crear temporalmente el .pfx a partir de los .pem
         $privateKeyContent = file_get_contents($keyPath);
         $publicCertContent = file_get_contents($certPath);
 
+        $certData = openssl_x509_read($publicCertContent);
+        $pkeyData = openssl_pkey_get_private($privateKeyContent, $passwordCert);
+
+        if (!$certData || !$pkeyData) {
+            throw new \Exception("Error leyendo certificado o clave privada");
+        }
+
+        // Exportar PFX temporal (no lo guardamos de forma permanente)
+        $pfxExport = '';
+        if (!openssl_pkcs12_export($certData, $pfxExport, $pkeyData, $passwordCert)) {
+            throw new \Exception("Error generando PFX temporal");
+        }
+        file_put_contents($pfxPath, $pfxExport);
+
+        // 🔹 Cargar desde el .pfx para extraer certificado y clave
+        $certs = [];
+        if (!openssl_pkcs12_read($pfxExport, $certs, $passwordCert)) {
+            throw new \Exception("No se pudo leer el archivo PFX temporal");
+        }
+
+        $privateKeyContent = $certs['pkey'];
+        $publicCertContent = $certs['cert'];
+
+        // 🔹 Extraer solo el certificado base64 sin cabeceras
         preg_match_all('/-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----/s', $publicCertContent, $matches);
         $certFirma = preg_replace('/\s+/', '', $matches[1][0]);
 
-        //Cargar el XML
+        // 🔹 Cargar XML
         $doc = new \DOMDocument();
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = false;
         $doc->loadXML($xmlContent);
 
+        // 🔹 Preparar IDs únicos
         $uuid = uniqid();
         $sigId         = "Signature-$uuid-Signature";
         $signedPropsId = "Signature-$uuid-SignedProperties";
@@ -31,6 +58,7 @@ class FirmaXmlGeneratorElectronica
         $keyInfoId     = "Signature-$uuid-KeyInfo";
         $refId         = "Reference-" . uniqid();
 
+        // 🔹 Crear la firma
         $objDSig = new XMLSecurityDSig();
         $objDSig->setCanonicalMethod(XMLSecurityDSig::C14N);
 
@@ -41,45 +69,23 @@ class FirmaXmlGeneratorElectronica
             ['uri' => '', 'id' => $refId]
         );
 
-        $signedPropsNode = $doc->createElement('xades:SignedProperties');
-        $signedPropsNode->setAttribute('Id', $signedPropsId);
-
-        $objDSig->addReference(
-            $signedPropsNode,
-            XMLSecurityDSig::SHA1,
-            ['uri' => "#signedPropsId",  'type' => 'http://uri.etsi.org/01903#SignedProperties']
-        );
-
-        $dummyKeyInfo = $doc->createElement('ds:KeyInfo');
-        $dummyKeyInfo->setAttribute('Id', $keyInfoId);
-
-        $objDSig->addReference(
-            $signedPropsNode,
-            XMLSecurityDSig::SHA1,
-            null,
-            ['uri' => "#keyInfoId"]
-        );
-
+        // 🔹 Firmar con la clave privada del PFX
         $objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA1, ['type' => 'private']);
         $objKey->loadKey($privateKeyContent, false, false, $passwordCert);
 
         $objDSig->sign($objKey);
-
         $objDSig->add509Cert($certFirma, false, false);
-
         $objDSig->appendSignature($doc->documentElement);
 
+        // 🔹 Añadir información de clave y certificado
         $sigNode = $doc->getElementsByTagName('Signature')->item(0);
         $sigNode->setAttribute('Id', $sigId);
 
-        // ---- Construir KeyInfo con RSA + Cert ----
         $keyInfo = $doc->getElementsByTagName('KeyInfo')->item(0);
         $keyInfo->setAttribute('Id', $keyInfoId);
 
-        // Extraer modulus y exponent de la clave pública
         $pubKey = openssl_pkey_get_public($publicCertContent);
         $details = openssl_pkey_get_details($pubKey);
-
         $modulus  = base64_encode($details['rsa']['n']);
         $exponent = base64_encode($details['rsa']['e']);
 
@@ -88,42 +94,10 @@ class FirmaXmlGeneratorElectronica
         $rsaKey->appendChild($doc->createElement('ds:Modulus', $modulus));
         $rsaKey->appendChild($doc->createElement('ds:Exponent', $exponent));
         $keyValue->appendChild($rsaKey);
-
         $keyInfo->insertBefore($keyValue, $keyInfo->firstChild);
 
-        // ---- Construir xades:QualifyingProperties ----
-        $qualifyingProps = $doc->createElementNS('http://uri.etsi.org/01903/v1.3.2#', 'xades:QualifyingProperties');
-        $qualifyingProps->setAttribute('Id', $qualifyingId);
-        $qualifyingProps->setAttribute('Target', "#$sigId");
-
-        $signedProps = $doc->createElement('xades:SignedProperties');
-        $signedProps->setAttribute('Id', $signedPropsId);
-
-        // SignedSignatureProperties
-        $signedSigProps = $doc->createElement('xades:SignedSignatureProperties');
-        $signingTime = $doc->createElement('xades:SigningTime', gmdate('Y-m-d\TH:i:s\Z'));
-        $signedSigProps->appendChild($signingTime);
-
-        // Certificado con Digest + IssuerSerial
-        $certDigestValue = base64_encode(sha1(base64_decode($certFirma), true));
-        $signingCert = $doc->createElement('xades:SigningCertificate');
-        $certEl = $doc->createElement('xades:Cert');
-        $certDigest = $doc->createElement('xades:CertDigest');
-        $dm = $doc->createElement('ds:DigestMethod');
-        $dm->setAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#sha1');
-        $dv = $doc->createElement('ds:DigestValue', $certDigestValue);
-        $certDigest->appendChild($dm);
-        $certDigest->appendChild($dv);
-        $certEl->appendChild($certDigest);
-
+        // 🔹 Información del certificado (IssuerSerial)
         $certInfo = openssl_x509_parse($publicCertContent);
-
-        /*$issuerName = $certInfo['issuer'] ?? [];
-        $issuerNameStr = '';
-        foreach ($issuerName as $key => $value) {
-            $issuerNameStr .= "$key=$value,";
-        }*/
-
         $issuerParts = [];
         foreach (['CN', 'serialNumber', 'OU', 'O', 'C'] as $field) {
             if (isset($certInfo['issuer'][$field])) {
@@ -134,16 +108,36 @@ class FirmaXmlGeneratorElectronica
                 $issuerParts[] = $field . '=' . $val;
             }
         }
-
         $issuerNameStr = implode(',', $issuerParts);
-
         $serialNumber = $certInfo['serialNumber'] ?? '';
+
+        // 🔹 Crear QualifyingProperties y SignedProperties
+        $certDigestValue = base64_encode(sha1(base64_decode($certFirma), true));
+        $qualifyingProps = $doc->createElementNS('http://uri.etsi.org/01903/v1.3.2#', 'xades:QualifyingProperties');
+        $qualifyingProps->setAttribute('Id', $qualifyingId);
+        $qualifyingProps->setAttribute('Target', "#$sigId");
+
+        $signedProps = $doc->createElement('xades:SignedProperties');
+        $signedProps->setAttribute('Id', $signedPropsId);
+
+        $signedSigProps = $doc->createElement('xades:SignedSignatureProperties');
+        $signingTime = $doc->createElement('xades:SigningTime', gmdate('Y-m-d\TH:i:s\Z'));
+        $signedSigProps->appendChild($signingTime);
+
+        $signingCert = $doc->createElement('xades:SigningCertificate');
+        $certEl = $doc->createElement('xades:Cert');
+        $certDigest = $doc->createElement('xades:CertDigest');
+        $dm = $doc->createElement('ds:DigestMethod');
+        $dm->setAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#sha1');
+        $dv = $doc->createElement('ds:DigestValue', $certDigestValue);
+        $certDigest->appendChild($dm);
+        $certDigest->appendChild($dv);
+        $certEl->appendChild($certDigest);
 
         $issuerSerial = $doc->createElement('xades:IssuerSerial');
         $issuerSerial->appendChild($doc->createElement('ds:X509IssuerName', $issuerNameStr));
         $issuerSerial->appendChild($doc->createElement('ds:X509SerialNumber', $serialNumber));
         $certEl->appendChild($issuerSerial);
-
         $signingCert->appendChild($certEl);
         $signedSigProps->appendChild($signingCert);
 
@@ -153,14 +147,13 @@ class FirmaXmlGeneratorElectronica
         $sigIdNode = $doc->createElement('xades:SigPolicyId');
         $identifier = $doc->createElement('xades:Identifier', 'http://www.facturae.es/politica_de_firma_formato_facturae/politica_de_firma_formato_facturae_v3_1.pdf');
         $sigIdNode->appendChild($identifier);
-        $description = $doc->createElement('xades:Description', 'facturae31');
-        $sigIdNode->appendChild($description);
+        $sigIdNode->appendChild($doc->createElement('xades:Description', 'facturae31'));
         $sigPolicyIdEl->appendChild($sigIdNode);
 
         $hash = $doc->createElement('xades:SigPolicyHash');
         $digestMethod = $doc->createElement('ds:DigestMethod');
         $digestMethod->setAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#sha1');
-        $digestValue = $doc->createElement('ds:DigestValue', 'Ohixl6upD6av8N7pEvDABhEL6hM=');
+        $digestValue = $doc->createElement('ds:DigestValue', 'ZLxA0XpqFzT1o01gXgh3R4Q4ph8=');
         $hash->appendChild($digestMethod);
         $hash->appendChild($digestValue);
 
@@ -168,37 +161,22 @@ class FirmaXmlGeneratorElectronica
         $sigPolicyId->appendChild($sigPolicyIdEl);
         $signedSigProps->appendChild($sigPolicyId);
 
-        // Rol emisor
         $signerRole = $doc->createElement('xades:SignerRole');
         $claimedRoles = $doc->createElement('xades:ClaimedRoles');
-        $claimedRole = $doc->createElement('xades:ClaimedRole', 'emisor');
-        $claimedRoles->appendChild($claimedRole);
+        $claimedRoles->appendChild($doc->createElement('xades:ClaimedRole', 'emisor'));
         $signerRole->appendChild($claimedRoles);
         $signedSigProps->appendChild($signerRole);
 
         $signedProps->appendChild($signedSigProps);
 
-        // SignedDataObjectProperties
-        $signedDataObjProps = $doc->createElement('xades:SignedDataObjectProperties');
-        $dataObjFormat = $doc->createElement('xades:DataObjectFormat');
-        $dataObjFormat->setAttribute('ObjectReference', "#$refId");
-        $objId = $doc->createElement('xades:ObjectIdentifier');
-        $objIdentifier = $doc->createElement('xades:Identifier', 'urn:oid:1.2.840.10003.5.109.10');
-        $objIdentifier->setAttribute('Qualifier', 'OIDAsURN');
-        $objId->appendChild($objIdentifier);
-        $objId->appendChild($doc->createElement('xades:Description'));
-        $dataObjFormat->appendChild($objId);
-        $dataObjFormat->appendChild($doc->createElement('xades:MimeType', 'text/xml'));
-        $dataObjFormat->appendChild($doc->createElement('xades:Encoding', 'UTF-8'));
-        $signedDataObjProps->appendChild($dataObjFormat);
-        $signedProps->appendChild($signedDataObjProps);
-
         $qualifyingProps->appendChild($signedProps);
-
         $objectNode = $doc->createElement('ds:Object');
         $objectNode->appendChild($qualifyingProps);
-
         $sigNode->appendChild($objectNode);
+
+        if (file_exists($pfxPath)) {
+            unlink($pfxPath);
+        }
 
         return $doc->saveXML();
     }

@@ -16,11 +16,11 @@ class FacturasSeeder extends Seeder
 
         DB::table('facturas')->insert([
             [
-                'serie' => 'C1',
-                'numFactura' => '4',
+                'serie' => 'HE',
+                'numFactura' => '15',
                 'idVersion' => '1.0',
                 'idEmisorFactura' => 'B53816435',
-                'numSerieFactura' => '13/0000001',
+                'numSerieFactura' => 'HE/0000014',
                 'fechaExpedicionFactura' => '24-07-2025',
                 'nombreEmisor' => 'ALBERTO BARBERA FERRANDEZ',
                 'cifEmisor' => 'B53816435',
@@ -60,7 +60,7 @@ class FacturasSeeder extends Seeder
                 'versionSoftware' => '2.1.4',
                 'numeroInstalacion' => '383',
                 'estado_proceso' => 0,
-                'estado_registro' => 1,
+                'estado_registro' => 0,
                 'emisor_direc' => 'Calle Aragón',
                 'emisor_cpostal' => '03300',
                 'emisor_ciudad' => 'Orihuela',

@@ -60,9 +60,10 @@ class VerifactuController extends Controller
                         $factura->huellaAnterior = $facturaAnterior->huella;
                     } else {
                         // No encontrada: deja vacíos o nulos
-                        $factura->IDEmisorFacturaAnterior = '';
-                        $factura->numSerieFacturaAnterior = '';
-                        $factura->FechaExpedicionFacturaAnterior = '';
+                        $factura->IDEmisorFacturaAnterior = $factura->idEmisorFactura;
+                        $factura->numSerieFacturaAnterior = $factura->numSerieFactura;
+                        $factura->FechaExpedicionFacturaAnterior = $factura->fechaExpedicionFactura;
+                        $factura->huellaAnterior = $factura->huella;
                     }
                 } else {
                     // Primera factura: no tiene anterior
