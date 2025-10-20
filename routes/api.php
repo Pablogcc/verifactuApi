@@ -36,6 +36,4 @@ Route::post('comprobarEstado', [CertificadosController::class, 'comprobacionEsta
 
 Route::post('comprobarEstado', [CertificadosController::class, 'comprobacionEstado']);
 
-Route::get('comprobarEstado', [CertificadosController::class, 'comprobacionEstado']);
-
 Route::post('codigos-postales', [CodigoPostalController::class, 'codigoPostal']);

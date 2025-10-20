@@ -21,10 +21,17 @@ class FacturaElcetronicaController extends Controller
                 'serie' => "required|string",
                 'numero' => 'required|integer',
                 'ejercicio' => 'required|integer',
-                'token' => ['required', 'string', 'in:sZQe4cxaEWeFBe3EPkeah0KqowVBLx'],
+                'token' => 'required|string',
                 'firmada' => 'nullable|integer|in:1,0'
             ]
         );
+
+        if ($data['token'] !== 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
+            return response()->json([
+                'resultado' => false,
+                'mensaje' => 'Token incorrecto'
+            ]);
+        }
 
         $firmada = $data['firmada'] ?? 1;
 
@@ -39,7 +46,7 @@ class FacturaElcetronicaController extends Controller
             ->where('ejercicio', $data['ejercicio'])
             ->first();
 
-        //Si la factura existe, comprobamnos si está su certificado en la tabla emisores
+        //Si la factura existe, comprobamos si está su certificado en la tabla emisores
         if ($factura) {
             $emisor = Emisores::where('cif', $data['cif'])->first();
             if (!$emisor) {
