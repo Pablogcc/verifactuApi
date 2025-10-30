@@ -33,5 +33,7 @@ Route::post('facturaElectronica', [FacturaElcetronicaController::class, 'factura
 Route::get('notificacionCertificado', [CertificadosController::class, 'notificacion']);
 
 Route::post('comprobarEstado', [CertificadosController::class, 'comprobacionEstado']);
-
+ 
 Route::post('codigos-postales', [CodigoPostalController::class, 'codigoPostal']);
+
+Route::post('verifactuAgrupados', [VerifactuController::class, 'verifactuAgrupados']);
