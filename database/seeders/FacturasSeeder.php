@@ -16,14 +16,14 @@ class FacturasSeeder extends Seeder
 
         DB::table('facturas')->insert([
             [
-                'serie' => 'AD',
-                'numFactura' => '1',
+                'serie' => '91',
+                'numFactura' => '3',
                 'idVersion' => '1.0',
                 'idEmisorFactura' => '48456925L',
-                'numSerieFactura' => 'AB/0000001',
+                'numSerieFactura' => '91/0000003',
                 'fechaExpedicionFactura' => '24-07-2025',
                 'nombreEmisor' => 'ALBERTO BARBERA FERRANDEZ',
-                'cifEmisor' => '48456925L',
+                'cifEmisor' => '22949742C',
                 'tipoFactura' => 'F1',
                 'fechaOperacion' => '24-07-2025',
                 'descripcionOperacion' => 'Venta',
