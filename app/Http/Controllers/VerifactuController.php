@@ -13,6 +13,253 @@ use Carbon\Carbon;
 class VerifactuController extends Controller
 {
 
+    public function verifactuPrueba(Request $request)
+    {
+        //Añadimos un token a la url para la petición get
+        $token = $request->query('token');
+
+        //Llamamos al servicio del certificado digital para luego enviarselo a la api
+        $verifactuService = new ClientesSOAPVerifactu();
+
+        //Guardamos el total de facturas que se han guardado
+        $totalFacturas = 0;
+        $totalTiempo = 0;
+
+        // Instancias necesarias (aquí se crean UNA sola vez)
+        $xmlGenerator = new \App\Services\FacturaXmlGenerator();
+        $agrupadorXmlService = new \App\Services\AgrupadorFacturasXmlService($xmlGenerator);
+
+        //Almacenamos las facturas que su estado_proceso esté desbloqueada y su estado_registro esté sin presentar a la AEAT
+        $facturas = Facturas::where('estado_proceso', 0)
+            ->where('estado_registro', 0)
+            ->orderBy('idEmisorFactura')
+            ->orderBy('id')
+            ->get();
+
+        // Si no hay facturas, salir pronto (se mantiene el control de token al final)
+        if ($facturas->isEmpty()) {
+            if ($token === 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'No hay facturas para procesar.',
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Token incorrecto"
+                ]);
+            }
+        }
+
+        // Agrupar por emisor (idEmisorFactura) — un XML por emisor
+        $porEmisor = $facturas->groupBy('idEmisorFactura');
+
+        foreach ($porEmisor as $cifEmisor => $grupo) {
+            // Antes de crear el XML agrupado, asegurarnos de rellenar encadenamiento/huella
+            foreach ($grupo as $factura) {
+                $numero = $factura->numFactura;
+                $serie = $factura->serie;
+                $fechaEjercicio = $factura->ejercicio;
+                $currentId = $factura->id;
+
+                // Buscamos la factura anterior del mismo emisor con id menor (la más cercana)
+                $facturaAnterior = Facturas::where('idEmisorFactura', $cifEmisor)
+                    ->where('id', '<', $currentId)
+                    ->orderBy('id', 'desc')
+                    ->first();
+
+                if ($facturaAnterior) {
+                    $factura->IDEmisorFacturaAnterior = $facturaAnterior->idEmisorFactura;
+                    $factura->numSerieFacturaAnterior = $facturaAnterior->numSerieFactura;
+                    $factura->FechaExpedicionFacturaAnterior = $facturaAnterior->fechaExpedicionFactura;
+                    $factura->huellaAnterior = $facturaAnterior->huella;
+                } else {
+                    // Igual que antes: si no hay anterior, se usan los datos de la misma factura
+                    $factura->IDEmisorFacturaAnterior = $factura->idEmisorFactura;
+                    $factura->numSerieFacturaAnterior = $factura->numSerieFactura;
+                    $factura->FechaExpedicionFacturaAnterior = $factura->fechaExpedicionFactura;
+                    $factura->huellaAnterior = $factura->huella;
+                }
+            }
+
+            // Construir XML agrupado PARA ESTE EMISOR (incluye N sum:RegistroFactura)
+            try {
+                $xmlAgrupado = $agrupadorXmlService->buildGroupedXml($grupo);
+
+                // Guardar UN SÓLO fichero en storage/facturas por emisor
+                $carpetaOrigen = storage_path('facturas');
+                if (!file_exists($carpetaOrigen)) {
+                    @mkdir($carpetaOrigen, 0755, true);
+                }
+                $rutaAgrupado = $carpetaOrigen . '/agrupado_' . $cifEmisor . '_' . date('Ymd_His') . '.xml';
+                file_put_contents($rutaAgrupado, $xmlAgrupado);
+            } catch (\Throwable $e) {
+                // Si falla la creación del XML agrupado para este emisor, marcamos todas sus facturas con error y seguimos con el siguiente emisor
+                foreach ($grupo as $f) {
+                    $f->estado_proceso = 1;
+                    $f->estado_registro = 0;
+                    $f->error = 'Error creando XML agrupado: ' . $e->getMessage();
+                    $f->save();
+                }
+                continue;
+            }
+
+            // Enviar el XML agrupado UNA SOLA VEZ para este emisor y procesar la respuesta
+            $inicioEnvio = microtime(true);
+
+            try {
+                // actualizar rutas (certificado) para el emisor
+                $verifactuService->actualizarRutas($cifEmisor);
+                $respuestaXml = $verifactuService->enviarFactura($xmlAgrupado);
+
+                // --- Nuevo parseo robusto para respuestas agrupadas (DOM + XPath) ---
+                libxml_use_internal_errors(true);
+                $dom = new \DOMDocument();
+
+                if (!@$dom->loadXML($respuestaXml)) {
+                    // Si la respuesta no es XML, marcamos todas las facturas del grupo como error
+                    foreach ($grupo as $f) {
+                        $f->estado_proceso = 1;
+                        $f->estado_registro = 0;
+                        $f->error = 'Respuesta no es XML válido: ' . $respuestaXml;
+                        $f->save();
+                    }
+                    continue;
+                }
+
+                $xpath = new \DOMXPath($dom);
+
+                // Registramos los namespaces típicos (si cambian, el fallback sin prefijo funcionará)
+                $xpath->registerNamespace('env', 'http://schemas.xmlsoap.org/soap/envelope/');
+                $xpath->registerNamespace('tikR', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd');
+                $xpath->registerNamespace('tik', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd');
+
+                // Buscamos todas las RespuestaLinea (con o sin prefijos)
+                $lineaNodes = $xpath->query('//tikR:RespuestaLinea | //tik:RespuestaLinea | //RespuestaLinea');
+
+                $acceptedCount = 0;
+                $elapsedMs = intval((microtime(true) - $inicioEnvio) * 1000);
+
+                if ($lineaNodes->length > 0) {
+                    foreach ($lineaNodes as $node) {
+                        // Extraer NumSerieFactura (primero intentamos las formas namespaced y luego sin namespace)
+                        $numSerieNode = $xpath->query('.//tik:IDFactura/tik:NumSerieFactura', $node);
+                        if ($numSerieNode->length === 0) {
+                            $numSerieNode = $xpath->query('.//tik:NumSerieFactura', $node);
+                        }
+                        if ($numSerieNode->length === 0) {
+                            $numSerieNode = $xpath->query('.//IDFactura/NumSerieFactura', $node);
+                        }
+                        if ($numSerieNode->length === 0) {
+                            $numSerieNode = $xpath->query('.//NumSerieFactura', $node);
+                        }
+
+                        $numSerie = $numSerieNode->length ? trim($numSerieNode->item(0)->textContent) : '';
+
+                        if ($numSerie === '') {
+                            // Si no hay referencia de serie, intentamos extraer IDEmisor + Fecha para localizar si es necesario (opcional)
+                            // En este ejemplo saltamos si no encontramos NumSerie.
+                            continue;
+                        }
+
+                        // buscar factura en el grupo por numSerieFactura (normalizando)
+                        $factura = $grupo->first(function ($f) use ($numSerie) {
+                            return strtoupper(trim((string)$f->numSerieFactura)) === strtoupper(trim($numSerie));
+                        });
+
+                        if (! $factura) {
+                            // no encontrada: saltar (puede ser que la factura no exista en BD o haya otra normalización)
+                            continue;
+                        }
+
+                        // Extraer EstadoRegistro y DescripcionErrorRegistro (varias rutas posibles)
+                        $estadoNode = $xpath->query('.//tikR:EstadoRegistro | .//EstadoRegistro', $node);
+                        $estadoRegistro = $estadoNode->length ? trim($estadoNode->item(0)->textContent) : '';
+
+                        $descripcionNode = $xpath->query('.//tikR:DescripcionErrorRegistro | .//DescripcionErrorRegistro', $node);
+                        $descripcionError = $descripcionNode->length ? trim($descripcionNode->item(0)->textContent) : '';
+
+                        // Comprueba RegistroDuplicado -> EstadoRegistroDuplicado (si existe)
+                        $registroDuplicadoNode = $xpath->query('.//tik:RegistroDuplicado/tik:EstadoRegistroDuplicado | .//RegistroDuplicado/EstadoRegistroDuplicado | .//EstadoRegistroDuplicado', $node);
+                        $estadoRegistroDuplicado = $registroDuplicadoNode->length ? trim($registroDuplicadoNode->item(0)->textContent) : '';
+                        $aceptadoConErrores = ($estadoRegistroDuplicado === 'AceptadoConErrores');
+
+                        // Mapear a estados de la BD como lo haces en el flujo individual
+                        if ($estadoRegistro === 'Correcto' || $estadoRegistro === 'AceptadoConErrores' || $aceptadoConErrores) {
+                            $factura->estado_proceso = 0;
+                            $factura->estado_registro = 1;
+                            $factura->error = ($estadoRegistro === 'AceptadoConErrores' || $aceptadoConErrores)
+                                ? 'Aceptada con errores: ' . ($descripcionError ?: $estadoRegistroDuplicado)
+                                : null;
+                            $factura->save();
+                            $acceptedCount++;
+                        } elseif ($estadoRegistro === 'Incorrecto') {
+                            $factura->estado_proceso = 0;
+                            $factura->estado_registro = 2;
+                            $factura->error = 'Rechazada: ' . $descripcionError;
+                            $factura->save();
+                        } else {
+                            // Estado no reconocido: guardamos para inspección
+                            $factura->estado_proceso = 0;
+                            $factura->estado_registro = 2;
+                            $factura->error = "Respuesta no reconocida: EstadoRegistro=$estadoRegistro - Descripcion=$descripcionError - XML bruto: " . trim($dom->saveXML($node));
+                            $factura->save();
+                        }
+                    } // foreach lineas
+
+                    // contabilizar tiempos y facturas aceptadas
+                    if ($acceptedCount > 0) {
+                        $totalFacturas += $acceptedCount;
+                        $totalTiempo += $elapsedMs;
+                    }
+                } else {
+                    // No se encontraron RespuestaLinea: marcar todas las facturas del grupo con error
+                    foreach ($grupo as $f) {
+                        $f->estado_proceso = 1;
+                        $f->estado_registro = 0;
+                        $f->error = 'No se encontraron RespuestaLinea en la respuesta agrupada.';
+                        $f->save();
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Error al enviar/procesar agrupado: marcar todas las facturas del grupo como error
+                foreach ($grupo as $f) {
+                    $f->estado_proceso = 1;
+                    $f->estado_registro = 0;
+                    $f->error = 'Error en envío/procesado agrupado: ' . $e->getMessage();
+                    $f->save();
+                }
+                continue;
+            }
+        } // foreach porEmisor
+
+        // Guardar logs
+        if ($totalFacturas > 0) {
+            $mediaTiempo = intval($totalTiempo / $totalFacturas);
+            DB::table('facturas_logs')->insert([
+                'cantidad_facturas' => $totalFacturas,
+                'media_tiempo_ms' => $mediaTiempo,
+                'periodo' => now()->startOfMinute(),
+                'tipo_factura' => 'desbloqueadas',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        //Comprobamos que el token está puesto en la url, si no, da error al enviar la petición
+        if ($token === 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
+            return response()->json([
+                'success' => true,
+                'message' => "Facturas procesadas: $totalFacturas",
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => "Token incorrecto"
+            ]);
+        }
+    }
+
     public function verifactuPruebaAntiguo(Request $request)
     {
         //Añadimos un token a la url para la petición get
@@ -393,253 +640,6 @@ class VerifactuController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Token incorrecto'
-            ]);
-        }
-    }
-
-    public function verifactuPrueba(Request $request)
-    {
-        //Añadimos un token a la url para la petición get
-        $token = $request->query('token');
-
-        //Llamamos al servicio del certificado digital para luego enviarselo a la api
-        $verifactuService = new ClientesSOAPVerifactu();
-
-        //Guardamos el total de facturas que se han guardado
-        $totalFacturas = 0;
-        $totalTiempo = 0;
-
-        // Instancias necesarias (aquí se crean UNA sola vez)
-        $xmlGenerator = new \App\Services\FacturaXmlGenerator();
-        $agrupadorXmlService = new \App\Services\AgrupadorFacturasXmlService($xmlGenerator);
-
-        //Almacenamos las facturas que su estado_proceso esté desbloqueada y su estado_registro esté sin presentar a la AEAT
-        $facturas = Facturas::where('estado_proceso', 0)
-            ->where('estado_registro', 0)
-            ->orderBy('idEmisorFactura')
-            ->orderBy('id')
-            ->get();
-
-        // Si no hay facturas, salir pronto (se mantiene el control de token al final)
-        if ($facturas->isEmpty()) {
-            if ($token === 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'No hay facturas para procesar.',
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Token incorrecto"
-                ]);
-            }
-        }
-
-        // Agrupar por emisor (idEmisorFactura) — un XML por emisor
-        $porEmisor = $facturas->groupBy('idEmisorFactura');
-
-        foreach ($porEmisor as $cifEmisor => $grupo) {
-            // Antes de crear el XML agrupado, asegurarnos de rellenar encadenamiento/huella
-            foreach ($grupo as $factura) {
-                $numero = $factura->numFactura;
-                $serie = $factura->serie;
-                $fechaEjercicio = $factura->ejercicio;
-                $currentId = $factura->id;
-
-                // Buscamos la factura anterior del mismo emisor con id menor (la más cercana)
-                $facturaAnterior = Facturas::where('idEmisorFactura', $cifEmisor)
-                    ->where('id', '<', $currentId)
-                    ->orderBy('id', 'desc')
-                    ->first();
-
-                if ($facturaAnterior) {
-                    $factura->IDEmisorFacturaAnterior = $facturaAnterior->idEmisorFactura;
-                    $factura->numSerieFacturaAnterior = $facturaAnterior->numSerieFactura;
-                    $factura->FechaExpedicionFacturaAnterior = $facturaAnterior->fechaExpedicionFactura;
-                    $factura->huellaAnterior = $facturaAnterior->huella;
-                } else {
-                    // Igual que antes: si no hay anterior, se usan los datos de la misma factura
-                    $factura->IDEmisorFacturaAnterior = $factura->idEmisorFactura;
-                    $factura->numSerieFacturaAnterior = $factura->numSerieFactura;
-                    $factura->FechaExpedicionFacturaAnterior = $factura->fechaExpedicionFactura;
-                    $factura->huellaAnterior = $factura->huella;
-                }
-            }
-
-            // Construir XML agrupado PARA ESTE EMISOR (incluye N sum:RegistroFactura)
-            try {
-                $xmlAgrupado = $agrupadorXmlService->buildGroupedXml($grupo);
-
-                // Guardar UN SÓLO fichero en storage/facturas por emisor
-                $carpetaOrigen = storage_path('facturas');
-                if (!file_exists($carpetaOrigen)) {
-                    @mkdir($carpetaOrigen, 0755, true);
-                }
-                $rutaAgrupado = $carpetaOrigen . '/agrupado_' . $cifEmisor . '_' . date('Ymd_His') . '.xml';
-                file_put_contents($rutaAgrupado, $xmlAgrupado);
-            } catch (\Throwable $e) {
-                // Si falla la creación del XML agrupado para este emisor, marcamos todas sus facturas con error y seguimos con el siguiente emisor
-                foreach ($grupo as $f) {
-                    $f->estado_proceso = 1;
-                    $f->estado_registro = 0;
-                    $f->error = 'Error creando XML agrupado: ' . $e->getMessage();
-                    $f->save();
-                }
-                continue;
-            }
-
-            // Enviar el XML agrupado UNA SOLA VEZ para este emisor y procesar la respuesta
-            $inicioEnvio = microtime(true);
-
-            try {
-                // actualizar rutas (certificado) para el emisor
-                $verifactuService->actualizarRutas($cifEmisor);
-                $respuestaXml = $verifactuService->enviarFactura($xmlAgrupado);
-
-                // --- Nuevo parseo robusto para respuestas agrupadas (DOM + XPath) ---
-                libxml_use_internal_errors(true);
-                $dom = new \DOMDocument();
-
-                if (!@$dom->loadXML($respuestaXml)) {
-                    // Si la respuesta no es XML, marcamos todas las facturas del grupo como error
-                    foreach ($grupo as $f) {
-                        $f->estado_proceso = 1;
-                        $f->estado_registro = 0;
-                        $f->error = 'Respuesta no es XML válido: ' . $respuestaXml;
-                        $f->save();
-                    }
-                    continue;
-                }
-
-                $xpath = new \DOMXPath($dom);
-
-                // Registramos los namespaces típicos (si cambian, el fallback sin prefijo funcionará)
-                $xpath->registerNamespace('env', 'http://schemas.xmlsoap.org/soap/envelope/');
-                $xpath->registerNamespace('tikR', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd');
-                $xpath->registerNamespace('tik', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd');
-
-                // Buscamos todas las RespuestaLinea (con o sin prefijos)
-                $lineaNodes = $xpath->query('//tikR:RespuestaLinea | //tik:RespuestaLinea | //RespuestaLinea');
-
-                $acceptedCount = 0;
-                $elapsedMs = intval((microtime(true) - $inicioEnvio) * 1000);
-
-                if ($lineaNodes->length > 0) {
-                    foreach ($lineaNodes as $node) {
-                        // Extraer NumSerieFactura (primero intentamos las formas namespaced y luego sin namespace)
-                        $numSerieNode = $xpath->query('.//tik:IDFactura/tik:NumSerieFactura', $node);
-                        if ($numSerieNode->length === 0) {
-                            $numSerieNode = $xpath->query('.//tik:NumSerieFactura', $node);
-                        }
-                        if ($numSerieNode->length === 0) {
-                            $numSerieNode = $xpath->query('.//IDFactura/NumSerieFactura', $node);
-                        }
-                        if ($numSerieNode->length === 0) {
-                            $numSerieNode = $xpath->query('.//NumSerieFactura', $node);
-                        }
-
-                        $numSerie = $numSerieNode->length ? trim($numSerieNode->item(0)->textContent) : '';
-
-                        if ($numSerie === '') {
-                            // Si no hay referencia de serie, intentamos extraer IDEmisor + Fecha para localizar si es necesario (opcional)
-                            // En este ejemplo saltamos si no encontramos NumSerie.
-                            continue;
-                        }
-
-                        // buscar factura en el grupo por numSerieFactura (normalizando)
-                        $factura = $grupo->first(function ($f) use ($numSerie) {
-                            return strtoupper(trim((string)$f->numSerieFactura)) === strtoupper(trim($numSerie));
-                        });
-
-                        if (! $factura) {
-                            // no encontrada: saltar (puede ser que la factura no exista en BD o haya otra normalización)
-                            continue;
-                        }
-
-                        // Extraer EstadoRegistro y DescripcionErrorRegistro (varias rutas posibles)
-                        $estadoNode = $xpath->query('.//tikR:EstadoRegistro | .//EstadoRegistro', $node);
-                        $estadoRegistro = $estadoNode->length ? trim($estadoNode->item(0)->textContent) : '';
-
-                        $descripcionNode = $xpath->query('.//tikR:DescripcionErrorRegistro | .//DescripcionErrorRegistro', $node);
-                        $descripcionError = $descripcionNode->length ? trim($descripcionNode->item(0)->textContent) : '';
-
-                        // Comprueba RegistroDuplicado -> EstadoRegistroDuplicado (si existe)
-                        $registroDuplicadoNode = $xpath->query('.//tik:RegistroDuplicado/tik:EstadoRegistroDuplicado | .//RegistroDuplicado/EstadoRegistroDuplicado | .//EstadoRegistroDuplicado', $node);
-                        $estadoRegistroDuplicado = $registroDuplicadoNode->length ? trim($registroDuplicadoNode->item(0)->textContent) : '';
-                        $aceptadoConErrores = ($estadoRegistroDuplicado === 'AceptadoConErrores');
-
-                        // Mapear a estados de la BD como lo haces en el flujo individual
-                        if ($estadoRegistro === 'Correcto' || $estadoRegistro === 'AceptadoConErrores' || $aceptadoConErrores) {
-                            $factura->estado_proceso = 0;
-                            $factura->estado_registro = 1;
-                            $factura->error = ($estadoRegistro === 'AceptadoConErrores' || $aceptadoConErrores)
-                                ? 'Aceptada con errores: ' . ($descripcionError ?: $estadoRegistroDuplicado)
-                                : null;
-                            $factura->save();
-                            $acceptedCount++;
-                        } elseif ($estadoRegistro === 'Incorrecto') {
-                            $factura->estado_proceso = 0;
-                            $factura->estado_registro = 2;
-                            $factura->error = 'Rechazada: ' . $descripcionError;
-                            $factura->save();
-                        } else {
-                            // Estado no reconocido: guardamos para inspección
-                            $factura->estado_proceso = 0;
-                            $factura->estado_registro = 2;
-                            $factura->error = "Respuesta no reconocida: EstadoRegistro=$estadoRegistro - Descripcion=$descripcionError - XML bruto: " . trim($dom->saveXML($node));
-                            $factura->save();
-                        }
-                    } // foreach lineas
-
-                    // contabilizar tiempos y facturas aceptadas
-                    if ($acceptedCount > 0) {
-                        $totalFacturas += $acceptedCount;
-                        $totalTiempo += $elapsedMs;
-                    }
-                } else {
-                    // No se encontraron RespuestaLinea: marcar todas las facturas del grupo con error
-                    foreach ($grupo as $f) {
-                        $f->estado_proceso = 1;
-                        $f->estado_registro = 0;
-                        $f->error = 'No se encontraron RespuestaLinea en la respuesta agrupada.';
-                        $f->save();
-                    }
-                }
-            } catch (\Throwable $e) {
-                // Error al enviar/procesar agrupado: marcar todas las facturas del grupo como error
-                foreach ($grupo as $f) {
-                    $f->estado_proceso = 1;
-                    $f->estado_registro = 0;
-                    $f->error = 'Error en envío/procesado agrupado: ' . $e->getMessage();
-                    $f->save();
-                }
-                continue;
-            }
-        } // foreach porEmisor
-
-        // Guardar logs
-        if ($totalFacturas > 0) {
-            $mediaTiempo = intval($totalTiempo / $totalFacturas);
-            DB::table('facturas_logs')->insert([
-                'cantidad_facturas' => $totalFacturas,
-                'media_tiempo_ms' => $mediaTiempo,
-                'periodo' => now()->startOfMinute(),
-                'tipo_factura' => 'desbloqueadas',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-
-        //Comprobamos que el token está puesto en la url, si no, da error al enviar la petición
-        if ($token === 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
-            return response()->json([
-                'success' => true,
-                'message' => "Facturas procesadas: $totalFacturas",
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => "Token incorrecto"
             ]);
         }
     }
