@@ -14,37 +14,51 @@ class ConsultaCDIController extends Controller
     public function validarDNI(Request $request)
     {
         //Recogemos el nif, el nombre y el token por el body(los tres son requeridos)
-        //Ponemos un mensaje si el token no es válido
-        $message = [
-            'token.in' => 'El token no es válido.',
-        ];
-
-        //Aquí es donde recogemos los campos
+        //Aquí es donde recogemos los campos (opcional)
         // idTypeNum = 01 -> DNI nacional
         // idTypeNum = 02 -> DNI intracomunitario
         // idTypeNum = 03 -> DNI extranjero
         $data = $request->validate([
             'nif' => 'required|string',
             'nombre' => 'required|string',
-            'idTypeNum' => 'nullable|string|in:01,02,03',
-            'token' => ['required', 'string', 'in:sZQe4cxaEWeFBe3EPkeah0KqowVBLx'],
-        ], $message);
+            'idTypeNum' => 'nullable|string',
+            'token' => 'required|string',
+        ]);
 
-        //Si el idTypeNum está vacío o no tiene etiqueta, se pondrá por defecto "01"
+        // Comprobamos si el token es correcto o no
+        if ($data['token'] !== 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token incorrecto'
+            ], 400);
+        }
+
+        if (isset($data['idTypeNum'])) {
+            $allowed = ['01', '02', '03'];
+            if (!in_array($data['idTypeNum'], $allowed, true)) {
+                return response()->json([
+                    'success' =>  false,
+                    'message' => "El idTypeNum no es el correcto."
+                ], 400);
+            }
+        }
+
+        // Si el idTypeNum está vacío o no tiene etiqueta, se pondrá por defecto "01"
         $idTypeNum = $data['idTypeNum'] ?? '01';
 
         // Si es intracomunitario -> usar VIES
         if ($idTypeNum === '02') {
             $nombre = strtoupper($data['nombre']);
-            $nifInput = strtoupper(trim($data['nif'])); // puede venir "ESB54027545" o "ES B54027545"
-            // Normalizar: quitar espacios y guiones
+            // En el JSON puede venir el dni como: "ESB12345678" o "ES B12345678"
+            $nifInput = strtoupper(trim($data['nif']));
+            // Normalizar quitando los espacios y también guiones(por si acaso)
             $nifClean = preg_replace('/[\s\-]+/', '', $nifInput);
 
             // Sacar countryCode y vatNumber
             $countryCode = strtoupper(substr($nifClean, 0, 2));
             $vatNumber = substr($nifClean, 2);
 
-            // Validación mínima
+            // Validación mínima (ctype_alpha solo devuelve true si todos los caracteres de la cadena son letras)
             if (!ctype_alpha($countryCode) || $vatNumber === '') {
                 return response()->json([
                     'success' => false,
@@ -83,7 +97,7 @@ class ConsultaCDIController extends Controller
                     if (!empty($faultNodes)) {
                         $faultString = trim((string) $faultNodes[0]);
                         if (stripos($faultString, 'MS_MAX_CONCURRENT_REQ') !== false) {
-                            // Según tu petición: tratamos este fallo como "bien"
+                            // Aunque la peticion de como MS_MAX_CONCURRENT_REQ, está bien
                             return response()->json([
                                 'success' => true,
                                 'message' => $nombre
@@ -91,7 +105,7 @@ class ConsultaCDIController extends Controller
                         }
                     }
 
-                    // 2) Si no hay fault, intentamos leer <valid>
+                    // 2) Si no hay fault, intentamos leer <valid>(El valid nos puede dar true o false)
                     $validNode = $xml->xpath('//vies:valid');
 
                     if (!empty($validNode)) {
@@ -101,8 +115,6 @@ class ConsultaCDIController extends Controller
 
                     $messageText = $valid ? 'VAT válido' : 'VAT no válido';
                 } else {
-                    // error parseando XML
-                    //$errors = libxml_get_errors();
                     libxml_clear_errors();
                     return response()->json([
                         'success' => false,
@@ -131,10 +143,10 @@ class ConsultaCDIController extends Controller
             }
         }
 
-        if ($idTypeNum === '03') {
+        if ($data['idTypeNum'] === '03') {
             return response()->json([
                 'success' => true,
-                'message' => 'NIF extrajero correcto'
+                'message' => 'NIF extranjero correcto'
             ]);
         }
 

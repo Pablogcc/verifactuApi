@@ -2,14 +2,16 @@
 
 namespace App\Services;
 
-class ClientesSOAPConsultaVIES {
+class ClientesSOAPConsultaVIES
+{
 
-    public function consultar(string $vat): string|array {
-         $vat = strtoupper(trim($vat));
+    public function consultar(string $vat): string|array
+    {
+        $vat = strtoupper(trim($vat));
         $countryCode = substr($vat, 0, 2);
         $vatNumber = substr($vat, 2);
 
-        // Si las dos primeras "letras" no son alfabéticas asumimos que el usuario pasó countryCode y vatNumber juntos con un separador
+        // Si las dos primeras "letras" no son alfabéticas, asumimos que el usuario pasó countryCode y vatNumber juntos con un separador
         // (pero en tu caso normalmente vendrá con prefijo, así que esto cubre la mayoría de casos).
         if (!ctype_alpha($countryCode)) {
             // intentar separar por espacio o guión: "ES B54027545" o "ES-B54027545"
@@ -19,7 +21,9 @@ class ClientesSOAPConsultaVIES {
                 $vatNumber = strtoupper($parts[1]);
             } else {
                 // fallback: devuelvo error
-                return ['error' => 'Formato VAT inválido. Debe incluir prefijo país (p.ej. ES...)'];
+                return response()->json([
+                    'error' => 'Formato VAT inválido. Debe incluir el prefijo país '
+                ]);
             }
         }
 
@@ -45,13 +49,14 @@ XML;
             'Content-Length: ' . strlen($xml),
         ];
 
+        // Preparamos el cURL para enviar la solicitud
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        // Opciones de seguridad razonables
+        // Opciones de seguridad y tiempo estimado para la enviar la solicitud
         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
@@ -63,15 +68,22 @@ XML;
             $err = curl_error($ch);
             $code = curl_errno($ch);
             curl_close($ch);
-            return ['error' => $err, 'code' => $code];
+            return response()->json([
+                'error' => $err,
+                'code' => $code
+            ]);
         }
 
+        // Obtenemos el código de respuesta HTTP
         $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        // Opcional: si quieres detectar errores del servicio
+        // Para detectar errores del servicio si algo sale mal (opcional)
         if ($httpStatus >= 400) {
-            return ['error' => 'HTTP ' . $httpStatus, 'raw' => $response];
+            return response()->json([
+                'error' => 'HTTP ' . $httpStatus,
+                'raw' => $response
+            ]);
         }
 
         // Devuelve la respuesta SOAP completa (xml) — igual forma que tu otro servicio
