@@ -21,7 +21,7 @@ class ConsultaCDIController extends Controller
         $data = $request->validate([
             'nif' => 'required|string',
             'nombre' => 'required|string',
-            'idTypeNum' => 'nullable|string',
+            'idTypeNum' => 'nullable|string|in:01,02,03',
             'token' => 'required|string',
         ]);
 
@@ -37,7 +37,7 @@ class ConsultaCDIController extends Controller
             $allowed = ['01', '02', '03'];
             if (!in_array($data['idTypeNum'], $allowed, true)) {
                 return response()->json([
-                    'success' =>  false,
+                    'success' => false,
                     'message' => "El idTypeNum no es el correcto."
                 ], 400);
             }
@@ -143,7 +143,7 @@ class ConsultaCDIController extends Controller
             }
         }
 
-        if ($data['idTypeNum'] === '03') {
+        if ($idTypeNum === '03') {
             return response()->json([
                 'success' => true,
                 'message' => 'NIF extranjero correcto'
