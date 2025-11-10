@@ -46,6 +46,20 @@ class ConsultaCDIController extends Controller
         // Si el idTypeNum está vacío o no tiene etiqueta, se pondrá por defecto "01"
         $idTypeNum = $data['idTypeNum'] ?? '01';
 
+        if ($idTypeNum === '02') {
+            $cacheKey = 'validar_dni_last_request_' . $request->ip();
+            $lastTime = cache()->get($cacheKey);
+
+            if ($lastTime !== null && (time() - $lastTime) < 5) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Espere al menos 5 segundos antes de repetir la solicitud.'
+                ], 429);
+            }
+
+            cache()->put($cacheKey, time(), 10); // TTL 10 segundos
+        }
+
         // Si es intracomunitario -> usar VIES
         if ($idTypeNum === '02') {
             $nombre = strtoupper($data['nombre']);
