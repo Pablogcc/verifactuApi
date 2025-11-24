@@ -160,7 +160,7 @@ class ConsultaCDIController extends Controller
         if ($idTypeNum === '03') {
             return response()->json([
                 'success' => true,
-                'message' => 'NIF extranjero correcto'
+                'message' => 'No se pueden registrar los NIF extranjeros'
             ]);
         }
 
