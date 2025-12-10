@@ -1,7 +1,4 @@
-# Documentación Verifactu — Explicada "en humano"
-
-Esta es la explicación real y clara de cómo funciona el sistema Verifactu dentro de tu proyecto. Nada de tecnicismos innecesarios, nada de tono robot: aquí va explicado como si te lo contara un compi del trabajo.
-
+# Documentación Verifactu
 ---
 
 ## 1. Antes de empezar
