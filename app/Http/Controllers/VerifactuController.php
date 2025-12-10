@@ -91,7 +91,7 @@ class VerifactuController extends Controller
                 if (!file_exists($carpetaOrigen)) {
                     @mkdir($carpetaOrigen, 0755, true);
                 }
-                $rutaAgrupado = $carpetaOrigen . '/agrupado_' . $cifEmisor . '_' . date('Ymd_His') . '.xml';
+                $rutaAgrupado = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $cifEmisor . '_' . date('Ymd_His') . '.xml';
                 file_put_contents($rutaAgrupado, $xmlAgrupado);
             } catch (\Throwable $e) {
                 // Si falla la creación del XML agrupado para este emisor, marcamos todas sus facturas con error y seguimos con el siguiente emisor
@@ -284,7 +284,7 @@ class VerifactuController extends Controller
         foreach ($facturas as $factura) {
             //Guardamos el tiempo que tarda una factura en generarse y mandarse a la API
             $inicio = microtime(true);
-
+ 
             try {
                 //Almacenamos los datos del numero de serie, el numero de la factura, la fecha(ejercicio) y el cif del emisor
                 $numero = $factura->numFactura;
