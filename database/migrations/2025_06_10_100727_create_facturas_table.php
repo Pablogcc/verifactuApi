@@ -132,6 +132,7 @@ return new class extends Migration
             $table->integer('estado_proceso')->default(0);
             //$table->string('estado_proceso')->default('desbloqueada');
             $table->integer('estado_registro')->default(0);
+            $table->integer('modo_verifactu')->default(1);
 
             //Campos para la factura electrónica
             $table->string('oficontable')->nullable();
