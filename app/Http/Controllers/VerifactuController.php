@@ -10,6 +10,7 @@ use App\Services\AgrupadorFacturasXmlService;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Exception;
+use Throwable;
 
 class VerifactuController extends Controller
 {
@@ -523,10 +524,6 @@ class VerifactuController extends Controller
 
     public function verifactuLock(Request $request)
     {
-
-        set_time_limit(0);
-        ini_set('memory_limit', '512M');
-
         $token = $request->query('token');
 
         if ($token !== 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
@@ -535,17 +532,19 @@ class VerifactuController extends Controller
                 'message' => 'Token incorrecto'
             ]);
         }
+
+        set_time_limit(0);
+        ini_set('memory_limit', '512M');
+
         $verifactuService = new ClientesSOAPVerifactu();
+        $xmlGenerator = new \App\Services\FacturaXmlGenerator();
+        $agrupadorXmlService = new \App\Services\AgrupadorFacturasXmlService($xmlGenerator);
 
         $totalFacturas = 0;
         $totalTiempo = 0;
 
-        $xmlGenerator = new \App\Services\FacturaXmlGenerator();
-        $agrupadorXmlService = new \App\Services\AgrupadorFacturasXmlService($xmlGenerator);
-
         $facturas = Facturas::where('estado_proceso', 1)
             ->where('estado_registro', 0)
-            ->where('modo_verifactu', 1)
             ->orderBy('idEmisorFactura')
             ->orderBy('id')
             ->get();
@@ -560,110 +559,128 @@ class VerifactuController extends Controller
         $porEmisor = $facturas->groupBy('idEmisorFactura');
 
         foreach ($porEmisor as $cifEmisor => $grupo) {
-            //Guardamos el tiempo que tarda una factura en generarse y mandarse a la API
-            foreach ($grupo as $factura) {
-                $facturaAnterior = Facturas::where('idEmisorFactura', $cifEmisor)
-                    ->where('id', '<', $factura->id)
-                    ->orderBy('id', 'desc')
-                    ->first();
 
-                if ($facturaAnterior) {
-                    $factura->IDEmisorFacturaAnterior = $facturaAnterior->idEmisorFactura;
-                    $factura->numSerieFacturaAnterior = $facturaAnterior->numSerieFactura;
-                    $factura->FechaExpedicionFacturaAnterior = $facturaAnterior->fechaExpedicionFactura;
-                    $factura->huellaAnterior = $facturaAnterior->huella;
-                } else {
-                    $factura->IDEmisorFacturaAnterior = $factura->idEmisorFactura;
-                    $factura->numSerieFacturaAnterior = $factura->numSerieFactura;
-                    $factura->FechaExpedicionFacturaAnterior = $factura->fechaExpedicionFactura;
-                    $factura->huellaAnterior = $factura->huella;
+            // Separación del modo verifactu y no-verifactu
+            $verifactu = $grupo->filter(fn($f) => intval($f->modo_verifactu) === 1)->values();
+            $noVerifactu = $grupo->filter(fn($f) => intval($f->modo_verifactu) === 0)->values();
+
+            // ===== EL MODO NO VERIFACTU NO SE ENVÍA =====
+            foreach ($noVerifactu as $factura) {
+                try {
+                    $xml = $agrupadorXmlService->buildGroupedXml(collect([$factura]));
+
+                    $ejercicio = $factura->ejercicio;
+                    $mes = date('m');
+
+                    $base = storage_path('facturas/facturasNoVerifactu');
+                    $ruta = "$base/$cifEmisor/$ejercicio/$mes";
+
+                    if (!file_exists($ruta)) {
+                        mkdir($ruta, 0755, true);
+                    }
+
+                    $nombreArchivo = 'EJERCICIO-' . $ejercicio
+                        . '_MES-' . $mes
+                        . '_SERIE-' . $factura->serie
+                        . '_NUM-' . $factura->numFactura
+                        . '.xml';
+
+                    file_put_contents("$ruta/$nombreArchivo", $xml);
+
+                    $factura->estado_proceso = 0;
+                    $factura->estado_registro = 3;
+                    $factura->error = null;
+                    $factura->save();
+                } catch (\Throwable $e) {
+                    $factura->estado_proceso = 1;
+                    $factura->estado_registro = 0;
+                    $factura->error = 'Error NoVerifactu lock: ' . $e->getMessage();
+                    $factura->save();
                 }
             }
 
-            try {
-                $inicioEnvio = microtime(true);
+            // Reintento del envío de Verifactu
 
-                $xmlAgrupado = $agrupadorXmlService->buildGroupedXml($grupo);
+            if ($verifactu->isNotEmpty()) {
+                $inicio = microtime(true);
 
-                $first = $grupo->first();
-                $ejercicio = $first->ejercicio;
-                $mes = date('m');
+                try {
+                    $xmlAgrupado = $agrupadorXmlService->buildGroupedXml($verifactu);
 
-                $base = storage_path('facturas');
-                $ruta = "$base/facturasVerifactu/$cifEmisor/$ejercicio$mes";
+                    $first = $verifactu->first();
+                    $ejercicio = $first->ejercicio;
+                    $mes = date('m');
 
-                if (!file_exists($ruta)) {
-                    @mkdir($ruta, 0755, true);
-                }
+                    $base = storage_path('facturas/facturasVerifactu');
+                    $ruta = "$base/$cifEmisor/$ejercicio/$mes";
 
-                $nombreArchivo = "VERIFACTU_REINTENTO_CIF-$cifEmisor"
-                    . "_EJERCICIO-$ejercicio"
-                    . "_MES-$mes"
-                    . "_TOTAL-" . $grupo->count()
-                    . ".xml";
-
-                file_put_contents("$ruta/$nombreArchivo", $xmlAgrupado);
-
-                $verifactuService->actualizarRutas($cifEmisor);
-                $respuestaXml = $verifactuService->enviarFactura($xmlAgrupado);
-                libxml_use_internal_errors(true);
-                $dom = new \DOMDocument();
-
-                if (!@$dom->loadXML($respuestaXml)) {
-                    throw new \Exception('Respuesta no es XML válido');
-                }
-
-                $xpath = new \DOMXPath($dom);
-                $xpath->registerNamespace('tikR', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd');
-                $xpath->registerNamespace('tik',  'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd');
-
-                $lineas = $xpath->query('//tikR:RespuestaLinea | //RespuestaLinea');
-
-                foreach ($lineas as $linea) {
-                    $numSerie = trim(
-                        $xpath->query('.//NumSerieFactura', $linea)->item(0)?->textContent ?? ''
-                    );
-
-                    $factura = $grupo->first(
-                        fn($f) =>
-                        strtoupper(trim($f->numSerieFactura)) == strtoupper($numSerie)
-                    );
-
-                    if (!$factura) {
-                        continue;
+                    if (!file_exists($ruta)) {
+                        mkdir($ruta, 0755, true);
                     }
 
-                    $estado = trim(
-                        $xpath->query('.//EstadoRegistro', $linea)->item(0)?->textContent ?? ''
-                    );
+                    $nombreArchivo = 'VERIFACTU_AGRUPADO'
+                        . '_CIF-' . $cifEmisor
+                        . '_EJERCICIO-' . $ejercicio
+                        . '_MES-' . $mes
+                        . '_TOTAL-' . $verifactu->count()
+                        . '_FACTURAS.xml';
 
-                    $descripcion = trim(
-                        $xpath->query('.//DescripcionErrorRegistro', $linea)->item(0)?->textContent ?? ''
-                    );
+                    file_put_contents("$ruta/$nombreArchivo", $xmlAgrupado);
 
-                    if (in_array($estado, ['Correcto', 'AceptadoConErrores'])) {
-                        $factura->estado_proceso = 0;
-                        $factura->estado_registro = 1;
-                        $factura->error = $estado = 'AceptadoConErrores'
-                            ? "Aceptada con errores: $descripcion"
-                            : null;
-                        $totalFacturas++;
-                    } else {
-                        $factura->estado_proceso = 0;
-                        $factura->estado_registro = 2;
-                        $factura->error = "Rechazado: $descripcion";
+                    $verifactuService->actualizarRutas($cifEmisor);
+                    $respuestaXml = $verifactuService->enviarFactura($xmlAgrupado);
+                    libxml_use_internal_errors(true);
+                    $respuestaObj = simplexml_load_string($respuestaXml);
+
+                    $estadoRegistro = '';
+                    $descripcionError = '';
+
+                    if ($respuestaObj !== false) {
+                        $namespaces = $respuestaObj->getNamespaces(true);
+                        $body = $respuestaObj->children($namespaces['env'])->Body ?? null;
+
+                        if ($body && isset($namespaces['tikR'])) {
+                            $respuestaSII = $body->children($namespaces['tikR'])
+                                ->RespuestaRegFactuSistemaFacturacion ?? null;
+
+                            $respuestaLinea = $respuestaSII?->children($namespaces['tikR'])
+                                ->RespuestaLinea ?? null;
+
+                            $estadoRegistro = (string) $respuestaLinea?->children($namespaces['tikR'])
+                                ->EstadoRegistro ?? '';
+
+                            $descripcionError = (string) $respuestaLinea?->children($namespaces['tikR'])
+                                ->DescripcionErrorRegistro ?? '';
+                        }
                     }
 
-                    $factura->save();
-                }
+                    foreach ($verifactu as $factura) {
+                        if ($estadoRegistro === 'Correcto' || $estadoRegistro === 'AceptadoConErrores') {
+                            $factura->estado_proceso = 0;
+                            $factura->estado_registro = 1;
+                            $factura->error = $estadoRegistro === 'AceptadoConErrores'
+                                ? 'Aceptada con errores: ' . $descripcionError
+                                : null;
+                        } else {
+                            $factura->estado_proceso = 0;
+                            $factura->estado_registro = 2;
+                            $factura->error = $descripcionError
+                                ?: 'Respuesta AEAT no reconocida';
+                        }
 
-                $totalTiempo += intval((microtime(true) - $inicioEnvio) * 1000);
-            } catch (\Throwable $e) {
-                foreach ($grupo as $f) {
-                    $f->estado_proceso = 1;
-                    $f->estado_registro = 0;
-                    $f->error = 'Error reprocesando bloqueada: ' . $e->getMessage();
-                    $f->save();
+                        $factura->save();
+                    }
+
+                    $tiempoMs = intval((microtime(true) - $inicio) * 1000);
+                    $totalFacturas += $verifactu->count();
+                    $totalTiempo += $tiempoMs;
+                } catch (\Throwable $e) {
+                    foreach ($verifactu as $f) {
+                        $f->estado_proceso = 1;
+                        $f->estado_registro = 0;
+                        $f->error = 'Error Verifactu lock: ' . $e->getMessage();
+                        $f->save();
+                    }
                 }
             }
         }
@@ -671,11 +688,11 @@ class VerifactuController extends Controller
         if ($totalFacturas > 0) {
             DB::table('facturas_logs')->insert([
                 'cantidad_facturas' => $totalFacturas,
-                'media_tiempo_ms' => intval($totalTiempo / max(1, $totalFacturas)),
+                'media_tiempo_ms' => intval($totalTiempo / $totalFacturas),
                 'periodo' => now()->startOfMinute(),
                 'tipo_factura' => 'bloqueadas',
                 'created_at' => now(),
-                'update_at' => now(),
+                'updated_at' => now()
             ]);
         }
 
