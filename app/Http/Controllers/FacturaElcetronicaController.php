@@ -71,26 +71,69 @@ class FacturaElcetronicaController extends Controller
                 $encriptado = $desencriptador->encryptBase64InputReturnBase64($xmlBase64);
             }
 
-            // Guardar XML en storage/app/facturasElectronicas las facturas frimadas
+            $ejercicio = $factura->ejercicio;
+            $mes = date('m');
+            $cifEmisor = $factura->cifEmisor;
+
+            $carpetaRaiz = storage_path('facturasElectronicas');
+
             if ($firmada === 1) {
-                $carpetaOrigen = storage_path('facturasElectronicas');
-                if (!is_dir($carpetaOrigen)) {
-                    mkdir($carpetaOrigen, 0755, true);
+                $carpetaTipo = $carpetaRaiz . '/facturasFirmadas';
+            } else {
+                $carpetaTipo = $carpetaRaiz . '/facturasSinFirmar';
+            }
+
+            $carpetaCif = $carpetaTipo . '/' . $cifEmisor;
+            $carpetaEjercicio = $carpetaCif . '/' . $ejercicio;
+            $carpetaMes = $carpetaEjercicio . '/' . $mes;
+
+            /* Guardar XML en storage/app/facturasElectronicas las facturas frimadas
+            if ($firmada === 1) {
+                $carpetaBase = storage_path('facturasElectronicas');
+                if (!is_dir($carpetaBase)) {
+                    mkdir($carpetaBase, 0755, true);
                 }
-                $ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
-                file_put_contents($ruta, $xmlFirmado);
+                //$ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
+                //file_put_contents($ruta, $xmlFirmado);
                 //Si no, guardamos el XML en storage/app/facturasElectronicasSinFirmar
             } elseif ($firmada === 0) {
-                $carpetaOrigen = storage_path('facturasElectronicasSinFirmar');
-                if (!is_dir($carpetaOrigen)) {
-                    mkdir($carpetaOrigen, 0755, true);
+                $carpetaBase = storage_path('facturasElectronicasSinFirmar');
+                if (!is_dir($carpetaBase)) {
+                    mkdir($carpetaBase, 0755, true);
                 }
-                $ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
+                //$ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
+                //file_put_contents($ruta, $xml);
+
+                if (!file_exists($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+            }*/
+
+
+
+            foreach ([$carpetaRaiz, $carpetaTipo, $carpetaCif, $carpetaEjercicio, $carpetaMes] as $dir) {
+                if (!file_exists($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+            }
+
+            $nombreArchivo =
+                'EJERCICIO-' . $ejercicio .
+                '_MES-' . $mes .
+                '_SERIE-' . $factura->serie .
+                '_NUM-' . $factura->numFactura .
+                '.xml';
+
+            $ruta = $carpetaMes . '/' . $nombreArchivo;
+
+            if ($firmada === 1) {
+                file_put_contents($ruta, $xmlFirmado);
+            } else {
                 file_put_contents($ruta, $xml);
             }
 
             //Si la factura es correcta, entonces se genera la encriptación y el XML correctamente
-            if ($factura->estado_registro === 1) {
+            if ($factura->estado_registro === 1 || $factura->modo_verifactu === 0 || $factura->modo_verifactu === 2) {
                 return response()->json([
                     'resultado' => true,
                     'factura' => $encriptado
@@ -108,6 +151,7 @@ class FacturaElcetronicaController extends Controller
                     'mensaje' => "Esperar 3 minutos para la siguiente solicitud"
                 ]);
             }
+
             //Si la factura no está en la base de datos, entonces saldrá un mensaje de factura no encontrada
         } elseif (!$factura) {
             return response()->json(['mensaje' => "Factura no encontrada"]);

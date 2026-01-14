@@ -92,6 +92,9 @@ class VerifactuController extends Controller
             $individuales = $grupo->filter(function ($f) {
                 return intval($f->modo_verifactu) === 0;
             })->values();
+            $siis = $grupo->filter(function ($f) {
+                return intval($f->modo_verifactu) === 2;
+            })->values();
 
             if ($agrupables->isNotEmpty()) {
                 // Construir XML agrupado PARA ESTE EMISOR (incluye N sum:RegistroFactura)
@@ -301,6 +304,51 @@ class VerifactuController extends Controller
                         $facturaInd->estado_registro = 0;
                         $facturaInd->error = 'Error creando XML no Verifactu: ' . $e->getMessage();
                         $facturaInd->save();
+                        continue;
+                    }
+                }
+            }
+
+            if ($siis->isNotEmpty()) {
+                foreach ($siis as $facturaSii) {
+                    try {
+                        // Generar XML exacto como haces ahora
+                        $xmlSii = $agrupadorXmlService->buildGroupedXml(collect([$facturaSii]));
+
+                        $ejercicio = $facturaSii->ejercicio;
+                        $mes = date('m');
+
+                        $carpetaBase = storage_path('facturas');
+                        $carpetaTipo = $carpetaBase . '/sii'; // 👉 nueva carpeta SII
+                        $carpetaCif  = $carpetaTipo . '/' . $cifEmisor;
+                        $carpetaEjercicio = $carpetaCif . '/' . $ejercicio;
+                        $carpetaMes = $carpetaEjercicio . '/' . $mes;
+
+                        foreach ([$carpetaBase, $carpetaTipo, $carpetaCif, $carpetaEjercicio, $carpetaMes] as $dir) {
+                            if (!file_exists($dir)) {
+                                @mkdir($dir, 0755, true);
+                            }
+                        }
+
+                        $nombreArchivo = 'EJERCICIO-' . $facturaSii->ejercicio
+                            . '_MES-' . date('m')
+                            . '_SERIE-' . $facturaSii->serie
+                            . '_NUM-' . $facturaSii->numFactura
+                            . '_SII.xml';
+
+                        $rutaSii = $carpetaMes . '/' . $nombreArchivo;
+                        file_put_contents($rutaSii, $xmlSii);
+
+                        // Estado de proceso y registro específicos para SII
+                        $facturaSii->estado_proceso = 0;
+                        $facturaSii->estado_registro = 3;  // <— aquí pones el 3
+                        $facturaSii->error = null;
+                        $facturaSii->save();
+                    } catch (\Throwable $e) {
+                        $facturaSii->estado_proceso = 1;
+                        $facturaSii->estado_registro = 0;
+                        $facturaSii->error = 'Error creando XML SII: ' . $e->getMessage();
+                        $facturaSii->save();
                         continue;
                     }
                 }
