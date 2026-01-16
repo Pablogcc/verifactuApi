@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Facturas;
 use App\Services\Encriptar;
 use App\Models\Emisores;
 use App\Services\FacturaXmlElectronica;
@@ -13,148 +12,153 @@ class FacturaElcetronicaController extends Controller
 {
     public function facturaElectronica(Request $request)
     {
-        //Recogemos todos los datos necesarios en un JSON de la factura
-        //En el JSON se puedes decidir si quieres que tu factura sea firmada(1) o no(0)
-        $data = $request->validate(
-            [
-                'cif' => 'required|string',
-                'serie' => "required|string",
-                'numero' => 'required|integer',
-                'ejercicio' => 'required|integer',
-                'token' => 'required|string',
-                'firmada' => 'nullable|integer|in:1,0'
-            ]
-        );
+        // Validamos el JSON con estructura:
+        // { token, firmada, factura: { ... , Lineas: [ ... ] } }
+        $data = $request->validate([
+            'token'   => 'required|string',
+            'firmada' => 'nullable|integer|in:1,0',
 
+            'factura' => 'required|array',
+
+            // Datos principales de la factura
+            'factura.NumSerieFactura' => 'required|string',
+            'factura.FechaExpedicionFactura' => 'required|string',
+            'factura.IdEmisorFactura' => 'required|string',
+            'factura.CifEmisor' => 'required|string',
+            'factura.NombreEmisor' => 'required|string',
+            'factura.NifCliente' => 'required|string',
+            'factura.NombreCliente' => 'required|string',
+            'factura.FechaOperacion' => 'required|string',
+            'factura.DescripcionOperacion' => 'required|string',
+            'factura.Serie' => 'required|string',
+            'factura.NumFactura' => 'required|integer',
+            'factura.Notas' => 'nullable|string',
+
+            // Dirección emisor
+            'factura.EmisorDirec' => 'required|string',
+            'factura.EmisorCpostal' => 'required|string',
+            'factura.EmisorCiudad' => 'required|string',
+            'factura.EmisorProv' => 'required|string',
+            'factura.EmisorCpais' => 'required|string',
+
+            // Dirección receptor
+            'factura.ReceptorDirec' => 'required|string',
+            'factura.ReceptorCpostal' => 'required|string',
+            'factura.ReceptorCiudad' => 'required|string',
+            'factura.ReceptorProv' => 'required|string',
+            'factura.ReceptorCpais' => 'required|string',
+
+            // Totales
+            'factura.TotalImporteBruto' => 'required|numeric',
+            'factura.TotalDescuentosGenerales' => 'required|numeric',
+            'factura.TotalRecargosGenerales' => 'required|numeric',
+            'factura.TotalBaseImponible' => 'required|numeric',
+            'factura.TotalImpuestosRepercutidos' => 'required|numeric',
+            'factura.TotalImpuestosRetenidos' => 'required|numeric',
+            'factura.TotalFactura' => 'required|numeric',
+            'factura.TotalPendienteCobro' => 'required|numeric',
+
+            // Centros administrativos (opcionales)
+            'factura.Oficontable' => 'nullable|string',
+            'factura.Orggestor' => 'nullable|string',
+            'factura.Utramitadora' => 'nullable|string',
+            'factura.OficontableDirec' => 'nullable|string',
+            'factura.OficontableCpostal' => 'nullable|string',
+            'factura.OficontableCiudad' => 'nullable|string',
+            'factura.OficontableProv' => 'nullable|string',
+            'factura.OficontableCpais' => 'nullable|string',
+            'factura.OrggestorDirec' => 'nullable|string',
+            'factura.OrggestorCpostal' => 'nullable|string',
+            'factura.OrggestorCiudad' => 'nullable|string',
+            'factura.OrggestorProv' => 'nullable|string',
+            'factura.OrggestorCpais' => 'nullable|string',
+            'factura.UtramitadoraDirec' => 'nullable|string',
+            'factura.UtramitadoraCpostal' => 'nullable|string',
+            'factura.UtramitadoraCiudad' => 'nullable|string',
+            'factura.UtramitadoraProv' => 'nullable|string',
+            'factura.UtramitadoraCpais' => 'nullable|string',
+
+            // Líneas de detalle
+            'factura.Lineas' => 'required|array|min:1',
+            'factura.Lineas.*.Descripcion' => 'required|string',
+            'factura.Lineas.*.Cantidad' => 'required|numeric',
+            'factura.Lineas.*.UnidadMedida' => 'required|string',
+            'factura.Lineas.*.PrecioUnitarioSinIva' => 'required|numeric',
+            'factura.Lineas.*.BaseImponible' => 'required|numeric',
+            'factura.Lineas.*.TipoIva' => 'required|numeric',
+            'factura.Lineas.*.CuotaIva' => 'required|numeric',
+        ]);
+
+        // Comprobación de token
         if ($data['token'] !== 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
             return response()->json([
                 'resultado' => false,
-                'mensaje' => 'Token incorrecto'
+                'mensaje'   => 'Token incorrecto',
             ]);
         }
 
         $firmada = $data['firmada'] ?? 1;
+        $factura = $data['factura'];
+        $lineas  = $factura['Lineas'];
 
-        // $desencriptador = new Encriptar();
-        // $desencriptador->decryptBase64AndSaveFile($xml);
-
-        //Buscamos la factura que tenga ese cif, serie, numFactura y ejercicio.
-        //Y recogemos el primero que tiene
-        $factura = Facturas::where('cifEmisor', $data['cif'])
-            ->where('serie', $data['serie'])
-            ->where('numFactura', $data['numero'])
-            ->where('ejercicio', $data['ejercicio'])
-            ->first();
-
-        //Si la factura existe, comprobamos si está su certificado en la tabla emisores
-        if ($factura) {
-            $emisor = Emisores::where('cif', $data['cif'])->first();
-            if (!$emisor) {
-                return response()->json(['mensaje' => "Emisor no encontrado"]);
-            }
-
-            //Llamamos al servicio para desencriptar el certificado y la contraseña
-            $desencriptador = new Encriptar();
-            $passwordCert = $desencriptador->decryptString($emisor->password);
-            $desencriptador->decryptBase64AndDownloadPfx($passwordCert, $emisor->certificado, $emisor->cif);
-
-            // Generar el XML usando los datos reales de la factura
-            $xml = (new FacturaXmlElectronica())->generateXml($factura);
-            $xmlFirmado =  (new FirmaXmlGeneratorElectronica())->firmaXml($xml, $data['cif'],  $passwordCert);
-
-            //Dependiendo de si la factura va a estar firmada o no, se creará un tipo de xml distinto
-            if ($firmada === 0) {
-                $xmlBase64 = base64_encode($xml);
-                $encriptado = $desencriptador->encryptBase64InputReturnBase64($xmlBase64);
-            } else {
-                $xmlBase64 = base64_encode($xmlFirmado);
-                $encriptado = $desencriptador->encryptBase64InputReturnBase64($xmlBase64);
-            }
-
-            $ejercicio = $factura->ejercicio;
-            $mes = date('m');
-            $cifEmisor = $factura->cifEmisor;
-
-            $carpetaRaiz = storage_path('facturasElectronicas');
-
-            if ($firmada === 1) {
-                $carpetaTipo = $carpetaRaiz . '/facturasFirmadas';
-            } else {
-                $carpetaTipo = $carpetaRaiz . '/facturasSinFirmar';
-            }
-
-            $carpetaCif = $carpetaTipo . '/' . $cifEmisor;
-            $carpetaEjercicio = $carpetaCif . '/' . $ejercicio;
-            $carpetaMes = $carpetaEjercicio . '/' . $mes;
-
-            /* Guardar XML en storage/app/facturasElectronicas las facturas frimadas
-            if ($firmada === 1) {
-                $carpetaBase = storage_path('facturasElectronicas');
-                if (!is_dir($carpetaBase)) {
-                    mkdir($carpetaBase, 0755, true);
-                }
-                //$ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
-                //file_put_contents($ruta, $xmlFirmado);
-                //Si no, guardamos el XML en storage/app/facturasElectronicasSinFirmar
-            } elseif ($firmada === 0) {
-                $carpetaBase = storage_path('facturasElectronicasSinFirmar');
-                if (!is_dir($carpetaBase)) {
-                    mkdir($carpetaBase, 0755, true);
-                }
-                //$ruta = $carpetaOrigen . '/' . $factura->nombreEmisor . '_' . $factura->serie . '_' . $factura->numFactura . '-' . $factura->ejercicio . '.xml';
-                //file_put_contents($ruta, $xml);
-
-                if (!file_exists($dir)) {
-                    mkdir($dir, 0755, true);
-                }
-            }*/
-
-
-
-            foreach ([$carpetaRaiz, $carpetaTipo, $carpetaCif, $carpetaEjercicio, $carpetaMes] as $dir) {
-                if (!file_exists($dir)) {
-                    mkdir($dir, 0755, true);
-                }
-            }
-
-            $nombreArchivo =
-                'EJERCICIO-' . $ejercicio .
-                '_MES-' . $mes .
-                '_SERIE-' . $factura->serie .
-                '_NUM-' . $factura->numFactura .
-                '.xml';
-
-            $ruta = $carpetaMes . '/' . $nombreArchivo;
-
-            if ($firmada === 1) {
-                file_put_contents($ruta, $xmlFirmado);
-            } else {
-                file_put_contents($ruta, $xml);
-            }
-
-            //Si la factura es correcta, entonces se genera la encriptación y el XML correctamente
-            if ($factura->estado_registro === 1 || $factura->modo_verifactu === 0 || $factura->modo_verifactu === 2) {
-                return response()->json([
-                    'resultado' => true,
-                    'factura' => $encriptado
-                ]);
-                //Si la factur es incorrecta, no se encripta ni se genera el XML
-            } elseif ($factura->estado_registro === 2) {
-                return response()->json([
-                    'resultado' => false,
-                    'mensaje' => "Factura rechazada por la AEAT"
-                ]);
-            } else {
-                //Si la factura no está comprobada por la AEAT, entonces deberás esperar 3 minutos
-                return response()->json([
-                    'resultado' => false,
-                    'mensaje' => "Esperar 3 minutos para la siguiente solicitud"
-                ]);
-            }
-
-            //Si la factura no está en la base de datos, entonces saldrá un mensaje de factura no encontrada
-        } elseif (!$factura) {
-            return response()->json(['mensaje' => "Factura no encontrada"]);
+        // Certificado del emisor (tabla emisores)
+        $emisor = Emisores::where('cif', $factura['CifEmisor'])->first();
+        if (!$emisor) {
+            return response()->json(['mensaje' => 'Emisor no encontrado']);
         }
+
+        $desencriptador = new Encriptar();
+        $passwordCert = $desencriptador->decryptString($emisor->password);
+        $desencriptador->decryptBase64AndDownloadPfx($passwordCert, $emisor->certificado, $emisor->cif);
+
+        // Generar XML a partir del JSON
+        $xml = (new FacturaXmlElectronica())->generateXml($factura, $lineas);
+
+        // Firmar o no firmar
+        if ($firmada === 1) {
+            $xmlFirmado = (new FirmaXmlGeneratorElectronica())->firmaXml($xml, $emisor->cif, $passwordCert);
+            $xmlParaGuardar = $xmlFirmado;
+        } else {
+            $xmlParaGuardar = $xml;
+        }
+
+        // Carpeta destino según fecha de la factura
+        $fecha = $factura['FechaExpedicionFactura'] ?? $factura['FechaOperacion'] ?? date('Y-m-d');
+        $ts    = strtotime($fecha) ?: time();
+        $ejercicio = date('Y', $ts);
+        $mes       = date('m', $ts);
+        $cifEmisor = $factura['CifEmisor'];
+
+        $carpetaRaiz      = storage_path('facturasElectronicas');
+        $carpetaTipo      = $carpetaRaiz . ($firmada === 1 ? '/facturasFirmadas' : '/facturasSinFirmar');
+        $carpetaCif       = $carpetaTipo . '/' . $cifEmisor;
+        $carpetaEjercicio = $carpetaCif . '/' . $ejercicio;
+        $carpetaMes       = $carpetaEjercicio . '/' . $mes;
+
+        foreach ([$carpetaRaiz, $carpetaTipo, $carpetaCif, $carpetaEjercicio, $carpetaMes] as $dir) {
+            if (!file_exists($dir)) {
+                mkdir($dir, 0755, true);
+            }
+        }
+
+        $nombreArchivo =
+            'EJERCICIO-' . $ejercicio .
+            '_MES-' . $mes .
+            '_SERIE-' . $factura['Serie'] .
+            '_NUM-' . $factura['NumFactura'] .
+            '.xml';
+
+        $ruta = $carpetaMes . '/' . $nombreArchivo;
+
+        file_put_contents($ruta, $xmlParaGuardar);
+
+        // Encriptar XML en base64 para devolverlo
+        $xmlBase64  = base64_encode($xmlParaGuardar);
+        $encriptado = $desencriptador->encryptBase64InputReturnBase64($xmlBase64);
+
+        return response()->json([
+            'resultado' => true,
+            'factura'   => $encriptado,
+        ]);
     }
 }
