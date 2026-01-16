@@ -2,23 +2,31 @@
 
 namespace App\Services;
 
-use App\Models\Facturas;
 use DOMDocument;
 
 class FacturaXmlElectronica
 {
-    public function generateXml(Facturas $factura)
+    /**
+     * Genera el XML Facturae 3.2.1 a partir de los datos del request.
+     *
+     * @param array $factura Datos generales (emisor, receptor, totales, fechas…).
+     * @param array $lineas  Líneas de detalle (Descripcion, Cantidad, etc.).
+     */
+    public function generateXml(array $factura, array $lineas): string
     {
-        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $dom = new DOMDocument('1.0', 'UTF-8');
         $dom->formatOutput = true;
 
-        // Nodo raíz con namespace FE
+        // <fe:Facturae ...>
         $root = $dom->createElementNS(
             'http://www.facturae.es/Facturae/2014/v3.2.1/Facturae',
             'fe:Facturae'
         );
-        // ds namespace (firma) por compatibilidad
-        $root->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:ds', 'http://www.w3.org/2000/09/xmldsig#');
+        $root->setAttributeNS(
+            'http://www.w3.org/2000/xmlns/',
+            'xmlns:ds',
+            'http://www.w3.org/2000/09/xmldsig#'
+        );
         $dom->appendChild($root);
 
         //
@@ -30,22 +38,26 @@ class FacturaXmlElectronica
         $fileHeader->appendChild($dom->createElement('InvoiceIssuerType', 'EM'));
 
         $batch = $dom->createElement('Batch');
-        // BatchIdentifier construido a partir del CIF/NIF emisor y la serie (solo con campos que existen)
-        $batchIdentifier = (string) ($factura->cifEmisor ?? $factura->idEmisorFactura ?? '');
-        $batchIdentifier .= ($factura->serie ?? '');
+        $batchIdentifier =
+            ($factura['CifEmisor'] ?? '') .
+            ($factura['NumFactura'] ?? '') .
+            ($factura['Serie'] ?? '');
         $batch->appendChild($dom->createElement('BatchIdentifier', $batchIdentifier));
         $batch->appendChild($dom->createElement('InvoicesCount', '1'));
 
+        // Totales principales desde el JSON
+        $total = $this->formatAmount($factura['TotalFactura'] ?? 0);
+
         $totalInvoicesAmount = $dom->createElement('TotalInvoicesAmount');
-        $totalInvoicesAmount->appendChild($dom->createElement('TotalAmount', $this->formatAmount($factura->importeTotal)));
+        $totalInvoicesAmount->appendChild($dom->createElement('TotalAmount', $total));
         $batch->appendChild($totalInvoicesAmount);
 
         $totalOutstandingAmount = $dom->createElement('TotalOutstandingAmount');
-        $totalOutstandingAmount->appendChild($dom->createElement('TotalAmount', $this->formatAmount($factura->importeTotal)));
+        $totalOutstandingAmount->appendChild($dom->createElement('TotalAmount', $this->formatAmount($factura['TotalPendienteCobro'] ?? $total)));
         $batch->appendChild($totalOutstandingAmount);
 
         $totalExecutableAmount = $dom->createElement('TotalExecutableAmount');
-        $totalExecutableAmount->appendChild($dom->createElement('TotalAmount', $this->formatAmount($factura->importeTotal)));
+        $totalExecutableAmount->appendChild($dom->createElement('TotalAmount', $this->formatAmount($factura['TotalPendienteCobro'] ?? $total)));
         $batch->appendChild($totalExecutableAmount);
 
         $batch->appendChild($dom->createElement('InvoiceCurrencyCode', 'EUR'));
@@ -53,90 +65,99 @@ class FacturaXmlElectronica
         $root->appendChild($fileHeader);
 
         //
-        // PARTIES (solo campos presentes en la migración)
+        // PARTIES
         //
         $parties = $dom->createElement('Parties');
 
-        // SellerParty (DATOS INVENTADOS)
+        // SellerParty (emisor)
         $seller = $dom->createElement('SellerParty');
         $taxIdS = $dom->createElement('TaxIdentification');
         $taxIdS->appendChild($dom->createElement('PersonTypeCode', 'J'));
         $taxIdS->appendChild($dom->createElement('ResidenceTypeCode', 'R'));
-        $taxIdS->appendChild($dom->createElement('TaxIdentificationNumber', $factura->idEmisorFactura));
+        $taxIdS->appendChild($dom->createElement('TaxIdentificationNumber', $factura['CifEmisor'] ?? ''));
         $seller->appendChild($taxIdS);
 
         $legalS = $dom->createElement('LegalEntity');
-        $legalS->appendChild($dom->createElement('CorporateName', $factura->nombreEmisor ?? ''));
+        $legalS->appendChild($dom->createElement('CorporateName', $factura['NombreEmisor'] ?? ''));
+        $legalS->appendChild($dom->createElement('TradeName', $factura['NombreEmisor'] ?? ''));
 
-        // Dirección del emisor (rellena con valores fijos o genéricos si no tienes en DB)
         $addressS = $dom->createElement('AddressInSpain');
-        $addressS->appendChild($dom->createElement('Address', $factura->emisor_direc));
-        $addressS->appendChild($dom->createElement('PostCode', $factura->emisor_cpostal));
-        $addressS->appendChild($dom->createElement('Town', $factura->emisor_ciudad));
-        $addressS->appendChild($dom->createElement('Province', $factura->emisor_prov));
-        $addressS->appendChild($dom->createElement('CountryCode', $factura->emisor_cpais));
+        $addressS->appendChild($dom->createElement('Address', $factura['EmisorDirec'] ?? ''));
+        $addressS->appendChild($dom->createElement('PostCode', $factura['EmisorCpostal'] ?? ''));
+        $addressS->appendChild($dom->createElement('Town', $factura['EmisorCiudad'] ?? ''));
+        $addressS->appendChild($dom->createElement('Province', $factura['EmisorProv'] ?? ''));
+        $addressS->appendChild($dom->createElement('CountryCode', $factura['EmisorCpais'] ?? 'ESP'));
         $legalS->appendChild($addressS);
+
+        // (Opcional) datos de contacto emisor si algún día los añades al JSON
+        if (!empty($factura['EmisorTelefono']) || !empty($factura['EmisorWeb']) || !empty($factura['EmisorEmail'])) {
+            $contactS = $dom->createElement('ContactDetails');
+            if (!empty($factura['EmisorTelefono'])) {
+                $contactS->appendChild($dom->createElement('Telephone', $factura['EmisorTelefono']));
+            }
+            if (!empty($factura['EmisorWeb'])) {
+                $contactS->appendChild($dom->createElement('WebAddress', $factura['EmisorWeb']));
+            }
+            if (!empty($factura['EmisorEmail'])) {
+                $contactS->appendChild($dom->createElement('ElectronicMail', $factura['EmisorEmail']));
+            }
+            $legalS->appendChild($contactS);
+        }
 
         $seller->appendChild($legalS);
         $parties->appendChild($seller);
 
-        // BuyerParty (DATOS INVENTADOS EN EL BUYERPARTY NORMAL)
+        // BuyerParty (cliente / destinatario)
         $buyer = $dom->createElement('BuyerParty');
         $taxIdB = $dom->createElement('TaxIdentification');
         $taxIdB->appendChild($dom->createElement('PersonTypeCode', 'J'));
         $taxIdB->appendChild($dom->createElement('ResidenceTypeCode', 'R'));
-        $taxIdB->appendChild($dom->createElement('TaxIdentificationNumber', $factura->idEmisorFactura));
+        $taxIdB->appendChild($dom->createElement('TaxIdentificationNumber', $factura['NifCliente'] ?? ''));
         $buyer->appendChild($taxIdB);
 
-        // Bloque si es un organismo público
-        if (!empty($factura->oficontable) && !empty($factura->orggestor) && !empty($factura->utramitadora)) {
+        // Centros administrativos si es organismo público
+        if (!empty($factura['Oficontable']) && !empty($factura['Orggestor']) && !empty($factura['Utramitadora'])) {
             $adminCentres = $dom->createElement('AdministrativeCentres');
 
             // Oficina Contable
             $centre = $dom->createElement('AdministrativeCentre');
-            $centre->appendChild($dom->createElement('CentreCode', $factura->oficontable));
-            $centre->appendChild($dom->createElement('RoleTypeCode', '01')); // Es 01
-
-            $address = $dom->createElement('AddressInSpain');
-            $address->appendChild($dom->createElement('Address', $factura->oficontable_direc));
-            $address->appendChild($dom->createElement('PostCode', $factura->oficontable_cpostal));
-            $address->appendChild($dom->createElement('Town', $factura->oficontable_ciudad));
-            $address->appendChild($dom->createElement('Province', $factura->oficontable_prov));
-            $address->appendChild($dom->createElement('CountryCode', $factura->oficontable_cpais ?? 'ESP'));
-            $centre->appendChild($address);
-
+            $centre->appendChild($dom->createElement('CentreCode', $factura['Oficontable']));
+            $centre->appendChild($dom->createElement('RoleTypeCode', '01'));
+            $addr = $dom->createElement('AddressInSpain');
+            $addr->appendChild($dom->createElement('Address', $factura['OficontableDirec'] ?? ''));
+            $addr->appendChild($dom->createElement('PostCode', $factura['OficontableCpostal'] ?? ''));
+            $addr->appendChild($dom->createElement('Town', $factura['OficontableCiudad'] ?? ''));
+            $addr->appendChild($dom->createElement('Province', $factura['OficontableProv'] ?? ''));
+            $addr->appendChild($dom->createElement('CountryCode', $factura['OficontableCpais'] ?? 'ESP'));
+            $centre->appendChild($addr);
             $centre->appendChild($dom->createElement('CentreDescription', 'OFICINA CONTABLE'));
             $adminCentres->appendChild($centre);
-            //------------------------
+
             // Órgano Gestor
             $centre = $dom->createElement('AdministrativeCentre');
-            $centre->appendChild($dom->createElement('CentreCode', $factura->orggestor));
-            $centre->appendChild($dom->createElement('RoleTypeCode', '02')); // Es 02
-
-            $address = $dom->createElement('AddressInSpain');
-            $address->appendChild($dom->createElement('Address', $factura->orggestor_direc));
-            $address->appendChild($dom->createElement('PostCode', $factura->orggestor_cpostal));
-            $address->appendChild($dom->createElement('Town', $factura->orggestor_ciudad));
-            $address->appendChild($dom->createElement('Province', $factura->orggestor_prov));
-            $address->appendChild($dom->createElement('CountryCode', $factura->orggestor_cpais ?? 'ESP'));
-            $centre->appendChild($address);
-
+            $centre->appendChild($dom->createElement('CentreCode', $factura['Orggestor']));
+            $centre->appendChild($dom->createElement('RoleTypeCode', '02'));
+            $addr = $dom->createElement('AddressInSpain');
+            $addr->appendChild($dom->createElement('Address', $factura['OrggestorDirec'] ?? ''));
+            $addr->appendChild($dom->createElement('PostCode', $factura['OrggestorCpostal'] ?? ''));
+            $addr->appendChild($dom->createElement('Town', $factura['OrggestorCiudad'] ?? ''));
+            $addr->appendChild($dom->createElement('Province', $factura['OrggestorProv'] ?? ''));
+            $addr->appendChild($dom->createElement('CountryCode', $factura['OrggestorCpais'] ?? 'ESP'));
+            $centre->appendChild($addr);
             $centre->appendChild($dom->createElement('CentreDescription', 'ORGANO GESTOR'));
             $adminCentres->appendChild($centre);
-            //------------------------
+
             // Unidad Tramitadora
             $centre = $dom->createElement('AdministrativeCentre');
-            $centre->appendChild($dom->createElement('CentreCode', $factura->utramitadora));
+            $centre->appendChild($dom->createElement('CentreCode', $factura['Utramitadora']));
             $centre->appendChild($dom->createElement('RoleTypeCode', '03'));
-
-            $address = $dom->createElement('AddressInSpain');
-            $address->appendChild($dom->createElement('Address', $factura->utramitadora_direc));
-            $address->appendChild($dom->createElement('PostCode', $factura->utramitadora_cpostal));
-            $address->appendChild($dom->createElement('Town', $factura->utramitadora_ciudad));
-            $address->appendChild($dom->createElement('Province', $factura->utramitadora_prov));
-            $address->appendChild($dom->createElement('CountryCode', $factura->utramitadora_cpais ?? 'ESP'));
-            $centre->appendChild($address);
-
+            $addr = $dom->createElement('AddressInSpain');
+            $addr->appendChild($dom->createElement('Address', $factura['UtramitadoraDirec'] ?? ''));
+            $addr->appendChild($dom->createElement('PostCode', $factura['UtramitadoraCpostal'] ?? ''));
+            $addr->appendChild($dom->createElement('Town', $factura['UtramitadoraCiudad'] ?? ''));
+            $addr->appendChild($dom->createElement('Province', $factura['UtramitadoraProv'] ?? ''));
+            $addr->appendChild($dom->createElement('CountryCode', $factura['UtramitadoraCpais'] ?? 'ESP'));
+            $centre->appendChild($addr);
             $centre->appendChild($dom->createElement('CentreDescription', 'UNIDAD TRAMITADORA'));
             $adminCentres->appendChild($centre);
 
@@ -144,36 +165,36 @@ class FacturaXmlElectronica
         }
 
         $legalB = $dom->createElement('LegalEntity');
-        $legalB->appendChild($dom->createElement('CorporateName', $factura->nombreCliente ?? ''));
+        $legalB->appendChild($dom->createElement('CorporateName', $factura['NombreCliente'] ?? ''));
 
-        // Dirección del cliente (lo mismo: fijo o configurable)
         $addressB = $dom->createElement('AddressInSpain');
-        $addressB->appendChild($dom->createElement('Address', $factura->receptor_direc));
-        $addressB->appendChild($dom->createElement('PostCode', $factura->receptor_cpostal));
-        $addressB->appendChild($dom->createElement('Town', $factura->receptor_ciudad));
-        $addressB->appendChild($dom->createElement('Province', $factura->receptor_prov));
-        $addressB->appendChild($dom->createElement('CountryCode', $factura->receptor_cpais));
+        $addressB->appendChild($dom->createElement('Address', $factura['ReceptorDirec'] ?? ''));
+        $addressB->appendChild($dom->createElement('PostCode', $factura['ReceptorCpostal'] ?? ''));
+        $addressB->appendChild($dom->createElement('Town', $factura['ReceptorCiudad'] ?? ''));
+        $addressB->appendChild($dom->createElement('Province', $factura['ReceptorProv'] ?? ''));
+        $addressB->appendChild($dom->createElement('CountryCode', $factura['ReceptorCpais'] ?? 'ESP'));
         $legalB->appendChild($addressB);
 
-        $contact = $dom->createElement('ContactDetails');
-        $contact->appendChild($dom->createElement('ElectronicMail', $factura->emailCliente ?? ''));
-        $legalB->appendChild($contact);
+        if (!empty($factura['EmailCliente'])) {
+            $contactB = $dom->createElement('ContactDetails');
+            $contactB->appendChild($dom->createElement('ElectronicMail', $factura['EmailCliente']));
+            $legalB->appendChild($contactB);
+        }
 
         $buyer->appendChild($legalB);
-
-        // Final de bloques de organismo público
         $parties->appendChild($buyer);
-
         $root->appendChild($parties);
 
+        //
         // INVOICES
+        //
         $invoices = $dom->createElement('Invoices');
-        $invoice = $dom->createElement('Invoice');
+        $invoice  = $dom->createElement('Invoice');
 
         // InvoiceHeader
         $header = $dom->createElement('InvoiceHeader');
-        $header->appendChild($dom->createElement('InvoiceNumber', $factura->numFactura ?? ''));
-        $header->appendChild($dom->createElement('InvoiceSeriesCode', $factura->serie ?? ''));
+        $header->appendChild($dom->createElement('InvoiceNumber', $factura['NumFactura'] ?? ''));
+        $header->appendChild($dom->createElement('InvoiceSeriesCode', $factura['Serie'] ?? ''));
         $header->appendChild($dom->createElement('InvoiceDocumentType', 'FC'));
         $header->appendChild($dom->createElement('InvoiceClass', 'OO'));
         $invoice->appendChild($header);
@@ -181,25 +202,37 @@ class FacturaXmlElectronica
         // InvoiceIssueData
         $issue = $dom->createElement('InvoiceIssueData');
         $issue->appendChild(
-            $dom->createElement('IssueDate', $this->formatDate($factura->fechaExpedicionFactura ?? $factura->fechaOperacion ?? ''))
+            $dom->createElement(
+                'IssueDate',
+                $this->formatDate($factura['FechaExpedicionFactura'] ?? ($factura['FechaOperacion'] ?? ''))
+            )
         );
         $issue->appendChild($dom->createElement('InvoiceCurrencyCode', 'EUR'));
         $issue->appendChild($dom->createElement('TaxCurrencyCode', 'EUR'));
         $issue->appendChild($dom->createElement('LanguageName', 'es'));
         $invoice->appendChild($issue);
 
-        // TaxesOutputs (resumido con los campos existentes en la factura)
+        // TaxesOutputs (resumen)
         $taxesOutputs = $dom->createElement('TaxesOutputs');
         $tax = $dom->createElement('Tax');
         $tax->appendChild($dom->createElement('TaxTypeCode', '01'));
-        $tax->appendChild($dom->createElement('TaxRate', $this->formatAmount($factura->tipoImpositivo ?? 0)));
+
+        // Tipo de IVA global desde la primera línea
+        $tipoIvaGlobal = 0;
+        if (!empty($lineas) && isset($lineas[0]['TipoIva'])) {
+            $tipoIvaGlobal = $lineas[0]['TipoIva'];
+        }
+        $tax->appendChild($dom->createElement('TaxRate', $this->formatAmount($tipoIvaGlobal)));
+
+        $base  = $this->formatAmount($factura['TotalBaseImponible'] ?? 0);
+        $cuota = $this->formatAmount($factura['TotalImpuestosRepercutidos'] ?? 0);
 
         $taxableBase = $dom->createElement('TaxableBase');
-        $taxableBase->appendChild($dom->createElement('TotalAmount', $this->formatAmount($factura->baseImponibleACoste ?? 0)));
+        $taxableBase->appendChild($dom->createElement('TotalAmount', $base));
         $tax->appendChild($taxableBase);
 
         $taxAmount = $dom->createElement('TaxAmount');
-        $taxAmount->appendChild($dom->createElement('TotalAmount', $this->formatAmount($factura->cuotaRepercutida ?? 0)));
+        $taxAmount->appendChild($dom->createElement('TotalAmount', $cuota));
         $tax->appendChild($taxAmount);
 
         $taxesOutputs->appendChild($tax);
@@ -207,66 +240,108 @@ class FacturaXmlElectronica
 
         // InvoiceTotals
         $totals = $dom->createElement('InvoiceTotals');
-        $totals->appendChild($dom->createElement('TotalGrossAmount', $this->formatAmount($factura->baseImponibleACoste ?? 0)));
-        $totals->appendChild($dom->createElement('TotalGeneralDiscounts', $this->formatAmount(0)));
-        $totals->appendChild($dom->createElement('TotalGeneralSurcharges', $this->formatAmount(0)));
-        $totals->appendChild($dom->createElement('TotalGrossAmountBeforeTaxes', $this->formatAmount($factura->baseImponibleACoste ?? 0)));
-        $totals->appendChild($dom->createElement('TotalTaxOutputs', $this->formatAmount($factura->cuotaRepercutida ?? 0)));
-        $totals->appendChild($dom->createElement('TotalTaxesWithheld', $this->formatAmount(0)));
-        $totals->appendChild($dom->createElement('InvoiceTotal', $this->formatAmount($factura->importeTotal ?? 0)));
-        $totals->appendChild($dom->createElement('TotalOutstandingAmount', $this->formatAmount($factura->importeTotal ?? 0)));
-        $totals->appendChild($dom->createElement('TotalExecutableAmount', $this->formatAmount($factura->importeTotal ?? 0)));
-        $totals->appendChild($dom->createElement('TotalReimbursableExpenses', $this->formatAmount(0)));
+        $totals->appendChild($dom->createElement(
+            'TotalGrossAmount',
+            $this->formatAmount($factura['TotalImporteBruto'] ?? 0)
+        ));
+        $totals->appendChild($dom->createElement(
+            'TotalGeneralDiscounts',
+            $this->formatAmount($factura['TotalDescuentosGenerales'] ?? 0)
+        ));
+        $totals->appendChild($dom->createElement(
+            'TotalGeneralSurcharges',
+            $this->formatAmount($factura['TotalRecargosGenerales'] ?? 0)
+        ));
+        $totals->appendChild($dom->createElement(
+            'TotalGrossAmountBeforeTaxes',
+            $this->formatAmount($factura['TotalBaseImponible'] ?? 0)
+        ));
+        $totals->appendChild($dom->createElement(
+            'TotalTaxOutputs',
+            $this->formatAmount($factura['TotalImpuestosRepercutidos'] ?? 0)
+        ));
+        $totals->appendChild($dom->createElement(
+            'TotalTaxesWithheld',
+            $this->formatAmount($factura['TotalImpuestosRetenidos'] ?? 0)
+        ));
+        $totals->appendChild($dom->createElement(
+            'InvoiceTotal',
+            $this->formatAmount($factura['TotalFactura'] ?? 0)
+        ));
+        $totals->appendChild($dom->createElement(
+            'TotalOutstandingAmount',
+            $this->formatAmount($factura['TotalPendienteCobro'] ?? 0)
+        ));
+        $totals->appendChild($dom->createElement(
+            'TotalExecutableAmount',
+            $this->formatAmount($factura['TotalPendienteCobro'] ?? 0)
+        ));
+        $totals->appendChild($dom->createElement(
+            'TotalReimbursableExpenses',
+            $this->formatAmount(0)
+        ));
         $invoice->appendChild($totals);
 
-        // Items: si no tienes una relación "lineas" en la tabla usaremos la descripcionOperacion
+        //
+        // Items (múltiples líneas tipo cu158.xml)
+        //
         $items = $dom->createElement('Items');
-        $line = $dom->createElement('InvoiceLine');
-        $line->appendChild($dom->createElement('ItemDescription', $factura->descripcionOperacion ?? ''));
-        $line->appendChild($dom->createElement('Quantity', $this->formatAmount(1)));
-        $line->appendChild($dom->createElement('UnitOfMeasure', '01'));
-        $line->appendChild($dom->createElement('UnitPriceWithoutTax', $this->formatAmount($factura->baseImponibleACoste ?? 0)));
-        $line->appendChild($dom->createElement('TotalCost', $this->formatAmount($factura->baseImponibleACoste ?? 0)));
-        $line->appendChild($dom->createElement('GrossAmount', $this->formatAmount($factura->baseImponibleACoste ?? 0)));
 
-        $taxOutputsLine = $dom->createElement('TaxesOutputs');
-        $taxLine = $dom->createElement('Tax');
-        $taxLine->appendChild($dom->createElement('TaxTypeCode', '01'));
-        $taxLine->appendChild($dom->createElement('TaxRate', $this->formatAmount($factura->tipoImpositivo ?? 0)));
+        foreach ($lineas as $linea) {
+            $line = $dom->createElement('InvoiceLine');
+            $line->appendChild($dom->createElement('ItemDescription', $linea['Descripcion'] ?? ''));
+            $line->appendChild($dom->createElement('Quantity', $this->formatAmount($linea['Cantidad'] ?? 0)));
+            $line->appendChild($dom->createElement('UnitOfMeasure', $linea['UnidadMedida'] ?? '01'));
 
-        $taxableBaseLine = $dom->createElement('TaxableBase');
-        $taxableBaseLine->appendChild($dom->createElement('TotalAmount', $this->formatAmount($factura->baseImponibleACoste ?? 0)));
-        $taxLine->appendChild($taxableBaseLine);
+            $unitPrice = $this->formatAmount($linea['PrecioUnitarioSinIva'] ?? 0);
+            $baseLinea = $this->formatAmount($linea['BaseImponible'] ?? 0);
 
-        $taxAmountLine = $dom->createElement('TaxAmount');
-        $taxAmountLine->appendChild($dom->createElement('TotalAmount', $this->formatAmount($factura->cuotaRepercutida ?? 0)));
-        $taxLine->appendChild($taxAmountLine);
+            $line->appendChild($dom->createElement('UnitPriceWithoutTax', $unitPrice));
+            $line->appendChild($dom->createElement('TotalCost', $baseLinea));
+            $line->appendChild($dom->createElement('GrossAmount', $baseLinea));
 
-        $taxOutputsLine->appendChild($taxLine);
-        $line->appendChild($taxOutputsLine);
-        $items->appendChild($line);
+            $taxOutputsLine = $dom->createElement('TaxesOutputs');
+            $taxLine = $dom->createElement('Tax');
+            $taxLine->appendChild($dom->createElement('TaxTypeCode', '01'));
+            $taxLine->appendChild($dom->createElement('TaxRate', $this->formatAmount($linea['TipoIva'] ?? 0)));
+
+            $taxableBaseLine = $dom->createElement('TaxableBase');
+            $taxableBaseLine->appendChild($dom->createElement('TotalAmount', $baseLinea));
+            $taxLine->appendChild($taxableBaseLine);
+
+            $taxAmountLine = $dom->createElement('TaxAmount');
+            $taxAmountLine->appendChild($dom->createElement(
+                'TotalAmount',
+                $this->formatAmount($linea['CuotaIva'] ?? 0)
+            ));
+            $taxLine->appendChild($taxAmountLine);
+
+            $taxOutputsLine->appendChild($taxLine);
+            $line->appendChild($taxOutputsLine);
+
+            $items->appendChild($line);
+        }
+
         $invoice->appendChild($items);
-
         $invoices->appendChild($invoice);
         $root->appendChild($invoices);
 
         return $dom->saveXML();
     }
 
-    private function formatAmount($value)
+    private function formatAmount($value): string
     {
         return number_format((float)$value, 2, '.', '');
     }
 
-    private function formatDate($date)
+    private function formatDate($date): string
     {
         if (empty($date)) {
             return '';
         }
 
-        $date = trim($date);
+        $date = trim((string)$date);
 
-        // Intentamos formatos comunes
         $formats = [
             'Y-m-d',
             'Y-m-d H:i:s',
@@ -274,7 +349,7 @@ class FacturaXmlElectronica
             'd/m/Y',
             'd.m.Y',
             'd M Y',
-            'Y/m/d'
+            'Y/m/d',
         ];
 
         foreach ($formats as $fmt) {
@@ -284,13 +359,11 @@ class FacturaXmlElectronica
             }
         }
 
-        // Último recurso: strtotime (tolerante con varios formatos)
         $ts = strtotime(str_replace('/', '-', $date));
         if ($ts !== false) {
             return date('Y-m-d', $ts);
         }
 
-        // Si no se puede parsear, devolvemos el original (puede fallar al validar)
         return $date;
     }
 }
