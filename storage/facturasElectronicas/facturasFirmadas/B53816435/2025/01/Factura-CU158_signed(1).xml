@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facturae:Facturae xmlns:facturae="http://www.facturae.es/Facturae/2009/v3.2/Facturae">
+  <FileHeader>
+    <SchemaVersion>3.2</SchemaVersion>
+    <Modality>I</Modality>
+    <InvoiceIssuerType>TE</InvoiceIssuerType>
+    <ThirdParty>
+      <TaxIdentification>
+        <PersonTypeCode>J</PersonTypeCode>
+        <ResidenceTypeCode>R</ResidenceTypeCode>
+        <TaxIdentificationNumber>ESB63276174</TaxIdentificationNumber>
+      </TaxIdentification>
+      <LegalEntity>
+        <CorporateName>B2Brouter Global, S.L.</CorporateName>
+        <AddressInSpain>
+          <Address>Diagonal 433, 1</Address>
+          <PostCode>08036</PostCode>
+          <Town>Barcelona</Town>
+          <Province>Barcelona</Province>
+          <CountryCode>ESP</CountryCode>
+        </AddressInSpain>
+      </LegalEntity>
+    </ThirdParty>
+    <Batch>
+      <BatchIdentifier>ESB53816435158CU</BatchIdentifier>
+      <InvoicesCount>1</InvoicesCount>
+      <TotalInvoicesAmount>
+        <TotalAmount>2420.00</TotalAmount>
+      </TotalInvoicesAmount>
+      <TotalOutstandingAmount>
+        <TotalAmount>2420.00</TotalAmount>
+      </TotalOutstandingAmount>
+      <TotalExecutableAmount>
+        <TotalAmount>2420.00</TotalAmount>
+      </TotalExecutableAmount>
+      <InvoiceCurrencyCode>EUR</InvoiceCurrencyCode>
+    </Batch>
+  </FileHeader>
+  <Parties>
+    <SellerParty>
+      <TaxIdentification>
+        <PersonTypeCode>J</PersonTypeCode>
+        <ResidenceTypeCode>R</ResidenceTypeCode>
+        <TaxIdentificationNumber>ESB53816435</TaxIdentificationNumber>
+      </TaxIdentification>
+      <LegalEntity>
+        <CorporateName>SAUBER OFIMATICA SL</CorporateName>
+        <AddressInSpain>
+          <Address>TRAVESIA JOSE AVILA S/N</Address>
+          <PostCode>03300</PostCode>
+          <Town>ORIHUELA</Town>
+          <Province>ALICANTE</Province>
+          <CountryCode>ESP</CountryCode>
+        </AddressInSpain>
+        <ContactDetails>
+          <Telephone>966342221</Telephone>
+          <ElectronicMail>comercial@sauberofimatica.com</ElectronicMail>
+        </ContactDetails>
+      </LegalEntity>
+    </SellerParty>
+    <BuyerParty>
+      <TaxIdentification>
+        <PersonTypeCode>J</PersonTypeCode>
+        <ResidenceTypeCode>R</ResidenceTypeCode>
+        <TaxIdentificationNumber>ESB56704752</TaxIdentificationNumber>
+      </TaxIdentification>
+      <LegalEntity>
+        <CorporateName>GLOBUS PER SE S.L.</CorporateName>
+        <AddressInSpain>
+          <Address>AVDA.DE LA LIBERTAD, 32</Address>
+          <PostCode>30009</PostCode>
+          <Town>MURCIA</Town>
+          <Province>MURCIA</Province>
+          <CountryCode>ESP</CountryCode>
+        </AddressInSpain>
+        <ContactDetails>
+          <ElectronicMail>dir.expansion@modenaypalermo.es</ElectronicMail>
+        </ContactDetails>
+      </LegalEntity>
+    </BuyerParty>
+  </Parties>
+  <Invoices>
+    <Invoice>
+      <InvoiceHeader>
+        <InvoiceNumber>158</InvoiceNumber>
+        <InvoiceSeriesCode>CU</InvoiceSeriesCode>
+        <InvoiceDocumentType>FC</InvoiceDocumentType>
+        <InvoiceClass>OO</InvoiceClass>
+      </InvoiceHeader>
+      <InvoiceIssueData>
+        <IssueDate>2025-10-30</IssueDate>
+        <OperationDate>2025-10-30</OperationDate>
+        <InvoicingPeriod>
+          <StartDate>2025-10-30</StartDate>
+          <EndDate>2026-10-30</EndDate>
+        </InvoicingPeriod>
+        <InvoiceCurrencyCode>EUR</InvoiceCurrencyCode>
+        <TaxCurrencyCode>EUR</TaxCurrencyCode>
+        <LanguageName>es</LanguageName>
+      </InvoiceIssueData>
+      <TaxesOutputs>
+        <Tax>
+          <TaxTypeCode>01</TaxTypeCode>
+          <TaxRate>21.00</TaxRate>
+          <TaxableBase>
+            <TotalAmount>2000.00</TotalAmount>
+          </TaxableBase>
+          <TaxAmount>
+            <TotalAmount>420.00</TotalAmount>
+          </TaxAmount>
+        </Tax>
+      </TaxesOutputs>
+      <InvoiceTotals>
+        <TotalGrossAmount>2000.00</TotalGrossAmount>
+        <TotalGeneralDiscounts>0.00</TotalGeneralDiscounts>
+        <TotalGrossAmountBeforeTaxes>2000.00</TotalGrossAmountBeforeTaxes>
+        <TotalTaxOutputs>420.00</TotalTaxOutputs>
+        <TotalTaxesWithheld>0.00</TotalTaxesWithheld>
+        <InvoiceTotal>2420.00</InvoiceTotal>
+        <TotalFinancialExpenses>0.00</TotalFinancialExpenses>
+        <TotalOutstandingAmount>2420.00</TotalOutstandingAmount>
+        <TotalPaymentsOnAccount>0.00</TotalPaymentsOnAccount>
+        <TotalExecutableAmount>2420.00</TotalExecutableAmount>
+      </InvoiceTotals>
+      <Items>
+        <InvoiceLine>
+          <ItemDescription>KD/0001406324 	 GESTION DE PROCESOS</ItemDescription>
+          <Quantity>1.0</Quantity>
+          <UnitOfMeasure>01</UnitOfMeasure>
+          <UnitPriceWithoutTax>0.000000</UnitPriceWithoutTax>
+          <TotalCost>0.000000</TotalCost>
+          <GrossAmount>0.000000</GrossAmount>
+          <TaxesOutputs>
+            <Tax>
+              <TaxTypeCode>01</TaxTypeCode>
+              <TaxRate>21.00</TaxRate>
+              <TaxableBase>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxableBase>
+              <TaxAmount>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxAmount>
+            </Tax>
+          </TaxesOutputs>
+        </InvoiceLine>
+        <InvoiceLine>
+          <ItemDescription>CÓDIGO SOLUCIÓN (EUROMANANGER)</ItemDescription>
+          <Quantity>1.0</Quantity>
+          <UnitOfMeasure>01</UnitOfMeasure>
+          <UnitPriceWithoutTax>0.000000</UnitPriceWithoutTax>
+          <TotalCost>0.000000</TotalCost>
+          <GrossAmount>0.000000</GrossAmount>
+          <TaxesOutputs>
+            <Tax>
+              <TaxTypeCode>01</TaxTypeCode>
+              <TaxRate>21.00</TaxRate>
+              <TaxableBase>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxableBase>
+              <TaxAmount>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxAmount>
+            </Tax>
+          </TaxesOutputs>
+        </InvoiceLine>
+        <InvoiceLine>
+          <ItemDescription>IMPLANTACIÓN + FORMACIÓN</ItemDescription>
+          <Quantity>1.0</Quantity>
+          <UnitOfMeasure>01</UnitOfMeasure>
+          <UnitPriceWithoutTax>300.000000</UnitPriceWithoutTax>
+          <TotalCost>300.000000</TotalCost>
+          <GrossAmount>300.000000</GrossAmount>
+          <TaxesOutputs>
+            <Tax>
+              <TaxTypeCode>01</TaxTypeCode>
+              <TaxRate>21.00</TaxRate>
+              <TaxableBase>
+                <TotalAmount>300.00</TotalAmount>
+              </TaxableBase>
+              <TaxAmount>
+                <TotalAmount>63.00</TotalAmount>
+              </TaxAmount>
+            </Tax>
+          </TaxesOutputs>
+        </InvoiceLine>
+        <InvoiceLine>
+          <ItemDescription>SUITE EUROPOS GESTIÓN COMPLETA</ItemDescription>
+          <Quantity>1.0</Quantity>
+          <UnitOfMeasure>01</UnitOfMeasure>
+          <UnitPriceWithoutTax>1700.000000</UnitPriceWithoutTax>
+          <TotalCost>1700.000000</TotalCost>
+          <GrossAmount>1700.000000</GrossAmount>
+          <TaxesOutputs>
+            <Tax>
+              <TaxTypeCode>01</TaxTypeCode>
+              <TaxRate>21.00</TaxRate>
+              <TaxableBase>
+                <TotalAmount>1700.00</TotalAmount>
+              </TaxableBase>
+              <TaxAmount>
+                <TotalAmount>357.00</TotalAmount>
+              </TaxAmount>
+            </Tax>
+          </TaxesOutputs>
+        </InvoiceLine>
+        <InvoiceLine>
+          <ItemDescription>CONTABILIDAD, FACTURACIÓN, PRESUPUESTOS, INVENTARIO</ItemDescription>
+          <Quantity>1.0</Quantity>
+          <UnitOfMeasure>01</UnitOfMeasure>
+          <UnitPriceWithoutTax>0.000000</UnitPriceWithoutTax>
+          <TotalCost>0.000000</TotalCost>
+          <GrossAmount>0.000000</GrossAmount>
+          <TaxesOutputs>
+            <Tax>
+              <TaxTypeCode>01</TaxTypeCode>
+              <TaxRate>21.00</TaxRate>
+              <TaxableBase>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxableBase>
+              <TaxAmount>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxAmount>
+            </Tax>
+          </TaxesOutputs>
+        </InvoiceLine>
+        <InvoiceLine>
+          <ItemDescription>COMPRAS, PAGOS, LOGÍSTICA, RECURSOS HUMANOS</ItemDescription>
+          <Quantity>1.0</Quantity>
+          <UnitOfMeasure>01</UnitOfMeasure>
+          <UnitPriceWithoutTax>0.000000</UnitPriceWithoutTax>
+          <TotalCost>0.000000</TotalCost>
+          <GrossAmount>0.000000</GrossAmount>
+          <TaxesOutputs>
+            <Tax>
+              <TaxTypeCode>01</TaxTypeCode>
+              <TaxRate>21.00</TaxRate>
+              <TaxableBase>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxableBase>
+              <TaxAmount>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxAmount>
+            </Tax>
+          </TaxesOutputs>
+        </InvoiceLine>
+        <InvoiceLine>
+          <ItemDescription>PORTAL DE EMPLEADO</ItemDescription>
+          <Quantity>1.0</Quantity>
+          <UnitOfMeasure>01</UnitOfMeasure>
+          <UnitPriceWithoutTax>0.000000</UnitPriceWithoutTax>
+          <TotalCost>0.000000</TotalCost>
+          <GrossAmount>0.000000</GrossAmount>
+          <TaxesOutputs>
+            <Tax>
+              <TaxTypeCode>01</TaxTypeCode>
+              <TaxRate>21.00</TaxRate>
+              <TaxableBase>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxableBase>
+              <TaxAmount>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxAmount>
+            </Tax>
+          </TaxesOutputs>
+        </InvoiceLine>
+        <InvoiceLine>
+          <ItemDescription>USUARIOS INCLUIDOS: 1</ItemDescription>
+          <Quantity>1.0</Quantity>
+          <UnitOfMeasure>01</UnitOfMeasure>
+          <UnitPriceWithoutTax>0.000000</UnitPriceWithoutTax>
+          <TotalCost>0.000000</TotalCost>
+          <GrossAmount>0.000000</GrossAmount>
+          <TaxesOutputs>
+            <Tax>
+              <TaxTypeCode>01</TaxTypeCode>
+              <TaxRate>21.00</TaxRate>
+              <TaxableBase>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxableBase>
+              <TaxAmount>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxAmount>
+            </Tax>
+          </TaxesOutputs>
+        </InvoiceLine>
+        <InvoiceLine>
+          <ItemDescription>MESES DE SERVICIO: 12</ItemDescription>
+          <Quantity>1.0</Quantity>
+          <UnitOfMeasure>01</UnitOfMeasure>
+          <UnitPriceWithoutTax>0.000000</UnitPriceWithoutTax>
+          <TotalCost>0.000000</TotalCost>
+          <GrossAmount>0.000000</GrossAmount>
+          <TaxesOutputs>
+            <Tax>
+              <TaxTypeCode>01</TaxTypeCode>
+              <TaxRate>21.00</TaxRate>
+              <TaxableBase>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxableBase>
+              <TaxAmount>
+                <TotalAmount>0.00</TotalAmount>
+              </TaxAmount>
+            </Tax>
+          </TaxesOutputs>
+        </InvoiceLine>
+      </Items>
+      <PaymentDetails>
+        <Installment>
+          <InstallmentDueDate>2025-10-30</InstallmentDueDate>
+          <InstallmentAmount>2420.00</InstallmentAmount>
+          <PaymentMeans>04</PaymentMeans>
+          <AccountToBeCredited>
+            <IBAN>ES6821004327080200057250</IBAN>
+          </AccountToBeCredited>
+        </Installment>
+      </PaymentDetails>
+      <AdditionalData>
+        <InvoiceAdditionalInformation>Financiado por el Programa KIT Digital. Plan de Recuperación, Transformación y Resiliencia de España «Next Generation EU». IMPORTE SUBVENCIONADO: 2000€</InvoiceAdditionalInformation>
+      </AdditionalData>
+    </Invoice>
+  </Invoices>
+<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#" Id="Signature-eac7c466-e278-417e-a3d2-c19f3f512a8d-Signature">
+  <ds:SignedInfo>
+    <ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+    <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+    <ds:Reference Id="Reference-050d94e4-ca70-4153-8df5-367b6ecd9038" URI="">
+      <ds:Transforms>
+        <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+      </ds:Transforms>
+      <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+      <ds:DigestValue>XdJYbndRelNWSGQzFAegCDTM2WE=</ds:DigestValue>
+    </ds:Reference>
+    <ds:Reference Type="http://uri.etsi.org/01903#SignedProperties" URI="#Signature-eac7c466-e278-417e-a3d2-c19f3f512a8d-SignedProperties">
+      <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+      <ds:DigestValue>cflpSTU5wsNNrqD5hBM3Na/JIqo=</ds:DigestValue>
+    </ds:Reference>
+    <ds:Reference URI="#Signature-eac7c466-e278-417e-a3d2-c19f3f512a8d-KeyInfo">
+      <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+      <ds:DigestValue>zibKGiGuxupRue864MQwUjdX2Mo=</ds:DigestValue>
+    </ds:Reference>
+  </ds:SignedInfo>
+  <ds:SignatureValue Id="Signature-eac7c466-e278-417e-a3d2-c19f3f512a8d-SignatureValue">BrRTNrrVM4NNw4l3o2EsB3xFVUfby8jpPklFWBi8gcAyv1ptds8QW4n3H4rLYxFC2j7yW7ujrIWRO0AdCQwd2mHUY++i6ZeCYpFSSCjcTVWZaTSgdzbwoq6IFlpQV+apj5bv5keNa1CNhFL0FJ4qc5l2BZzZuXHxIejeD0vs512TjVjl1dG2jjQ/WiD/3ugm9OhR1GR8yXBBm6wSZuZ0GPuon4XCR5hZbLNq2Z2JuvH7HEu8AYf/7i+ZmssouPSZCVS2rkeTU66WTD1PDJmsDcSzPiRoIq6J7Nig2kcZvzR68K/dqTxrfsgaUUT+uDejel9pQD+FJ0CodiBkrWhX6w==</ds:SignatureValue>
+  <ds:KeyInfo Id="Signature-eac7c466-e278-417e-a3d2-c19f3f512a8d-KeyInfo">
+    <ds:KeyValue>
+      <ds:RSAKeyValue>
+        <ds:Modulus>5X8248g9k8tyPDbaK9v3z/1qWcdyBeiVsOM2unx0+x+pMRhBzSD7vnHKp0p0
+bRoO/hOtKtEa1ig7kdxE8TvV6acqLwotZA6+CuSLFe0XtAY9kOOe8whDRBei
+FZGI5rzFF124CQ/vhDLX5Rw8rOUXv+M8PuS1r2Y8Jsx3YTyCaEhdyIbbxaNo
+xVBK8qd66MAw3/UmxCirJw6S2PupUt6oRSukDu/KODaL05XXbj/73QCcTb7d
+rhMRajYESnnzf4NMzfihLIUMIB0/I2LmoYUs7MhNCzjy/iSlfVGvaWtMptSS
+QZo4KFPm2tJxHsOekibUWZeIyt5ywmyIzbZoIbI/WQ==</ds:Modulus>
+        <ds:Exponent>AQAB</ds:Exponent>
+      </ds:RSAKeyValue>
+    </ds:KeyValue>
+    <ds:X509Data>
+      <ds:X509Certificate>MIIHKzCCBhOgAwIBAgIQaYjeFMbzdyGRARUn4K05XTANBgkqhkiG9w0BAQsF
+ADCBkjELMAkGA1UEBhMCRVMxHjAcBgNVBAoTFUZpcm1hcHJvZmVzaW9uYWwg
+Uy5BLjEiMCAGA1UECxMZQ2VydGlmaWNhZG9zIEN1YWxpZmljYWRvczESMBAG
+A1UEBRMJQTYyNjM0MDY4MSswKQYDVQQDEyJBQyBGaXJtYXByb2Zlc2lvbmFs
+IC0gQ1VBTElGSUNBRE9TMB4XDTIyMTAwNDA4MDI0MFoXDTI2MTAwNDA4MDI0
+MFowggEGMQswCQYDVQQGEwJFUzEhMB8GA1UECgwYSU5WSU5FVCBTSVNURU1F
+UyAyMDAzIFNMMRgwFgYDVQRhDA9WQVRFUy1CNjMyNzYxNzQxFDASBgNVBAQM
+C0JBVVNBIFBFUklTMQ4wDAYDVQQqDAVPUklPTDESMBAGA1UEBRMJNDYyMjgx
+NjBUMSwwKgYDVQQDDCM0NjIyODE2MFQgT1JJT0wgQkFVU0EgKFI6QjYzMjc2
+MTc0KTFSMFAGA1UEDQxJTm90YXJpbzpQLiBBTEJJT0wgTUFSRVMvTsO6bSBQ
+cm90b2NvbG86NDQ1Ni9GZWNoYSBPdG9yZ2FtaWVudG86MTAtMTEtMjAxNDCC
+ASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOV/NuPIPZPLcjw22ivb
+98/9alnHcgXolbDjNrp8dPsfqTEYQc0g+75xyqdKdG0aDv4TrSrRGtYoO5Hc
+RPE71emnKi8KLWQOvgrkixXtF7QGPZDjnvMIQ0QXohWRiOa8xRdduAkP74Qy
+1+UcPKzlF7/jPD7kta9mPCbMd2E8gmhIXciG28WjaMVQSvKneujAMN/1JsQo
+qycOktj7qVLeqEUrpA7vyjg2i9OV124/+90AnE2+3a4TEWo2BEp583+DTM34
+oSyFDCAdPyNi5qGFLOzITQs48v4kpX1Rr2lrTKbUkkGaOChT5trScR7DnpIm
+1FmXiMrecsJsiM22aCGyP1kCAwEAAaOCAwQwggMAMAwGA1UdEwEB/wQCMAAw
+HwYDVR0jBBgwFoAUjHHMkwdv0dWGaH2COkHZTAL4ll0wegYIKwYBBQUHAQEE
+bjBsMDwGCCsGAQUFBzAChjBodHRwOi8vY3JsLmZpcm1hcHJvZmVzaW9uYWwu
+Y29tL2N1YWxpZmljYWRvcy5jcnQwLAYIKwYBBQUHMAGGIGh0dHA6Ly9vY3Nw
+LmZpcm1hcHJvZmVzaW9uYWwuY29tMGIGA1UdEQRbMFmBEW9yaW9sQGludmlu
+ZXQub3JnpEQwQjEUMBIGCSsGAQQB5nkAAQwFT1JJT0wxFDASBgkrBgEEAeZ5
+AAIMBUJBVVNBMRQwEgYJKwYBBAHmeQADDAVQRVJJUzCCAR8GA1UdIASCARYw
+ggESMIH5BgsrBgEEAeZ5CgELAjCB6TAvBggrBgEFBQcCARYjaHR0cDovL3d3
+dy5maXJtYXByb2Zlc2lvbmFsLmNvbS9jcHMwgbUGCCsGAQUFBwICMIGoDIGl
+w4lzdGUgZXMgdW4gQ2VydGlmaWNhZG8gQ29ycG9yYXRpdm8gZGUgUmVwcmVz
+ZW50YW50ZSBMZWdhbCBjdWFsaWZpY2Fkby4gRGlyZWNjacOzbiBkZWwgcHJl
+c3RhZG9yIGRlIHNlcnZpY2lvcyBkZSBjb25maWFuemE6IFBhc2VvIGRlIGxh
+IEJvbmFub3ZhLCA0Ny4gMDgwMTcgQmFyY2Vsb25hMAkGBwQAi+xAAQAwCQYH
+YIVUAQMFCDAeBgNVHSUEFzAVBggrBgEFBQcDAgYJKoZIhvcvAQEFMDoGCCsG
+AQUFBwEDBC4wLDAIBgYEAI5GAQEwCwYGBACORgEDAgEPMBMGBgQAjkYBBjAJ
+BgcEAI5GAQYBMEEGA1UdHwQ6MDgwNqA0oDKGMGh0dHA6Ly9jcmwuZmlybWFw
+cm9mZXNpb25hbC5jb20vY3VhbGlmaWNhZG9zLmNybDAdBgNVHQ4EFgQUw0uq
+RVEfNIFSYSCM9M02Sifl/zwwDgYDVR0PAQH/BAQDAgXgMA0GCSqGSIb3DQEB
+CwUAA4IBAQCM2aG0hpb4HsGWTFJllYoIaGUHoCU/7avQieynxTMMUFZ5Az8H
+ZclOjPawfQAFGRrPUlz9t9I30ToxA0HEYKeC0hrbCGD8+52crOh+nyLavkgW
+DkCPnRIComWpHpKRtJGXOGgC5sAjX+eO4GZQXVrD+LFSdD8TZoix1jj33ATB
+YXR1uZKRzxlS3iGc5BFr+2BgkgIcoqwXjvetvjSyDHuySDn658+kQfPOwYGf
+4t1pbFm9g1UddP9VUgsghuivA2ulxFxSaIwpnV84m044IICtGOC+KyxuFJlG
+OR7fnAnlZGJVpQ2wmQz+/fNABSBaLwbA61hcfGWG792Z8OQUsYE1</ds:X509Certificate>
+    </ds:X509Data>
+  </ds:KeyInfo>
+  <ds:Object>
+    <xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Id="Signature-eac7c466-e278-417e-a3d2-c19f3f512a8d-QualifyingProperties" Target="#Signature-eac7c466-e278-417e-a3d2-c19f3f512a8d-Signature">
+      <xades:SignedProperties Id="Signature-eac7c466-e278-417e-a3d2-c19f3f512a8d-SignedProperties">
+        <xades:SignedSignatureProperties>
+          <xades:SigningTime>2026-01-11T19:50:07+01:00</xades:SigningTime>
+          <xades:SigningCertificate>
+            <xades:Cert>
+              <xades:CertDigest>
+                <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                <ds:DigestValue>21uSCeZvRGPnskfej4DTw3QRpcQ=</ds:DigestValue>
+              </xades:CertDigest>
+              <xades:IssuerSerial>
+                <ds:X509IssuerName>CN=AC Firmaprofesional - CUALIFICADOS,serialNumber=A62634068,OU=Certificados Cualificados,O=Firmaprofesional S.A.,C=ES</ds:X509IssuerName>
+                <ds:X509SerialNumber>140279596271244527668096107279524116829</ds:X509SerialNumber>
+              </xades:IssuerSerial>
+            </xades:Cert>
+          </xades:SigningCertificate>
+          <xades:SignaturePolicyIdentifier>
+            <xades:SignaturePolicyId>
+              <xades:SigPolicyId>
+                <xades:Identifier>http://www.facturae.es/politica_de_firma_formato_facturae/politica_de_firma_formato_facturae_v3_1.pdf</xades:Identifier>
+                <xades:Description>facturae31</xades:Description>
+              </xades:SigPolicyId>
+              <xades:SigPolicyHash>
+                <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                <ds:DigestValue>Ohixl6upD6av8N7pEvDABhEL6hM=</ds:DigestValue>
+              </xades:SigPolicyHash>
+            </xades:SignaturePolicyId>
+          </xades:SignaturePolicyIdentifier>
+          <xades:SignerRole>
+            <xades:ClaimedRoles>
+              <xades:ClaimedRole>emisor</xades:ClaimedRole>
+            </xades:ClaimedRoles>
+          </xades:SignerRole>
+        </xades:SignedSignatureProperties>
+        <xades:SignedDataObjectProperties>
+          <xades:DataObjectFormat ObjectReference="#Reference-050d94e4-ca70-4153-8df5-367b6ecd9038">
+            <xades:Description/>
+            <xades:ObjectIdentifier>
+              <xades:Identifier Qualifier="OIDAsURN">urn:oid:1.2.840.10003.5.109.10</xades:Identifier>
+              <xades:Description/>
+            </xades:ObjectIdentifier>
+            <xades:MimeType>text/xml</xades:MimeType>
+            <xades:Encoding>UTF-8</xades:Encoding>
+          </xades:DataObjectFormat>
+        </xades:SignedDataObjectProperties>
+      </xades:SignedProperties>
+    </xades:QualifyingProperties>
+  </ds:Object>
+</ds:Signature>
+</facturae:Facturae>

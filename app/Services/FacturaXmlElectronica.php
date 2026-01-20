@@ -89,7 +89,27 @@ class FacturaXmlElectronica
         $addressS->appendChild($dom->createElement('CountryCode', $factura['EmisorCpais'] ?? 'ESP'));
         $legalS->appendChild($addressS);
 
-        // (Opcional) datos de contacto emisor si algún día los añades al JSON
+        /* (Opcional) datos de contacto emisor si algún día se añade al JSON
+            if (!empty($factura['EmisorTelefono']) || !empty($factura['EmisorWeb']) || !empty($factura['EmisorEmail'])) {
+            $contactS = $dom->createElement('ContactDetails');
+            if (!empty($factura['EmisorTelefono'])) {
+                $contactS->appendChild($dom->createElement('Telephone', $factura['EmisorTelefono']));
+            }
+            if (!empty($factura['EmisorWeb'])) {
+                $contactS->appendChild($dom->createElement('WebAddress', $factura['EmisorWeb']));
+            }
+            if (!empty($factura['EmisorEmail'])) {
+                $contactS->appendChild($dom->createElement('ElectronicMail', $factura['EmisorEmail']));
+            }
+            $legalS->appendChild($contactS);
+            }
+            
+            if (!empty($factura['EmailCliente'])) {
+            $contactB = $dom->createElement('ContactDetails');
+            $contactB->appendChild($dom->createElement('ElectronicMail', $factura['EmailCliente']));
+            $legalB->appendChild($contactB);
+            }*/
+
         if (!empty($factura['EmisorTelefono']) || !empty($factura['EmisorWeb']) || !empty($factura['EmisorEmail'])) {
             $contactS = $dom->createElement('ContactDetails');
             if (!empty($factura['EmisorTelefono'])) {
@@ -323,6 +343,15 @@ class FacturaXmlElectronica
         }
 
         $invoice->appendChild($items);
+
+        if (!empty($factura['Notas'])) {
+            $additionalData = $dom->createElement('AdditionalData');
+            $additionalData->appendChild(
+                $dom->createElement('InvoiceAdditionalInformation', $factura['Notas'])
+            );
+            $invoice->appendChild($additionalData);
+        }
+
         $invoices->appendChild($invoice);
         $root->appendChild($invoices);
 

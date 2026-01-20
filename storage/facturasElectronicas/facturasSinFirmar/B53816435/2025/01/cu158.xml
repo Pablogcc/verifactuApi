@@ -37,11 +37,6 @@
                     <Province>ALICANTE</Province>
                     <CountryCode>ESP</CountryCode>
                 </AddressInSpain>
-                <ContactDetails>
-                    <Telephone>966342221</Telephone>
-                    <WebAddress>www.sauberofimatica.com</WebAddress>
-                    <ElectronicMail>comercial@sauberofimatica.com</ElectronicMail>
-                </ContactDetails>
             </LegalEntity>
         </SellerParty>
         <BuyerParty>
@@ -59,9 +54,6 @@
                     <Province>MURCIA</Province>
                     <CountryCode>ESP</CountryCode>
                 </AddressInSpain>
-                <ContactDetails>
-                    <ElectronicMail>dir.expansion@modenaypalermo.es</ElectronicMail>
-                </ContactDetails>
             </LegalEntity>
         </BuyerParty>
     </Parties>
