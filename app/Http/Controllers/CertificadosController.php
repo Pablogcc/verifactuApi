@@ -172,6 +172,83 @@ class CertificadosController extends Controller
         ]);
     }
 
+    /**
+     * Genera un archivo .pfx a partir de los archivos cert.pem y key.pem
+     * almacenados en storage/certs/{cif} y devuelve el .pfx en Base64 junto
+     * con la contraseña generada.
+     */
+    public function generarPfxDesdePem(Request $request)
+    {
+        $data = $request->validate([
+            'cif' => 'required|string',
+            'token' => ['required', 'string', 'in:sZQe4cxaEWeFBe3EPkeah0KqowVBLx']
+        ]);
+
+        $cif = $data['cif'];
+
+        try {
+            $basePath = storage_path('certs/' . $cif . '/');
+            $certPath = $basePath . 'cert.pem';
+            $keyPath = $basePath . 'key.pem';
+
+            if (!file_exists($certPath) || !file_exists($keyPath)) {
+                return response()->json([
+                    'resultado' => false,
+                    'mensaje' => "No se han encontrado cert.pem o key.pem para el CIF indicado"
+                ], 404);
+            }
+
+            $certContent = file_get_contents($certPath);
+            $keyContent = file_get_contents($keyPath);
+
+            if ($certContent === false || $keyContent === false) {
+                return response()->json([
+                    'resultado' => false,
+                    'mensaje' => "No se han podido leer los archivos cert.pem o key.pem"
+                ], 500);
+            }
+
+            $cert = openssl_x509_read($certContent);
+            $privateKey = openssl_pkey_get_private($keyContent);
+
+            if ($cert === false || $privateKey === false) {
+                return response()->json([
+                    'resultado' => false,
+                    'mensaje' => "Los archivos de certificado o clave privada no son válidos"
+                ], 500);
+            }
+
+            $password = bin2hex(random_bytes(8));
+
+            $pfx = null;
+            $exportOk = openssl_pkcs12_export($cert, $pfx, $privateKey, $password);
+
+            if (!$exportOk || !$pfx) {
+                return response()->json([
+                    'resultado' => false,
+                    'mensaje' => "No se ha podido generar el archivo .pfx"
+                ], 500);
+            }
+
+            // Opcionalmente guardamos el archivo .pfx generado en disco
+            $pfxPath = $basePath . 'certificado_generado.pfx';
+            file_put_contents($pfxPath, $pfx);
+
+            return response()->json([
+                'resultado' => true,
+                'cif' => $cif,
+                'password' => $password,
+                'pfxBase64' => base64_encode($pfx),
+                'rutaPfx' => $pfxPath
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'resultado' => false,
+                'mensaje' => "Error al generar el archivo .pfx: " . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function notificacion(Request $request)
     {
 

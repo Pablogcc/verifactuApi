@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<fe:Facturae xmlns:fe="http://www.facturae.es/Facturae/2014/v3.2.1/Facturae" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<fe:Facturae xmlns:fe="http://www.facturae.es/Facturae/2014/v3.2.1/Facturae"
+  xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
   <FileHeader>
     <SchemaVersion>3.2.1</SchemaVersion>
     <Modality>I</Modality>
@@ -27,8 +28,8 @@
         <TaxIdentificationNumber>B53816435</TaxIdentificationNumber>
       </TaxIdentification>
       <LegalEntity>
-        <CorporateName>SAUBER OFIMÁTICA  SL</CorporateName>
-        <TradeName>SAUBER OFIMÁTICA  SL</TradeName>
+        <CorporateName>SAUBER OFIMÁTICA SL</CorporateName>
+        <TradeName>SAUBER OFIMÁTICA SL</TradeName>
         <AddressInSpain>
           <Address>C/ EXTREMADURA 9</Address>
           <PostCode>03300</PostCode>
@@ -96,7 +97,7 @@
       </InvoiceTotals>
       <Items>
         <InvoiceLine>
-          <ItemDescription>KD/0001406324 	 GESTION DE PROCESOS</ItemDescription>
+          <ItemDescription>KD/0001406324 GESTION DE PROCESOS</ItemDescription>
           <Quantity>1.00</Quantity>
           <UnitOfMeasure>01</UnitOfMeasure>
           <UnitPriceWithoutTax>0.00</UnitPriceWithoutTax>
@@ -276,9 +277,6 @@
           </TaxesOutputs>
         </InvoiceLine>
       </Items>
-      <AdditionalData>
-        <InvoiceAdditionalInformation>Financiado por el Programa KIT Digital. Plan de Recuperación, Transformación y Resiliencia de España «Next Generation EU». IMPORTE SUBVENCIONADO: 2000€</InvoiceAdditionalInformation>
-      </AdditionalData>
     </Invoice>
   </Invoices>
 </fe:Facturae>

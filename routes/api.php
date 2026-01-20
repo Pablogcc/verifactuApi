@@ -37,3 +37,5 @@ Route::post('comprobarEstado', [CertificadosController::class, 'comprobacionEsta
 Route::post('codigos-postales', [CodigoPostalController::class, 'codigoPostal']);
 
 Route::post('verifactuAgrupados', [VerifactuController::class, 'verifactuAgrupados']);
+
+Route::post('generarPfxDesdePem', [CertificadosController::class, 'generarPfxDesdePem']);
