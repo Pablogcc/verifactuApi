@@ -12,28 +12,34 @@ class FacturaXmlElectronica
      * @param array $factura Datos generales (emisor, receptor, totales, fechas…).
      * @param array $lineas  Líneas de detalle (Descripcion, Cantidad, etc.).
      */
-    public function generateXml(array $factura, array $lineas): string
+    public function generateXml(array $factura, array $lineas, bool $esFirma = false): string
     {
         $dom = new DOMDocument('1.0', 'UTF-8');
         $dom->formatOutput = true;
 
         // <fe:Facturae ...>
-        $root = $dom->createElementNS(
-            'http://www.facturae.es/Facturae/2014/v3.2.1/Facturae',
-            'fe:Facturae'
-        );
-        $root->setAttributeNS(
-            'http://www.w3.org/2000/xmlns/',
-            'xmlns:ds',
-            'http://www.w3.org/2000/09/xmldsig#'
-        );
+        // Versión de esquema distinta según sea firmada o no
+        $schemaNs = $esFirma
+            ? 'http://www.facturae.es/Facturae/2009/v3.2/Facturae'
+            : 'http://www.facturae.es/Facturae/2014/v3.2.1/Facturae';
+
+        $root = $dom->createElementNS($schemaNs, 'fe:Facturae');
+
+        // Solo añadimos xmlns:ds cuando NO es una factura firmada
+        if (!$esFirma) {
+            $root->setAttributeNS(
+                'http://www.w3.org/2000/xmlns/',
+                'xmlns:ds',
+                'http://www.w3.org/2000/09/xmldsig#'
+            );
+        }
         $dom->appendChild($root);
 
         //
         // FILE HEADER
         //
         $fileHeader = $dom->createElement('FileHeader');
-        $fileHeader->appendChild($dom->createElement('SchemaVersion', '3.2.1'));
+        $fileHeader->appendChild($dom->createElement('SchemaVersion', $esFirma ? '3.2' : '3.2.1'));
         $fileHeader->appendChild($dom->createElement('Modality', 'I'));
         $fileHeader->appendChild($dom->createElement('InvoiceIssuerType', 'EM'));
 
@@ -313,12 +319,21 @@ class FacturaXmlElectronica
             $line->appendChild($dom->createElement('Quantity', $this->formatAmount($linea['Cantidad'] ?? 0)));
             $line->appendChild($dom->createElement('UnitOfMeasure', $linea['UnidadMedida'] ?? '01'));
 
-            $unitPrice = $this->formatAmount($linea['PrecioUnitarioSinIva'] ?? 0);
-            $baseLinea = $this->formatAmount($linea['BaseImponible'] ?? 0);
+            // Base imponible con 2 decimales (para TotalAmount de impuestos)
+            $baseLinea2 = $this->formatAmount($linea['BaseImponible'] ?? 0);
+
+            // Para facturas firmadas, los importes de línea visuales van con 6 decimales.
+            if ($esFirma) {
+                $unitPrice  = $this->formatAmount6($linea['PrecioUnitarioSinIva'] ?? 0);
+                $baseLinea6 = $this->formatAmount6($linea['BaseImponible'] ?? 0);
+            } else {
+                $unitPrice  = $this->formatAmount($linea['PrecioUnitarioSinIva'] ?? 0);
+                $baseLinea6 = $baseLinea2;
+            }
 
             $line->appendChild($dom->createElement('UnitPriceWithoutTax', $unitPrice));
-            $line->appendChild($dom->createElement('TotalCost', $baseLinea));
-            $line->appendChild($dom->createElement('GrossAmount', $baseLinea));
+            $line->appendChild($dom->createElement('TotalCost', $baseLinea6));
+            $line->appendChild($dom->createElement('GrossAmount', $baseLinea6));
 
             $taxOutputsLine = $dom->createElement('TaxesOutputs');
             $taxLine = $dom->createElement('Tax');
@@ -326,7 +341,8 @@ class FacturaXmlElectronica
             $taxLine->appendChild($dom->createElement('TaxRate', $this->formatAmount($linea['TipoIva'] ?? 0)));
 
             $taxableBaseLine = $dom->createElement('TaxableBase');
-            $taxableBaseLine->appendChild($dom->createElement('TotalAmount', $baseLinea));
+            // TotalAmount debe ir con formato "normal" (2 decimales)
+            $taxableBaseLine->appendChild($dom->createElement('TotalAmount', $baseLinea2));
             $taxLine->appendChild($taxableBaseLine);
 
             $taxAmountLine = $dom->createElement('TaxAmount');
@@ -363,6 +379,11 @@ class FacturaXmlElectronica
         return number_format((float)$value, 2, '.', '');
     }
 
+    private function formatAmount6($value): string
+    {
+        return number_format((float)$value, 6, '.', '');
+    }
+
     private function formatDate($date): string
     {
         if (empty($date)) {
@@ -396,3 +417,4 @@ class FacturaXmlElectronica
         return $date;
     }
 }
+

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use App\Services\Encriptar;
 use App\Models\Emisores;
 use App\Services\FacturaXmlElectronica;
@@ -12,15 +13,12 @@ class FacturaElcetronicaController extends Controller
 {
     public function facturaElectronica(Request $request)
     {
-        // Validamos el JSON con estructura:
-        // { token, firmada, factura: { ... , Lineas: [ ... ] } }
-        $data = $request->validate([
+        $rules = [
             'token'   => 'required|string',
             'firmada' => 'nullable|integer|in:1,0',
 
             'factura' => 'required|array',
 
-            // Datos principales de la factura
             'factura.NumSerieFactura' => 'required|string',
             'factura.FechaExpedicionFactura' => 'required|string',
             'factura.IdEmisorFactura' => 'required|string',
@@ -34,21 +32,18 @@ class FacturaElcetronicaController extends Controller
             'factura.NumFactura' => 'required|integer',
             'factura.Notas' => 'nullable|string',
 
-            // Dirección emisor
             'factura.EmisorDirec' => 'required|string',
             'factura.EmisorCpostal' => 'required|string',
             'factura.EmisorCiudad' => 'required|string',
             'factura.EmisorProv' => 'required|string',
             'factura.EmisorCpais' => 'required|string',
 
-            // Dirección receptor
             'factura.ReceptorDirec' => 'required|string',
             'factura.ReceptorCpostal' => 'required|string',
             'factura.ReceptorCiudad' => 'required|string',
             'factura.ReceptorProv' => 'required|string',
             'factura.ReceptorCpais' => 'required|string',
 
-            // Totales
             'factura.TotalImporteBruto' => 'required|numeric',
             'factura.TotalDescuentosGenerales' => 'required|numeric',
             'factura.TotalRecargosGenerales' => 'required|numeric',
@@ -58,7 +53,6 @@ class FacturaElcetronicaController extends Controller
             'factura.TotalFactura' => 'required|numeric',
             'factura.TotalPendienteCobro' => 'required|numeric',
 
-            // Centros administrativos (opcionales)
             'factura.Oficontable' => 'nullable|string',
             'factura.Orggestor' => 'nullable|string',
             'factura.Utramitadora' => 'nullable|string',
@@ -78,8 +72,7 @@ class FacturaElcetronicaController extends Controller
             'factura.UtramitadoraProv' => 'nullable|string',
             'factura.UtramitadoraCpais' => 'nullable|string',
 
-            // Líneas de detalle
-            'factura.Lineas' => 'required|array|min:1',
+            'factura.Lineas' => 'nullable|array',
             'factura.Lineas.*.Descripcion' => 'required|string',
             'factura.Lineas.*.Cantidad' => 'required|numeric',
             'factura.Lineas.*.UnidadMedida' => 'required|string',
@@ -87,9 +80,19 @@ class FacturaElcetronicaController extends Controller
             'factura.Lineas.*.BaseImponible' => 'required|numeric',
             'factura.Lineas.*.TipoIva' => 'required|numeric',
             'factura.Lineas.*.CuotaIva' => 'required|numeric',
-        ]);
+        ];
 
-        // Comprobación de token
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'resultado' => false,
+                'mensaje'   => 'Faltan campos obligatorios'
+            ], 422);
+        }
+
+        $data = $validator->validated();
+
         if ($data['token'] !== 'sZQe4cxaEWeFBe3EPkeah0KqowVBLx') {
             return response()->json([
                 'resultado' => false,
@@ -99,9 +102,15 @@ class FacturaElcetronicaController extends Controller
 
         $firmada = $data['firmada'] ?? 1;
         $factura = $data['factura'];
-        $lineas  = $factura['Lineas'];
+        $lineas  = $factura['Lineas'] ?? [];
 
-        // Certificado del emisor (tabla emisores)
+        if (empty($lineas)) {
+            return response()->json([
+                'resultado' => false,
+                'mensaje'   => 'No hay líneas en la factura',
+            ], 422);
+        }
+
         $emisor = Emisores::where('cif', $factura['CifEmisor'])->first();
         if (!$emisor) {
             return response()->json(['mensaje' => 'Emisor no encontrado']);
@@ -111,10 +120,8 @@ class FacturaElcetronicaController extends Controller
         $passwordCert = $desencriptador->decryptString($emisor->password);
         $desencriptador->decryptBase64AndDownloadPfx($passwordCert, $emisor->certificado, $emisor->cif);
 
-        // Generar XML a partir del JSON
-        $xml = (new FacturaXmlElectronica())->generateXml($factura, $lineas);
+        $xml = (new FacturaXmlElectronica())->generateXml($factura, $lineas, $firmada === 1);
 
-        // Firmar o no firmar
         if ($firmada === 1) {
             $xmlFirmado = (new FirmaXmlGeneratorElectronica())->firmaXml($xml, $emisor->cif, $passwordCert);
             $xmlParaGuardar = $xmlFirmado;
@@ -122,7 +129,6 @@ class FacturaElcetronicaController extends Controller
             $xmlParaGuardar = $xml;
         }
 
-        // Carpeta destino según fecha de la factura
         $fecha = $factura['FechaExpedicionFactura'] ?? $factura['FechaOperacion'] ?? date('Y-m-d');
         $ts    = strtotime($fecha) ?: time();
         $ejercicio = date('Y', $ts);
@@ -152,7 +158,6 @@ class FacturaElcetronicaController extends Controller
 
         file_put_contents($ruta, $xmlParaGuardar);
 
-        // Encriptar XML en base64 para devolverlo
         $xmlBase64  = base64_encode($xmlParaGuardar);
         $encriptado = $desencriptador->encryptBase64InputReturnBase64($xmlBase64);
 
