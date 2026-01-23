@@ -8,6 +8,7 @@ use App\Services\Encriptar;
 use App\Models\Emisores;
 use App\Services\FacturaXmlElectronica;
 use App\Services\FirmaXmlGeneratorElectronica;
+use App\Services\ChilkatLikeFacturaeSigner;
 
 class FacturaElcetronicaController extends Controller
 {
@@ -52,6 +53,10 @@ class FacturaElcetronicaController extends Controller
             'factura.TotalImpuestosRetenidos' => 'required|numeric',
             'factura.TotalFactura' => 'required|numeric',
             'factura.TotalPendienteCobro' => 'required|numeric',
+
+            // Periodo de facturación (opcional)
+            'factura.InicioPeriodo' => 'nullable|string',
+            'factura.FinPeriodo' => 'nullable|string',
 
             'factura.Oficontable' => 'nullable|string',
             'factura.Orggestor' => 'nullable|string',
@@ -116,14 +121,29 @@ class FacturaElcetronicaController extends Controller
             return response()->json(['mensaje' => 'Emisor no encontrado']);
         }
 
+        // Comprobamos que exista el .pfx asociado al emisor
+        $pfxPath = storage_path('certs/' . $emisor->cif . '/certificado.pfx');
+        if (!file_exists($pfxPath)) {
+            return response()->json([
+                'resultado' => false,
+                'mensaje'   => 'Faltan datos adicionales del certificado (archivo .pfx no encontrado)',
+            ], 422);
+        }
+
         $desencriptador = new Encriptar();
         $passwordCert = $desencriptador->decryptString($emisor->password);
-        $desencriptador->decryptBase64AndDownloadPfx($passwordCert, $emisor->certificado, $emisor->cif);
+
+        //$desencriptador->decryptBase64AndDownloadPfx($passwordCert, $emisor->certificado, $emisor->cif);
 
         $xml = (new FacturaXmlElectronica())->generateXml($factura, $lineas, $firmada === 1);
 
         if ($firmada === 1) {
-            $xmlFirmado = (new FirmaXmlGeneratorElectronica())->firmaXml($xml, $emisor->cif, $passwordCert);
+            $xmlFirmado = (new ChilkatLikeFacturaeSigner())->signFacturaeWithPolicy(
+                $xml,
+                $pfxPath,
+                $passwordCert,
+                true
+            );
             $xmlParaGuardar = $xmlFirmado;
         } else {
             $xmlParaGuardar = $xml;

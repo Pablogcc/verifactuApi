@@ -49,6 +49,31 @@ class CertificadosController extends Controller
                 throw new \Exception("No se pudo interpretar el certificado");
             }
 
+            // Generar y guardar un .pfx en la misma carpeta que los .pem
+            if (isset($paths['key']) && file_exists($paths['key'])) {
+                $keyContent = file_get_contents($paths['key']);
+                if ($keyContent === false) {
+                    throw new \Exception("No se pudo leer key.pem");
+                }
+
+                $privateKey = openssl_pkey_get_private($keyContent);
+                if ($privateKey === false) {
+                    throw new \Exception("La clave privada (key.pem) no es válida");
+                }
+
+                $pfx = null;
+                $exportOk = openssl_pkcs12_export($cert, $pfx, $privateKey, $contrasenna);
+
+                if (!$exportOk || !$pfx) {
+                    throw new \Exception("No se ha podido generar el archivo .pfx");
+                }
+
+                $pfxPath = dirname($paths['cert']) . DIRECTORY_SEPARATOR . 'certificado.pfx';
+                if (file_put_contents($pfxPath, $pfx) === false) {
+                    throw new \Exception("No se ha podido guardar el archivo .pfx");
+                }
+            }
+
             // Extraermos la información de la fecha de validez del certificado
             //La guardamos para luego subirla a la base de datos
             $certInfo = openssl_x509_parse($cert);

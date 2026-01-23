@@ -233,6 +233,26 @@ class FacturaXmlElectronica
                 $this->formatDate($factura['FechaExpedicionFactura'] ?? ($factura['FechaOperacion'] ?? ''))
             )
         );
+
+        // Periodo de facturación opcional (InvoicingPeriod)
+        if (!empty($factura['inicioPeriodo']) || !empty($factura['finPeriodo'])) {
+            $periodNode = $dom->createElement('InvoicingPeriod');
+
+            if (!empty($factura['inicioPeriodo'])) {
+                $periodNode->appendChild(
+                    $dom->createElement('StartDate', $this->formatDate($factura['inicioPeriodo']))
+                );
+            }
+
+            if (!empty($factura['finPeriodo'])) {
+                $periodNode->appendChild(
+                    $dom->createElement('EndDate', $this->formatDate($factura['finPeriodo']))
+                );
+            }
+
+            $issue->appendChild($periodNode);
+        }
+
         $issue->appendChild($dom->createElement('InvoiceCurrencyCode', 'EUR'));
         $issue->appendChild($dom->createElement('TaxCurrencyCode', 'EUR'));
         $issue->appendChild($dom->createElement('LanguageName', 'es'));
@@ -417,4 +437,3 @@ class FacturaXmlElectronica
         return $date;
     }
 }
-
