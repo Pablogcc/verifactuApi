@@ -10,6 +10,7 @@ class FirmaXmlGeneratorElectronica
     public function firmaXml(string $xmlContent, string $cif, string $passwordCert): string
     {
         $keyPath  = storage_path("certs/{$cif}/key.pem");
+        $certificadoPath = storage_path("certs/{$cif}/certificado.pfx");
         $certPath = storage_path("certs/{$cif}/cert.pem");
 
         $privateKeyPem = @file_get_contents($keyPath);
