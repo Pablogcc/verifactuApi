@@ -4,6 +4,12 @@ namespace App\Services;
 
 use DOMDocument;
 
+/**
+ * Servicio para construir documentos XML en formato Facturae.
+ *
+ * A partir de los datos de factura y sus líneas genera
+ * un XML listo para ser firmado o enviado.
+ */
 class FacturaXmlElectronica
 {
     /**
@@ -36,13 +42,20 @@ class FacturaXmlElectronica
         $dom->appendChild($root);
 
         //
-        // FILE HEADER
+        // FILE HEADER: información general del fichero/lote Facturae
+        //  - SchemaVersion: versión de la especificación Facturae (3.2 ó 3.2.1).
+        //  - Modality: "I" para facturación individual.
+        //  - InvoiceIssuerType: "EM" emisor (empresa) de la factura.
         //
         $fileHeader = $dom->createElement('FileHeader');
         $fileHeader->appendChild($dom->createElement('SchemaVersion', $esFirma ? '3.2' : '3.2.1'));
         $fileHeader->appendChild($dom->createElement('Modality', 'I'));
         $fileHeader->appendChild($dom->createElement('InvoiceIssuerType', 'EM'));
 
+        // Batch: identifica el lote de facturas (en este caso siempre 1).
+        //  - BatchIdentifier: identificador único, aquí CIF + número + serie.
+        //  - InvoicesCount: número de facturas en el lote.
+        //  - Totales del lote: importes globales y divisa.
         $batch = $dom->createElement('Batch');
         $batchIdentifier =
             ($factura['CifEmisor'] ?? '') .
@@ -58,40 +71,54 @@ class FacturaXmlElectronica
         $totalInvoicesAmount->appendChild($dom->createElement('TotalAmount', $total));
         $batch->appendChild($totalInvoicesAmount);
 
+        // TotalOutstandingAmount: suma pendiente de cobro del lote.
         $totalOutstandingAmount = $dom->createElement('TotalOutstandingAmount');
         $totalOutstandingAmount->appendChild($dom->createElement('TotalAmount', $this->formatAmount($factura['TotalPendienteCobro'] ?? $total)));
         $batch->appendChild($totalOutstandingAmount);
 
+        // TotalExecutableAmount: importe ejecutable (normalmente igual al pendiente).
         $totalExecutableAmount = $dom->createElement('TotalExecutableAmount');
         $totalExecutableAmount->appendChild($dom->createElement('TotalAmount', $this->formatAmount($factura['TotalPendienteCobro'] ?? $total)));
         $batch->appendChild($totalExecutableAmount);
 
+        // Divisa del lote (EUR para euros).
         $batch->appendChild($dom->createElement('InvoiceCurrencyCode', 'EUR'));
         $fileHeader->appendChild($batch);
         $root->appendChild($fileHeader);
 
         //
-        // PARTIES
+        // PARTIES: definición de las partes intervinientes (emisor y receptor).
         //
         $parties = $dom->createElement('Parties');
 
-        // SellerParty (emisor)
+        // SellerParty: datos del emisor de la factura.
         $seller = $dom->createElement('SellerParty');
         $taxIdS = $dom->createElement('TaxIdentification');
+        // PersonTypeCode: "J" persona jurídica (empresa).
         $taxIdS->appendChild($dom->createElement('PersonTypeCode', 'J'));
+        // ResidenceTypeCode: "R" residente en España.
         $taxIdS->appendChild($dom->createElement('ResidenceTypeCode', 'R'));
+        // TaxIdentificationNumber: CIF/NIF del emisor.
         $taxIdS->appendChild($dom->createElement('TaxIdentificationNumber', $factura['CifEmisor'] ?? ''));
         $seller->appendChild($taxIdS);
 
         $legalS = $dom->createElement('LegalEntity');
+        // CorporateName: razón social del emisor.
         $legalS->appendChild($dom->createElement('CorporateName', $factura['NombreEmisor'] ?? ''));
+        // TradeName: nombre comercial (se puede repetir la razón social).
         $legalS->appendChild($dom->createElement('TradeName', $factura['NombreEmisor'] ?? ''));
 
+        // AddressInSpain: domicilio fiscal del emisor.
         $addressS = $dom->createElement('AddressInSpain');
+        // Address: calle y número.
         $addressS->appendChild($dom->createElement('Address', $factura['EmisorDirec'] ?? ''));
+        // PostCode: código postal.
         $addressS->appendChild($dom->createElement('PostCode', $factura['EmisorCpostal'] ?? ''));
+        // Town: municipio/población.
         $addressS->appendChild($dom->createElement('Town', $factura['EmisorCiudad'] ?? ''));
+        // Province: provincia.
         $addressS->appendChild($dom->createElement('Province', $factura['EmisorProv'] ?? ''));
+        // CountryCode: código de país ISO (ESP para España).
         $addressS->appendChild($dom->createElement('CountryCode', $factura['EmisorCpais'] ?? 'ESP'));
         $legalS->appendChild($addressS);
 
@@ -136,8 +163,11 @@ class FacturaXmlElectronica
         // BuyerParty (cliente / destinatario)
         $buyer = $dom->createElement('BuyerParty');
         $taxIdB = $dom->createElement('TaxIdentification');
+        // PersonTypeCode: tipo de sujeto (J = jurídica, F = física).
         $taxIdB->appendChild($dom->createElement('PersonTypeCode', 'J'));
+        // ResidenceTypeCode: residencia fiscal (R = residente en España).
         $taxIdB->appendChild($dom->createElement('ResidenceTypeCode', 'R'));
+        // TaxIdentificationNumber: NIF/CIF del cliente.
         $taxIdB->appendChild($dom->createElement('TaxIdentificationNumber', $factura['NifCliente'] ?? ''));
         $buyer->appendChild($taxIdB);
 
@@ -190,9 +220,11 @@ class FacturaXmlElectronica
             $buyer->appendChild($adminCentres);
         }
 
+        // Datos legales del cliente
         $legalB = $dom->createElement('LegalEntity');
         $legalB->appendChild($dom->createElement('CorporateName', $factura['NombreCliente'] ?? ''));
 
+        // Dirección del cliente
         $addressB = $dom->createElement('AddressInSpain');
         $addressB->appendChild($dom->createElement('Address', $factura['ReceptorDirec'] ?? ''));
         $addressB->appendChild($dom->createElement('PostCode', $factura['ReceptorCpostal'] ?? ''));
@@ -201,6 +233,7 @@ class FacturaXmlElectronica
         $addressB->appendChild($dom->createElement('CountryCode', $factura['ReceptorCpais'] ?? 'ESP'));
         $legalB->appendChild($addressB);
 
+        // ContactDetails del cliente (email)
         if (!empty($factura['EmailCliente'])) {
             $contactB = $dom->createElement('ContactDetails');
             $contactB->appendChild($dom->createElement('ElectronicMail', $factura['EmailCliente']));
@@ -217,7 +250,7 @@ class FacturaXmlElectronica
         $invoices = $dom->createElement('Invoices');
         $invoice  = $dom->createElement('Invoice');
 
-        // InvoiceHeader
+        // InvoiceHeader: datos básicos de identificación de la factura
         $header = $dom->createElement('InvoiceHeader');
         $header->appendChild($dom->createElement('InvoiceNumber', $factura['NumFactura'] ?? ''));
         $header->appendChild($dom->createElement('InvoiceSeriesCode', $factura['Serie'] ?? ''));
@@ -235,21 +268,44 @@ class FacturaXmlElectronica
         );
 
         // Periodo de facturación opcional (InvoicingPeriod)
-        if (!empty($factura['inicioPeriodo']) || !empty($factura['finPeriodo'])) {
+        // Acepta tanto InicioPeriodo/FinPeriodo como inicioPeriodo/finPeriodo.
+        $inicioPeriodo = $factura['InicioPeriodo'] ?? $factura['inicioPeriodo'] ?? null;
+        $finPeriodo    = $factura['FinPeriodo'] ?? $factura['finPeriodo'] ?? null;
+
+        if (!empty($inicioPeriodo) || !empty($finPeriodo)) {
             $periodNode = $dom->createElement('InvoicingPeriod');
 
-            if (!empty($factura['inicioPeriodo'])) {
+            if (!empty($inicioPeriodo)) {
                 $periodNode->appendChild(
-                    $dom->createElement('StartDate', $this->formatDate($factura['inicioPeriodo']))
+                    $dom->createElement('StartDate', $this->formatDate($inicioPeriodo))
                 );
             }
 
-            if (!empty($factura['finPeriodo'])) {
+            if (!empty($finPeriodo)) {
                 $periodNode->appendChild(
-                    $dom->createElement('EndDate', $this->formatDate($factura['finPeriodo']))
+                    $dom->createElement('EndDate', $this->formatDate($finPeriodo))
                 );
             }
 
+            $issue->appendChild($periodNode);
+        }
+
+
+        // Si no se han usado inicioPeriodo/finPeriodo, comprobamos variantes Inicioperiodo/Finperiodo.
+        if (empty($factura['inicioPeriodo']) && empty($factura['finPeriodo'])
+            && (!empty($factura['Inicioperiodo']) || !empty($factura['Finperiodo']))
+        ) {
+            $periodNode = $dom->createElement('InvoicingPeriod');
+            if (!empty($factura['Inicioperiodo'])) {
+                $periodNode->appendChild(
+                    $dom->createElement('StartDate', $this->formatDate($factura['Inicioperiodo']))
+                );
+            }
+            if (!empty($factura['Finperiodo'])) {
+                $periodNode->appendChild(
+                    $dom->createElement('EndDate', $this->formatDate($factura['Finperiodo']))
+                );
+            }
             $issue->appendChild($periodNode);
         }
 

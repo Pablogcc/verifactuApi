@@ -8,6 +8,12 @@ use DOMXPath;
 use DateTime;
 use DateTimeZone;
 
+/**
+ * Servicio de firma electrónica para documentos Facturae.
+ *
+ * Carga el certificado desde un fichero PFX y construye
+ * una firma XAdES-BES/EPES compatible con la política Facturae.
+ */
 class ChilkatLikeFacturaeSigner
 {
     // XMLDSig / XAdES namespaces
