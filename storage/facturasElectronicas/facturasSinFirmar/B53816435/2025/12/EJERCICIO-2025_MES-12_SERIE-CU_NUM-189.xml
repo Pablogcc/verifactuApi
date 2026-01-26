@@ -66,10 +66,7 @@
       </InvoiceHeader>
       <InvoiceIssueData>
         <IssueDate>2025-12-13</IssueDate>
-        <InvoicingPeriod>
-          <StartDate>2025-12-13</StartDate>
-          <EndDate>2026-12-13</EndDate>
-        </InvoicingPeriod>
+        <InvoicingPeriod/>
         <InvoiceCurrencyCode>EUR</InvoiceCurrencyCode>
         <TaxCurrencyCode>EUR</TaxCurrencyCode>
         <LanguageName>es</LanguageName>
