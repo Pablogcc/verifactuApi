@@ -62,7 +62,7 @@ class ConsultaCDIController extends Controller
 
         // Si es intracomunitario -> usar VIES
         if ($idTypeNum === '02') {
-            $nombre = strtoupper($data['nombre']);
+            $nombre = strtoupper(str_replace('&', '', $data['nombre']));
             // En el JSON puede venir el dni como: "ESB12345678" o "ES B12345678"
             $nifInput = strtoupper(trim($data['nif']));
             // Normalizar quitando los espacios y también guiones(por si acaso)
@@ -167,7 +167,7 @@ class ConsultaCDIController extends Controller
         // ========= Resto: NIF nacional (01) =========
         //Cogemos el NIF y el NOMBRE de esa factura elegida y la ponemos en mayúsculas
         $nif = strtoupper($data['nif']);
-        $nombre = strtoupper($data['nombre']);
+        $nombre = strtoupper(str_replace('&', '', $data['nombre']));
 
         // Llamamos al servicio y comprobamos si el NIF y el NOMBRE son correctos
         $clienteCDI = new ClientesSOAPConsultaCDI();
